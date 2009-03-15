@@ -11,7 +11,7 @@ TARGETS = libpurple-twitter-protocol$(PLUGIN_SUFFIX)
 LD = $(CC)
 
 ifeq ($(strip $(IS_WIN32)), 1)
-TWITGIN_INC_PATHS += -I$(GTK_TOP)/include/gtk-2.0 \
+TWITTER_INC_PATHS += -I$(GTK_TOP)/include/gtk-2.0 \
 			-I$(GTK_TOP)/include/pango-1.0 \
 			-I$(GTK_TOP)/include/atk-1.0 \
 			-I$(GTK_TOP)/include/cairo \
@@ -30,20 +30,20 @@ LIBS =	-lgtk-win32-2.0 \
 			-lintl \
 			-lpurple \
 			-lpidgin
-CFLAGS := $(PURPLE_CFLAGS) $(TWITGIN_INC_PATHS)
+CFLAGS := $(PURPLE_CFLAGS) $(TWITTER_INC_PATHS)
 else
 CFLAGS := $(PURPLE_CFLAGS) $(PIDGIN_CFLAGS)
 LIB_PATHS = 
 LIBS = $(PIDGIN_LIBS)
 endif
 
-TWITGIN_C_SRC = twitter.c 
-TWITGIN_H_SRC = $(TWITGIN_C_SRC:%.c=%.h)
-TWITGIN_OBJ = $(TWITGIN_C_SRC:%.c=%.o)
+TWITTER_C_SRC = twitter.c twitter_request.c
+TWITTER_H_SRC = $(TWITTER_C_SRC:%.c=%.h)
+TWITTER_OBJ = $(TWITTER_C_SRC:%.c=%.o)
 
-DISTFILES = twitter.c Makefile global.mak version.mak
+DISTFILES = $(TWITTER_C_SRC) Makefile global.mak version.mak
 
-OBJECTS = $(TWITGIN_OBJ)
+OBJECTS = $(TWITTER_OBJ)
 
 .PHONY: clean install build
 
@@ -60,6 +60,6 @@ uninstall:
 clean:
 	rm -f $(TARGETS) $(OBJECTS)
 
-libpurple-twitter-protocol$(PLUGIN_SUFFIX): $(TWITGIN_OBJ)
-	$(LD) $(LDFLAGS) -shared $(TWITGIN_OBJ) $(LIB_PATHS) $(LIBS) $(DLL_LD_FLAGS) -o libpurple-twitter-protocol$(PLUGIN_SUFFIX)
+libpurple-twitter-protocol$(PLUGIN_SUFFIX): $(TWITTER_OBJ)
+	$(LD) $(LDFLAGS) -shared $(TWITTER_OBJ) $(LIB_PATHS) $(LIBS) $(DLL_LD_FLAGS) -o libpurple-twitter-protocol$(PLUGIN_SUFFIX)
 
