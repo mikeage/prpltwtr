@@ -1,29 +1,11 @@
 /**
+ * TODO: legal stuff
+ *
  * purple
  *
  * Purple is the legal property of its developers, whose names are too numerous
  * to list here.  Please refer to the COPYRIGHT file distributed with this
  * source distribution.
- *
- * Twitter is a mock protocol plugin for Pidgin and libpurple. You can create
- * accounts with it, sign on and off, add buddies, and send and receive IMs,
- * all without connecting to a server!
- * 
- * Beyond that basic functionality, twitter supports presence and
- * away/available messages, offline messages, user info, typing notification,
- * privacy allow/block lists, chat rooms, whispering, room lists, and protocol
- * icons and emblems. Notable missing features are file transfer and account
- * registration and authentication.
- * 
- * Twitter is intended as an example of how to write a libpurple protocol
- * plugin. It doesn't contain networking code or an event loop, but it does
- * demonstrate how to use the libpurple API to do pretty much everything a prpl
- * might need to do.
- * 
- * Twitter is also a useful tool for hacking on Pidgin, Finch, and other
- * libpurple clients. It's a full-featured protocol plugin, but doesn't depend
- * on an external server, so it's a quick and easy way to exercise test new
- * code. It also allows you to work while you're disconnected.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -85,14 +67,6 @@ typedef gboolean (*XmlNodeFilterFunc)(xmlnode *xml,
 typedef void (*XmlNodeActionFunc)(xmlnode *xml,
 		gpointer data);
 
-typedef struct 
-{
-	int since_id;
-	int current_page;
-	gboolean retrieve_all;
-	GList *statuses;
-	int expected;
-} TwitterGetFriendsTimelineData;
 
 typedef void (*TwitterSendRequestFunc)(PurpleAccount *acct, xmlnode *node, gpointer user_data);
 
@@ -102,6 +76,15 @@ typedef struct {
 	TwitterSendRequestFunc error_func;
 	gpointer user_data;
 } TwitterSendRequestData;
+typedef struct
+{
+	gpointer user_data;
+	char *url;
+	char *query_string;
+	TwitterSendRequestFunc callback;
+	int page;
+	int expected_count;
+} TwitterMultiPageRequestData;
 
 typedef struct _TwitterUserData TwitterUserData;
 typedef struct _TwitterStatusData TwitterStatusData;
@@ -134,8 +117,9 @@ typedef struct
 	guint timer;
 } TwitterConnectionData;
 
-static void twitter_get_friends_timeline_do(PurpleAccount *account,
-		TwitterGetFriendsTimelineData *data);
+#define MAX_TWEET_LENGTH 140
+
+void purple_account_set_int(PurpleAccount *account, const char *name, int value);
 
 static int twitter_account_get_last_status_id(PurpleAccount *account)
 {
@@ -145,7 +129,6 @@ static void twitter_account_set_last_status_id(PurpleAccount *account, int statu
 {
 	purple_account_set_int(account, "twitter_last_status_id", status_id);
 }
-void purple_account_set_int(PurpleAccount *account, const char *name, int value);
 
 static char *_(char *txt)
 {
@@ -270,7 +253,7 @@ static TwitterBuddyData *twitter_buddy_get_buddy_data(PurpleBuddy *b)
 
 static char *twitter_status_text_get_dst_user(const char *text)
 {
-	static char buf[255];
+	static char buf[MAX_TWEET_LENGTH];
 	char *space_pos;
 	if (text == NULL)
 		return NULL;
@@ -284,7 +267,7 @@ static char *twitter_status_text_get_dst_user(const char *text)
 	return buf;
 }
 
-static const char* twitter_status_text_get_text(const char *text)
+static const char *twitter_status_text_get_text(const char *text)
 {
 	if (text[0] != '@')
 	{
@@ -370,7 +353,7 @@ static PurpleBuddy *twitter_buddy_new(PurpleAccount *account, const char *screen
 	return b;
 }
 
-static void twitter_user_data_handle_new(PurpleAccount *account, TwitterUserData *u)
+static void twitter_user_data_handle_new(PurpleAccount *account, TwitterUserData *u, gboolean add_missing_buddy)
 {
 	PurpleBuddy *b;
 	if (!u)
@@ -415,9 +398,6 @@ static void twitter_status_data_handle_new(PurpleAccount *account, char *src_use
 		twitter_account_set_last_status_id(account, s->id);
 	}
 
-	b = purple_find_buddy(account, src_user);
-	if (b)
-		twitter_buddy_set_twitter_status(b, s);
 
 	if (update_conv)
 	{
@@ -426,7 +406,7 @@ static void twitter_status_data_handle_new(PurpleAccount *account, char *src_use
 		{
 			//Account received an im
 			PurpleMessageFlags receive_flags = PURPLE_MESSAGE_RECV;
-			serv_got_im(purple_account_get_connection(account), b->name,
+			serv_got_im(purple_account_get_connection(account), src_user,
 					twitter_status_text_get_text(s->text),
 					receive_flags, s->created_at);
 		}
@@ -457,7 +437,10 @@ static void twitter_status_data_handle_new(PurpleAccount *account, char *src_use
 
 	}
 
-	if (!b)
+	b = purple_find_buddy(account, src_user);
+	if (b)
+		twitter_buddy_set_twitter_status(b, s);
+	else
 		twitter_status_data_free(s);
 }
 
@@ -586,6 +569,7 @@ static void twitter_send_im_cb(PurpleAccount *account, xmlnode *node, gpointer u
 
 static void twitter_get_friends_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)
 {
+	//TODO handle multiple pages of data
 	GList *users = twitter_users_node_parse(node);
 	GList *l;
 	for (l = users; l; l = l->next)
@@ -596,7 +580,7 @@ static void twitter_get_friends_cb(PurpleAccount *account, xmlnode *node, gpoint
 		char *screen_name = g_strdup(user->screen_name);
 		g_free(data);
 
-		twitter_user_data_handle_new(account, user);
+		twitter_user_data_handle_new(account, user, TRUE);
 		if (status != NULL)
 			twitter_status_data_handle_new(account, screen_name, status, FALSE);
 		g_free(screen_name);
@@ -637,8 +621,8 @@ static void twitter_send_request(PurpleAccount *account, gboolean post,
 	gchar *request;
 	const char *pass = purple_connection_get_password(purple_account_get_connection(account));
 	const char *sn = purple_account_get_username(account);
-	char* auth_text = g_strdup_printf("%s:%s", sn, pass);
-	char* auth_text_b64 = purple_base64_encode((guchar *) auth_text, strlen(auth_text));
+	char *auth_text = g_strdup_printf("%s:%s", sn, pass);
+	char *auth_text_b64 = purple_base64_encode((guchar *) auth_text, strlen(auth_text));
 	TwitterSendRequestData *request_data = g_new0(TwitterSendRequestData, 1);
 
 	request_data->account = account;
@@ -649,17 +633,17 @@ static void twitter_send_request(PurpleAccount *account, gboolean post,
 	g_free(auth_text);
 
 	request = g_strdup_printf(
-			"%s %s HTTP/1.0\r\n"
+			"%s %s%s%s HTTP/1.0\r\n"
 			"User-Agent: Mozilla/4.0 (compatible; MSIE 5.5)\r\n"
 			"Host: twitter.com\r\n"
 			"Authorization: Basic %s\r\n"
 			"Content-Length: %d\r\n\r\n"
 			"%s",
 			post ? "POST" : "GET",
-			url,
+			url, (!post && query_string ? "?" : ""), (!post && query_string ? query_string : ""),
 			auth_text_b64,
-			query_string ? strlen(query_string) : 0,
-			query_string ? query_string : "");
+			query_string  && post ? strlen(query_string) : 0,
+			query_string && post ? query_string : "");
 
 	printf("Request: %s\n", request);
 	g_free(auth_text_b64);
@@ -668,11 +652,65 @@ static void twitter_send_request(PurpleAccount *account, gboolean post,
 			twitter_send_request_cb, request_data);
 	g_free(request);
 }
+
+static void twitter_send_request_multipage_do(PurpleAccount *account,
+		TwitterMultiPageRequestData *request_data);
+static void twitter_send_request_mutlipage_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)
+{
+	TwitterMultiPageRequestData *request_data = user_data;
+	xmlnode *child = node->child;
+	int count = 0;
+	while ((child = child->next) != NULL)
+		if (child->name)
+			count++;
+
+	request_data->callback(account, node, request_data->user_data);
+
+	if (count < request_data->expected_count)
+	{
+		g_free(request_data->url);
+		if (request_data->query_string)
+			g_free(request_data->query_string);
+	} else {
+		request_data->page++;
+		twitter_send_request_multipage_do(account, request_data);
+	}
+}
+
+static void twitter_send_request_multipage_do(PurpleAccount *account,
+		TwitterMultiPageRequestData *request_data)
+{
+	char *full_query_string = g_strdup_printf("%s%spage=%d",
+			request_data->query_string ? request_data->query_string : "",
+			request_data->query_string && strlen(request_data->query_string) > 0 ? "&" : "",
+			request_data->page);
+
+	twitter_send_request(account, FALSE,
+			request_data->url, full_query_string,
+			twitter_send_request_mutlipage_cb, request_data);
+	g_free(full_query_string);
+}
+//don't include count in the query_string
+static void twitter_send_request_multipage(PurpleAccount *account, 
+		const char *url, const char *query_string,
+		TwitterSendRequestFunc callback, gpointer data,
+		int expected_count)
+{
+	TwitterMultiPageRequestData *request_data = g_new0(TwitterMultiPageRequestData, 1);
+	request_data->user_data = data;
+	request_data->url = g_strdup(url);
+	request_data->query_string = query_string ? g_strdup(query_string) : NULL;
+	request_data->callback = callback;
+	request_data->page = 1;
+	request_data->expected_count = expected_count;
+
+	twitter_send_request_multipage_do(account, request_data);
+}
 static void twitter_get_friends(PurpleAccount *account)
 {
 	twitter_send_request(account, FALSE,
 			"http://twitter.com/statuses/friends.xml", NULL,
-			twitter_get_friends_cb, account);
+			twitter_get_friends_cb, NULL);
 }
 
 static void twitter_get_rate_limit_status_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)
@@ -788,10 +826,40 @@ static GList *twitter_status_types(PurpleAccount *acct)
 	return types;
 }
 
-static void twitter_get_friends_timeline_complete(PurpleAccount *account, TwitterGetFriendsTimelineData *data)
+/*
+static void twitter_get_friends_timeline_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)
 {
-	GList *l;
-	for (l = data->statuses; l; l = l->next)
+	GList *statuses = twitter_statuses_node_parse(node);
+
+	//TODO
+
+	g_list_free(statuses);
+}
+
+static void twitter_get_friends_timeline(PurpleAccount *account,
+		unsigned int since_id)
+{
+	int count = 200;
+
+	//why strdup?
+	char *query = since_id ? 
+		g_strdup_printf("since_id=%d&count=%d", since_id, count) :
+		g_strdup_printf("count=%d", count);
+
+
+	twitter_send_request_multipage(account,
+			"http://twitter.com/statuses/friends_timeline.xml", query,
+			twitter_get_friends_timeline_cb, NULL,
+			count);
+	g_free(query);
+
+}*/
+static void twitter_get_replies_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)
+{
+	GList *statuses = twitter_statuses_node_parse(node);
+	GList *l = statuses;
+
+	for (l = statuses; l; l = l->next)
 	{
 		TwitterBuddyData *data = l->data;
 		TwitterStatusData *status = data->status;
@@ -803,75 +871,31 @@ static void twitter_get_friends_timeline_complete(PurpleAccount *account, Twitte
 			twitter_status_data_free(status);
 		} else {
 			char *screen_name = g_strdup(user_data->screen_name);
-			twitter_user_data_handle_new(account, user_data);
+			twitter_user_data_handle_new(account, user_data, FALSE);
 			twitter_status_data_handle_new(account, screen_name, status, TRUE);
 			g_free(screen_name);
 		}
 	}
-	g_list_free(data->statuses);
-
-	g_free(data);
+	g_list_free(statuses);
 }
-static void twitter_get_friends_timeline_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)
+
+static void twitter_get_replies(PurpleAccount *account,
+		unsigned int since_id)
 {
-	TwitterGetFriendsTimelineData *data = user_data;
-	GList *statuses = twitter_statuses_node_parse(node);
-	int childCount = 0;
+	int count = 20;
+	//why strdup?
+	char *query = since_id ?
+		g_strdup_printf("since_id=%d", since_id) :
+		g_strdup("");
 
-	data->statuses = g_list_concat(statuses, data->statuses);
-
-	if (!data->retrieve_all)
-	{
-		twitter_get_friends_timeline_complete(account, data);
-		return;
-	} 
-	childCount = g_list_length(statuses);
-
-	if (data->current_page == 2 || childCount < data->expected)
-	{
-		twitter_get_friends_timeline_complete(account, data);
-		return;
-	} else {
-		data->current_page = data->current_page + 1;
-		twitter_get_friends_timeline_do(account, data);
-	}
-	/*typedef struct 
-	  {
-	  int since_id;
-	  int current_page;
-	  gboolean retrieve_all;
-	  GList *statusesNodes;
-	  } TwitterGetFriendsTimelineData;*/
-}
-static void twitter_get_friends_timeline_do(PurpleAccount *account,
-		TwitterGetFriendsTimelineData *data)
-{
-	char *query = data->since_id ? 
-		g_strdup_printf("since_id=%d&count=%d&page=%d", data->since_id, data->expected, data->current_page) :
-		g_strdup_printf("count=%d&page=%d", data->expected, data->current_page);
-
-	twitter_send_request(account, TRUE,
-			"http://twitter.com/statuses/friends_timeline.xml", query,
-			twitter_get_friends_timeline_cb, data);
+	twitter_send_request_multipage(account,
+			"http://twitter.com/statuses/replies.xml", query,
+			twitter_get_replies_cb, NULL,
+			count);
 	g_free(query);
 }
 
 
-static void twitter_get_friends_timeline(PurpleAccount *account,
-		unsigned int since_id,
-		gboolean retrieve_all)
-{
-	int count = 200;
-
-	TwitterGetFriendsTimelineData *data = g_new0(TwitterGetFriendsTimelineData, 1);
-	data->since_id = since_id;
-	data->current_page = 1;
-	data->retrieve_all = retrieve_all;
-	data->expected = count;
-
-	twitter_get_friends_timeline_do(account, data);
-
-}
 /* 
  * UI callbacks
  */
@@ -887,9 +911,7 @@ twitter_request_id_ok(PurpleConnection *gc, PurpleRequestFields *fields)
 {
 	PurpleAccount *acct = purple_connection_get_account(gc);
 	int id = purple_request_fields_get_integer(fields, "id");
-	twitter_get_friends_timeline(acct,
-			id,
-			TRUE);
+	twitter_get_replies(acct, id);
 }
 static void twitter_action_get_timeline(PurplePluginAction *action)
 {
@@ -934,7 +956,7 @@ static GList *twitter_actions(PurplePlugin *plugin, gpointer context)
 	action = purple_plugin_action_new("Retrieve users", twitter_action_get_user_info);
 	l = g_list_append(l, action);
 
-	action = purple_plugin_action_new("Retrieve timeline", twitter_action_get_timeline);
+	action = purple_plugin_action_new("Retrieve replies", twitter_action_get_timeline);
 	l = g_list_append(l, action);
 
 	action = purple_plugin_action_new("Rate Limit Status", twitter_action_get_rate_limit_status);
@@ -947,9 +969,7 @@ static GList *twitter_actions(PurplePlugin *plugin, gpointer context)
 static gboolean twitter_timeout(gpointer data)
 {
 	PurpleAccount *account = data;
-	twitter_get_friends_timeline(account,
-			twitter_account_get_last_status_id(account),
-			TRUE);
+	twitter_get_friends(account);
 	return TRUE;
 }
 
@@ -1000,7 +1020,7 @@ static void twitter_close(PurpleConnection *gc)
 static int twitter_send_im(PurpleConnection *gc, const char *who,
 		const char *message, PurpleMessageFlags flags)
 {
-	if (strlen(who) + strlen(message) + 2 > 140)
+	if (strlen(who) + strlen(message) + 2 > MAX_TWEET_LENGTH)
 	{
 		purple_conv_present_error(who, purple_connection_get_account(gc), "Message is too long");
 		return 0;
