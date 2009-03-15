@@ -350,7 +350,7 @@ static void twitter_user_data_handle_new(PurpleAccount *account, TwitterUserData
 	b = purple_find_buddy(account, u->screen_name);
 	if (!b)
 	{
-		if (TRUE) //TODO
+		if (add_missing_buddy)
 		{
 			b = twitter_buddy_new(account, u->screen_name, u->name);
 		}
@@ -572,12 +572,96 @@ static void twitter_get_friends_cb(PurpleAccount *account, xmlnode *node, gpoint
 	}
 }
 
-static void twitter_get_friends(PurpleAccount *account)
+static void twitter_account_set_buddies_online(PurpleAccount *account)
+{
+	GSList *buddy; GSList *buddies;
+	buddies = purple_find_buddies(account, NULL);
+	for (buddy = buddies; buddy; buddy = buddy->next)
+	{
+		purple_prpl_got_user_status(account, ((PurpleBuddy *) buddy->data)->name, "online", NULL);
+	}
+}
+
+
+static void twitter_get_friends_custom(PurpleAccount *account,
+		TwitterSendRequestFunc success_func,
+		TwitterSendRequestFunc error_func)
 {
 	twitter_send_request(account, FALSE,
 			"http://twitter.com/statuses/friends.xml", NULL,
-			twitter_get_friends_cb, twitter_error_cb, NULL);
+			success_func, error_func, NULL);
 }
+static void twitter_get_friends(PurpleAccount *account)
+{
+	twitter_get_friends_custom(account, twitter_get_friends_cb, twitter_error_cb);
+}
+static void twitter_get_replies_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)
+{
+	GList *statuses = twitter_statuses_node_parse(node);
+	GList *l = statuses;
+
+	for (l = statuses; l; l = l->next)
+	{
+		TwitterBuddyData *data = l->data;
+		TwitterStatusData *status = data->status;
+		TwitterUserData *user_data = data->user;
+		g_free(data);
+
+		if (!user_data)
+		{
+			twitter_status_data_free(status);
+		} else {
+			char *screen_name = g_strdup(user_data->screen_name);
+			twitter_user_data_handle_new(account, user_data, FALSE);
+			twitter_status_data_handle_new(account, screen_name, status, TRUE);
+			g_free(screen_name);
+		}
+	}
+	g_list_free(statuses);
+}
+
+static void twitter_get_replies(PurpleAccount *account,
+		unsigned int since_id)
+{
+	int count = 20;
+	//why strdup?
+	char *query = since_id ?
+		g_strdup_printf("since_id=%d", since_id) :
+		g_strdup("");
+
+	twitter_send_request_multipage(account,
+			"http://twitter.com/statuses/replies.xml", query,
+			twitter_get_replies_cb, NULL,
+			count, NULL);
+	g_free(query);
+}
+
+static gboolean twitter_timeout(gpointer data)
+{
+	PurpleAccount *account = data;
+	twitter_get_replies(account, twitter_account_get_last_status_id(account));
+	return TRUE;
+}
+
+static void twitter_get_friends_verify_connection_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)
+{
+	PurpleConnection *gc = purple_account_get_connection(account);
+	if (purple_connection_get_state(gc) != PURPLE_CONNECTED)
+	{
+
+		TwitterConnectionData *twitter = gc->proto_data;
+		purple_connection_update_progress(gc, _("Connected"),
+				1,   /* which connection step this is */
+				2);  /* total number of steps */
+		purple_connection_set_state(gc, PURPLE_CONNECTED);
+
+		twitter_account_set_buddies_online(account);
+		twitter->timer = purple_timeout_add(1000 * 60, twitter_timeout, account);
+	}
+
+	twitter_get_friends_cb(account, node, user_data);
+}
+
 
 static void twitter_get_rate_limit_status_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)
 {
@@ -720,46 +804,7 @@ count);
 g_free(query);
 
 }*/
-static void twitter_get_replies_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)
-{
-	GList *statuses = twitter_statuses_node_parse(node);
-	GList *l = statuses;
 
-	for (l = statuses; l; l = l->next)
-	{
-		TwitterBuddyData *data = l->data;
-		TwitterStatusData *status = data->status;
-		TwitterUserData *user_data = data->user;
-		g_free(data);
-
-		if (!user_data)
-		{
-			twitter_status_data_free(status);
-		} else {
-			char *screen_name = g_strdup(user_data->screen_name);
-			twitter_user_data_handle_new(account, user_data, FALSE);
-			twitter_status_data_handle_new(account, screen_name, status, TRUE);
-			g_free(screen_name);
-		}
-	}
-	g_list_free(statuses);
-}
-
-static void twitter_get_replies(PurpleAccount *account,
-		unsigned int since_id)
-{
-	int count = 20;
-	//why strdup?
-	char *query = since_id ?
-		g_strdup_printf("since_id=%d", since_id) :
-		g_strdup("");
-
-	twitter_send_request_multipage(account,
-			"http://twitter.com/statuses/replies.xml", query,
-			twitter_get_replies_cb, NULL,
-			count, NULL);
-	g_free(query);
-}
 
 
 /* 
@@ -832,19 +877,16 @@ static GList *twitter_actions(PurplePlugin *plugin, gpointer context)
 }
 
 
-static gboolean twitter_timeout(gpointer data)
-{
-	PurpleAccount *account = data;
-	twitter_get_friends(account);
-	return TRUE;
-}
 
+static void twitter_verify_connection(PurpleAccount *acct)
+{
+	twitter_get_friends_custom(acct, twitter_get_friends_verify_connection_cb, twitter_error_cb);
+}
 static void twitter_login(PurpleAccount *acct)
 {
 	PurpleConnection *gc = purple_account_get_connection(acct);
 	TwitterConnectionData *twitter = g_new0(TwitterConnectionData, 1);
 	gc->proto_data = twitter;
-	twitter->timer = purple_timeout_add(1000 * 60, twitter_timeout, acct);
 
 	purple_debug_info("twitter", "logging in %s\n", acct->username);
 
@@ -853,22 +895,9 @@ static void twitter_login(PurpleAccount *acct)
 			0,   /* which connection step this is */
 			2);  /* total number of steps */
 
+	twitter_verify_connection(acct);
 
-	purple_connection_update_progress(gc, _("Connected"),
-			1,   /* which connection step this is */
-			2);  /* total number of steps */
 
-	purple_connection_set_state(gc, PURPLE_CONNECTED);
-
-	{
-		GSList *buddy; GSList *buddies;
-		buddies = purple_find_buddies(acct, NULL);
-		for (buddy = buddies; buddy; buddy = buddy->next)
-		{
-			purple_prpl_got_user_status(acct, ((PurpleBuddy *) buddy->data)->name, "online", NULL);
-		}
-		//GSList *buddies = purple_find_buddies(acct, NULL);
-	}
 
 }
 
