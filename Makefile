@@ -37,7 +37,7 @@ LIB_PATHS =
 LIBS = $(PIDGIN_LIBS)
 endif
 
-TWITTER_C_SRC = twitter.c twitter_request.c
+TWITTER_C_SRC = twitter.c twitter_request.c twitter_api.c
 TWITTER_H_SRC = $(TWITTER_C_SRC:%.c=%.h)
 TWITTER_OBJ = $(TWITTER_C_SRC:%.c=%.o)
 

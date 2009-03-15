@@ -51,6 +51,7 @@
 #include "cipher.h"
 #include "request.h"
 #include "twitter_request.h"
+#include "twitter_api.h"
 
 
 #define TWITTER_PROTOCOL_ID "prpl-twitter"
@@ -583,17 +584,9 @@ static void twitter_account_set_buddies_online(PurpleAccount *account)
 }
 
 
-static void twitter_get_friends_custom(PurpleAccount *account,
-		TwitterSendRequestFunc success_func,
-		TwitterSendRequestFunc error_func)
-{
-	twitter_send_request(account, FALSE,
-			"http://twitter.com/statuses/friends.xml", NULL,
-			success_func, error_func, NULL);
-}
 static void twitter_get_friends(PurpleAccount *account)
 {
-	twitter_get_friends_custom(account, twitter_get_friends_cb, twitter_error_cb);
+	twitter_api_get_friends(account, twitter_get_friends_cb, twitter_error_cb);
 }
 static void twitter_get_replies_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)
 {
@@ -620,26 +613,10 @@ static void twitter_get_replies_cb(PurpleAccount *account, xmlnode *node, gpoint
 	g_list_free(statuses);
 }
 
-static void twitter_get_replies(PurpleAccount *account,
-		unsigned int since_id)
-{
-	int count = 20;
-	//why strdup?
-	char *query = since_id ?
-		g_strdup_printf("since_id=%d", since_id) :
-		g_strdup("");
-
-	twitter_send_request_multipage(account,
-			"http://twitter.com/statuses/replies.xml", query,
-			twitter_get_replies_cb, NULL,
-			count, NULL);
-	g_free(query);
-}
-
 static gboolean twitter_timeout(gpointer data)
 {
 	PurpleAccount *account = data;
-	twitter_get_replies(account, twitter_account_get_last_status_id(account));
+	twitter_api_get_replies(account, twitter_account_get_last_status_id(account), twitter_get_replies_cb, NULL);
 	return TRUE;
 }
 
@@ -661,7 +638,6 @@ static void twitter_get_friends_verify_connection_cb(PurpleAccount *account, xml
 
 	twitter_get_friends_cb(account, node, user_data);
 }
-
 
 static void twitter_get_rate_limit_status_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)
 {
@@ -703,11 +679,10 @@ static void twitter_get_rate_limit_status_cb(PurpleAccount *account, xmlnode *no
 			_(message));
 	g_free(message);
 }
+
 static void twitter_get_rate_limit_status(PurpleAccount *account)
 {
-	twitter_send_request(account, FALSE, 
-			"http://twitter.com/account/rate_limit_status.xml", NULL,
-			twitter_get_rate_limit_status_cb, NULL, account);
+	twitter_api_get_rate_limit_status(account, twitter_get_rate_limit_status_cb, NULL);
 }
 
 /*
@@ -817,12 +792,11 @@ static void twitter_action_get_user_info(PurplePluginAction *action)
 	twitter_get_friends(acct);
 }
 
-	static void
-twitter_request_id_ok(PurpleConnection *gc, PurpleRequestFields *fields)
+static void twitter_request_id_ok(PurpleConnection *gc, PurpleRequestFields *fields)
 {
 	PurpleAccount *acct = purple_connection_get_account(gc);
 	int id = purple_request_fields_get_integer(fields, "id");
-	twitter_get_replies(acct, id);
+	twitter_api_get_replies(acct, id, twitter_get_replies_cb, NULL);
 }
 static void twitter_action_get_timeline(PurplePluginAction *action)
 {
@@ -880,7 +854,7 @@ static GList *twitter_actions(PurplePlugin *plugin, gpointer context)
 
 static void twitter_verify_connection(PurpleAccount *acct)
 {
-	twitter_get_friends_custom(acct, twitter_get_friends_verify_connection_cb, twitter_error_cb);
+	twitter_api_get_friends(acct, twitter_get_friends_verify_connection_cb, twitter_error_cb);
 }
 static void twitter_login(PurpleAccount *acct)
 {
@@ -923,12 +897,9 @@ static int twitter_send_im(PurpleConnection *gc, const char *who,
 	else
 	{
 		char *status = g_strdup_printf("@%s %s", who, message);
-		char *query = g_strdup_printf("status=%s", purple_url_encode(status));
-		twitter_send_request(purple_connection_get_account(gc), TRUE,
-				"http://twitter.com/statuses/update.xml", query,
+		twitter_api_set_status(purple_connection_get_account(gc), status,
 				twitter_send_im_cb, NULL, NULL);
 		g_free(status);
-		g_free(query);
 		return 1;
 	}
 	//  const char *from_username = gc->account->username;
@@ -1006,23 +977,17 @@ static void twitter_get_info(PurpleConnection *gc, const char *username) {
 			NULL);     /* userdata for callback */
 }
 
-static void twitter_send_update_status(PurpleAccount *acct, const char *msg, TwitterSendRequestFunc success_func, gpointer data)
-{
-	if (msg != NULL && strcmp("", msg))
-	{
-		char *query = g_strdup_printf("status=%s", purple_url_encode(msg));
-		twitter_send_request(acct, TRUE,
-				"http://twitter.com/statuses/update.xml", query,
-				success_func, NULL, data);
-		g_free(query);
-	}
-}
 static void twitter_set_status(PurpleAccount *acct, PurpleStatus *status) {
 	const char *msg = purple_status_get_attr_string(status, "message");
 	purple_debug_info("twitter", "setting %s's status to %s: %s\n",
 			acct->username, purple_status_get_name(status), msg);
 
-	twitter_send_update_status(acct, msg, NULL, NULL);
+	if (msg && strcmp("", msg))
+	{
+		//TODO, sucecss && fail
+		twitter_api_set_status(acct, msg,
+				NULL, NULL, NULL);
+	}
 }
 
 static void twitter_add_buddy(PurpleConnection *gc, PurpleBuddy *buddy,
