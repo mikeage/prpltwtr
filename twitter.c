@@ -49,6 +49,7 @@
 #include "util.h"
 #include "version.h"
 #include "cipher.h"
+#include "sslconn.h"
 #include "request.h"
 #include "twitter_request.h"
 #include "twitter_api.h"
@@ -92,12 +93,11 @@ typedef struct
 	guint timer;
 } TwitterConnectionData;
 
-void purple_account_set_int(PurpleAccount *account, const char *name, int value);
-
 static int twitter_account_get_last_status_id(PurpleAccount *account)
 {
 	return purple_account_get_int(account, "twitter_last_status_id", 0);
 }
+
 static void twitter_account_set_last_status_id(PurpleAccount *account, int status_id)
 {
 	purple_account_set_int(account, "twitter_last_status_id", status_id);
@@ -844,6 +844,7 @@ static void twitter_verify_connection(PurpleAccount *acct)
 {
 	twitter_api_get_friends(acct, twitter_get_friends_verify_connection_cb, twitter_error_cb, NULL);
 }
+
 static void twitter_login(PurpleAccount *acct)
 {
 	PurpleConnection *gc = purple_account_get_connection(acct);
@@ -947,14 +948,24 @@ static void twitter_get_info(PurpleConnection *gc, const char *username) {
 	//TODO: error check
 	PurpleBuddy *b = purple_find_buddy(purple_connection_get_account(gc), username);
 	TwitterBuddyData *data = twitter_buddy_get_buddy_data(b);
+	if (!data)
+	{
+		//TODO?
+		return;
+	}
 	TwitterUserData *user_data = data->user;
+	TwitterStatusData *status_data = data->status;
 
 	PurpleNotifyUserInfo *info = purple_notify_user_info_new();
 
 	//body = _("No user info.");
 	if (user_data)
 	{
-		purple_notify_user_info_add_pair(info, "Description", user_data->description);
+		purple_notify_user_info_add_pair(info, "Description:", user_data->description);
+	}
+	if (status_data)
+	{
+		purple_notify_user_info_add_pair(info, "Status:", status_data->text);
 	}
 
 	/* show a buddy's user info in a nice dialog box */
