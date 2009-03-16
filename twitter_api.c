@@ -56,15 +56,17 @@
 
 void twitter_api_get_rate_limit_status(PurpleAccount *account,
 		TwitterSendRequestFunc success_func,
-		TwitterSendRequestFunc error_func)
+		TwitterSendRequestFunc error_func,
+		gpointer data)
 {
 	twitter_send_request(account, FALSE, 
 			"http://twitter.com/account/rate_limit_status.xml", NULL,
-			success_func, error_func, account);
+			success_func, error_func, data);
 }
 void twitter_api_get_friends(PurpleAccount *account,
 		TwitterSendRequestFunc success_func,
-		TwitterSendRequestFunc error_func)
+		TwitterSendRequestFunc error_func,
+		gpointer data)
 {
 	twitter_send_request(account, FALSE,
 			"http://twitter.com/statuses/friends.xml", NULL,
@@ -73,7 +75,8 @@ void twitter_api_get_friends(PurpleAccount *account,
 void twitter_api_get_replies(PurpleAccount *account,
 		unsigned int since_id,
 		TwitterSendRequestFunc success_func,
-		TwitterSendRequestFunc error_func)
+		TwitterSendRequestFunc error_func,
+		gpointer data)
 {
 	int count = 20;
 	//why strdup?

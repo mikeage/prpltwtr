@@ -573,20 +573,9 @@ static void twitter_get_friends_cb(PurpleAccount *account, xmlnode *node, gpoint
 	}
 }
 
-static void twitter_account_set_buddies_online(PurpleAccount *account)
-{
-	GSList *buddy; GSList *buddies;
-	buddies = purple_find_buddies(account, NULL);
-	for (buddy = buddies; buddy; buddy = buddy->next)
-	{
-		purple_prpl_got_user_status(account, ((PurpleBuddy *) buddy->data)->name, "online", NULL);
-	}
-}
-
-
 static void twitter_get_friends(PurpleAccount *account)
 {
-	twitter_api_get_friends(account, twitter_get_friends_cb, twitter_error_cb);
+	twitter_api_get_friends(account, twitter_get_friends_cb, twitter_error_cb, NULL);
 }
 static void twitter_get_replies_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)
 {
@@ -616,7 +605,7 @@ static void twitter_get_replies_cb(PurpleAccount *account, xmlnode *node, gpoint
 static gboolean twitter_timeout(gpointer data)
 {
 	PurpleAccount *account = data;
-	twitter_api_get_replies(account, twitter_account_get_last_status_id(account), twitter_get_replies_cb, NULL);
+	twitter_api_get_replies(account, twitter_account_get_last_status_id(account), twitter_get_replies_cb, NULL, NULL);
 	return TRUE;
 }
 
@@ -632,7 +621,6 @@ static void twitter_get_friends_verify_connection_cb(PurpleAccount *account, xml
 				2);  /* total number of steps */
 		purple_connection_set_state(gc, PURPLE_CONNECTED);
 
-		twitter_account_set_buddies_online(account);
 		twitter->timer = purple_timeout_add(1000 * 60, twitter_timeout, account);
 	}
 
@@ -682,7 +670,7 @@ static void twitter_get_rate_limit_status_cb(PurpleAccount *account, xmlnode *no
 
 static void twitter_get_rate_limit_status(PurpleAccount *account)
 {
-	twitter_api_get_rate_limit_status(account, twitter_get_rate_limit_status_cb, NULL);
+	twitter_api_get_rate_limit_status(account, twitter_get_rate_limit_status_cb, NULL, NULL);
 }
 
 /*
@@ -796,7 +784,7 @@ static void twitter_request_id_ok(PurpleConnection *gc, PurpleRequestFields *fie
 {
 	PurpleAccount *acct = purple_connection_get_account(gc);
 	int id = purple_request_fields_get_integer(fields, "id");
-	twitter_api_get_replies(acct, id, twitter_get_replies_cb, NULL);
+	twitter_api_get_replies(acct, id, twitter_get_replies_cb, NULL, NULL);
 }
 static void twitter_action_get_timeline(PurplePluginAction *action)
 {
@@ -854,7 +842,7 @@ static GList *twitter_actions(PurplePlugin *plugin, gpointer context)
 
 static void twitter_verify_connection(PurpleAccount *acct)
 {
-	twitter_api_get_friends(acct, twitter_get_friends_verify_connection_cb, twitter_error_cb);
+	twitter_api_get_friends(acct, twitter_get_friends_verify_connection_cb, twitter_error_cb, NULL);
 }
 static void twitter_login(PurpleAccount *acct)
 {
