@@ -24,16 +24,32 @@
 
 #include <glib.h>
 
-typedef void (*TwitterSendRequestFunc)(PurpleAccount *acct, xmlnode *node, gpointer user_data);
+typedef enum
+{
+	TWITTER_REQUEST_ERROR_NONE,
+	TWITTER_REQUEST_ERROR_SERVER,
+	TWITTER_REQUEST_ERROR_TWITTER_GENERAL,
+	TWITTER_REQUEST_ERROR_INVALID_XML
+} TwitterRequestErrorType;
+
+typedef struct
+{
+	TwitterRequestErrorType type;
+	/*const xmlnode *response_node;*/
+	const gchar *message;
+} TwitterRequestErrorData;
+
+typedef void (*TwitterSendRequestSuccessFunc)(PurpleAccount *acct, xmlnode *node, gpointer user_data);
+typedef void (*TwitterSendRequestErrorFunc)(PurpleAccount *acct, const TwitterRequestErrorData *error_data, gpointer user_data);
 
 void twitter_send_request(PurpleAccount *account, gboolean post,
 		const char *url, const char *query_string, 
-		TwitterSendRequestFunc success_callback, TwitterSendRequestFunc error_callback,
+		TwitterSendRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback,
 		gpointer data);
 
 //don't include count in the query_string
 void twitter_send_request_multipage(PurpleAccount *account, 
 		const char *url, const char *query_string,
-		TwitterSendRequestFunc success_callback, TwitterSendRequestFunc error_callback,
+		TwitterSendRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback,
 		int expected_count, gpointer data);
 

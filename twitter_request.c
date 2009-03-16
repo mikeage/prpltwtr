@@ -39,8 +39,8 @@
 
 typedef struct {
 	PurpleAccount *account;
-	TwitterSendRequestFunc success_func;
-	TwitterSendRequestFunc error_func;
+	TwitterSendRequestSuccessFunc success_func;
+	TwitterSendRequestErrorFunc error_func;
 	gpointer user_data;
 } TwitterSendRequestData;
 
@@ -49,8 +49,8 @@ typedef struct
 	gpointer user_data;
 	char *url;
 	char *query_string;
-	TwitterSendRequestFunc success_callback;
-	TwitterSendRequestFunc error_callback;
+	TwitterSendRequestSuccessFunc success_callback;
+	TwitterSendRequestErrorFunc error_callback;
 	int page;
 	int expected_count;
 } TwitterMultiPageRequestData;
@@ -60,39 +60,60 @@ void twitter_send_request_multipage_do(PurpleAccount *account,
 
 void twitter_send_request_cb(PurpleUtilFetchUrlData *url_data, gpointer user_data,
 		const gchar *url_text, gsize len,
-		const gchar *error_message)
+		const gchar *server_error_message)
 {
 	TwitterSendRequestData *request_data = user_data;
-	if (error_message)
+	const gchar *error_message = NULL;
+	gchar *error_node_text = NULL;
+	xmlnode *response_node = NULL;
+	TwitterRequestErrorType error_type = TWITTER_REQUEST_ERROR_NONE;
+
+	if (server_error_message)
 	{
-		printf("Request_cb error: %s\n", error_message);
-		//TODO: handle
+		error_type = TWITTER_REQUEST_ERROR_SERVER;
+		error_message = server_error_message;
 	} else {
-		xmlnode *node = xmlnode_from_str(url_text, len);
-		printf("Request_cb data: %s\n", url_text);
-		if (!node)
+		response_node = xmlnode_from_str(url_text, len);
+		if (!response_node)
 		{
-			//TODO: handle
+			error_type = TWITTER_REQUEST_ERROR_INVALID_XML;
+			error_message = url_text;
 		} else {
-			if (xmlnode_get_child(node, "error"))
+			xmlnode *error_node;
+			if ((error_node = xmlnode_get_child(response_node, "error")) != NULL)
 			{
-				if (request_data->error_func)
-				{
-					request_data->error_func(request_data->account, node, request_data->user_data);
-				}
-			} else {
-				if (request_data->success_func)
-					request_data->success_func(request_data->account, node, request_data->user_data);
+				error_type = TWITTER_REQUEST_ERROR_TWITTER_GENERAL;
+				error_node_text = xmlnode_get_data(error_node);
+				error_message = error_node_text;
 			}
-			g_free(node);
 		}
 	}
-	g_free(user_data);
+
+	if (error_type != TWITTER_REQUEST_ERROR_NONE)
+	{
+		TwitterRequestErrorData *error_data = g_new0(TwitterRequestErrorData, 1);
+		error_data->type = error_type;
+		error_data->message = error_message;
+		//error_data->response_node = response_node;
+		if (request_data->error_func)
+			request_data->error_func(request_data->account, error_data, request_data->user_data);
+
+		g_free(error_data);
+	} else {
+		if (request_data->success_func)
+			request_data->success_func(request_data->account, response_node, request_data->user_data);
+	}
+
+	if (response_node != NULL)
+		xmlnode_free(response_node);
+	if (error_node_text != NULL)
+		g_free(error_node_text);
+	g_free(request_data);
 }
 
 void twitter_send_request(PurpleAccount *account, gboolean post,
 		const char *url, const char *query_string, 
-		TwitterSendRequestFunc success_callback, TwitterSendRequestFunc error_callback,
+		TwitterSendRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback,
 		gpointer data)
 {
 	gchar *request;
@@ -170,7 +191,7 @@ void twitter_send_request_multipage_do(PurpleAccount *account,
 //don't include count in the query_string
 void twitter_send_request_multipage(PurpleAccount *account, 
 		const char *url, const char *query_string,
-		TwitterSendRequestFunc success_callback, TwitterSendRequestFunc error_callback,
+		TwitterSendRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback,
 		int expected_count, gpointer data)
 {
 	TwitterMultiPageRequestData *request_data = g_new0(TwitterMultiPageRequestData, 1);

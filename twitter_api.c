@@ -55,8 +55,8 @@
 
 
 void twitter_api_get_rate_limit_status(PurpleAccount *account,
-		TwitterSendRequestFunc success_func,
-		TwitterSendRequestFunc error_func,
+		TwitterSendRequestSuccessFunc success_func,
+		TwitterSendRequestErrorFunc error_func,
 		gpointer data)
 {
 	twitter_send_request(account, FALSE, 
@@ -64,8 +64,8 @@ void twitter_api_get_rate_limit_status(PurpleAccount *account,
 			success_func, error_func, data);
 }
 void twitter_api_get_friends(PurpleAccount *account,
-		TwitterSendRequestFunc success_func,
-		TwitterSendRequestFunc error_func,
+		TwitterSendRequestSuccessFunc success_func,
+		TwitterSendRequestErrorFunc error_func,
 		gpointer data)
 {
 	twitter_send_request(account, FALSE,
@@ -74,8 +74,8 @@ void twitter_api_get_friends(PurpleAccount *account,
 }
 void twitter_api_get_replies(PurpleAccount *account,
 		unsigned int since_id,
-		TwitterSendRequestFunc success_func,
-		TwitterSendRequestFunc error_func,
+		TwitterSendRequestSuccessFunc success_func,
+		TwitterSendRequestErrorFunc error_func,
 		gpointer data)
 {
 	int count = 20;
@@ -93,8 +93,8 @@ void twitter_api_get_replies(PurpleAccount *account,
 
 void twitter_api_set_status(PurpleAccount *acct, 
 		const char *msg,
-		TwitterSendRequestFunc success_func,
-		TwitterSendRequestFunc error_func,
+		TwitterSendRequestSuccessFunc success_func,
+		TwitterSendRequestErrorFunc error_func,
 		gpointer data)
 {
 	if (msg != NULL && strcmp("", msg))

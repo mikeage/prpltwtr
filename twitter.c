@@ -325,16 +325,69 @@ static PurpleBuddy *twitter_buddy_new(PurpleAccount *account, const char *screen
 	b->proto_data = g_new0(TwitterBuddyData, 1);
 	return b;
 }
-static void twitter_error_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)
+static void twitter_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error_data, gpointer user_data)
 {
-	char *error_msg = xmlnode_get_child_data(node, "error");
-	if (!strcmp(error_msg, "This method requires authentication."))
+	static gchar *error_title = "Twitter Request Error";
+	PurpleConnection *gc = purple_account_get_connection(account);
+
+	switch (error_data->type)
+	{
+		case TWITTER_REQUEST_ERROR_SERVER:
+			if (purple_connection_get_state(gc) == PURPLE_CONNECTING)
+			{
+				purple_connection_error_reason(gc, PURPLE_CONNECTION_ERROR_NETWORK_ERROR, error_data->message);
+			}
+			purple_notify_error(gc, error_title,
+					"Twitter Server Error", error_data->message);
+			break;
+		case TWITTER_REQUEST_ERROR_INVALID_XML:
+			purple_notify_error(gc, error_title,
+					"Twitter Response Invalid XML", error_data->message);
+			break;
+		case TWITTER_REQUEST_ERROR_TWITTER_GENERAL:
+			if (!strcmp(error_data->message, "This method requires authentication."))
+			{
+				purple_connection_error_reason(gc, PURPLE_CONNECTION_ERROR_AUTHENTICATION_FAILED, _("Invalid password."));
+				break;
+			} else {
+				purple_notify_error(gc, error_title,
+						"Error received", error_data->message);
+			}
+			break;
+		case TWITTER_REQUEST_ERROR_NONE: //shouldn't happen
+			break;
+		default:
+			break;
+	}
+	if (purple_connection_get_state(gc) == PURPLE_CONNECTING)
+	{
+		purple_connection_error_reason(gc, PURPLE_CONNECTION_ERROR_OTHER_ERROR, "Error");
+	}
+
+	/*
+	if (!strcmp(error_message, "This method requires authentication."))
 	{
 		PurpleConnection *gc = purple_account_get_connection(account);
 		char *err = _("Invalid password.");
 		purple_connection_error_reason(gc, PURPLE_CONNECTION_ERROR_AUTHENTICATION_FAILED, err);
-
+		return;
 	}
+	*/
+
+	/*
+	if (error_message)
+	{
+		purple_notify_error(purple_account_get_connection(account),
+				"Twitter Error",
+				error_message,
+				NULL);
+	} else {
+		purple_notify_error(purple_account_get_connection(account),
+				"Twitter Error",
+				"Unknown error",
+				NULL);
+	}
+	*/
 }
 
 static void twitter_user_data_handle_new(PurpleAccount *account, TwitterUserData *u, gboolean add_missing_buddy)
