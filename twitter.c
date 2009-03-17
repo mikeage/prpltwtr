@@ -658,7 +658,7 @@ static void twitter_get_replies_cb(PurpleAccount *account, xmlnode *node, gpoint
 static gboolean twitter_timeout(gpointer data)
 {
 	PurpleAccount *account = data;
-	twitter_api_get_replies(account, twitter_account_get_last_status_id(account), twitter_get_replies_cb, NULL, NULL);
+	twitter_api_get_replies(account, twitter_account_get_last_status_id(account), twitter_get_replies_cb, twitter_error_cb, NULL);
 	return TRUE;
 }
 
@@ -723,7 +723,7 @@ static void twitter_get_rate_limit_status_cb(PurpleAccount *account, xmlnode *no
 
 static void twitter_get_rate_limit_status(PurpleAccount *account)
 {
-	twitter_api_get_rate_limit_status(account, twitter_get_rate_limit_status_cb, NULL, NULL);
+	twitter_api_get_rate_limit_status(account, twitter_get_rate_limit_status_cb, twitter_error_cb, NULL);
 }
 
 /*
@@ -837,7 +837,7 @@ static void twitter_request_id_ok(PurpleConnection *gc, PurpleRequestFields *fie
 {
 	PurpleAccount *acct = purple_connection_get_account(gc);
 	int id = purple_request_fields_get_integer(fields, "id");
-	twitter_api_get_replies(acct, id, twitter_get_replies_cb, NULL, NULL);
+	twitter_api_get_replies(acct, id, twitter_get_replies_cb, twitter_error_cb, NULL);
 }
 static void twitter_action_get_timeline(PurplePluginAction *action)
 {
@@ -940,7 +940,7 @@ static int twitter_send_im(PurpleConnection *gc, const char *who,
 	{
 		char *status = g_strdup_printf("@%s %s", who, message);
 		twitter_api_set_status(purple_connection_get_account(gc), status,
-				twitter_send_im_cb, NULL, NULL);
+				twitter_send_im_cb, twitter_error_cb, NULL);
 		g_free(status);
 		return 1;
 	}
@@ -1038,7 +1038,7 @@ static void twitter_set_status(PurpleAccount *acct, PurpleStatus *status) {
 	{
 		//TODO, sucecss && fail
 		twitter_api_set_status(acct, msg,
-				NULL, NULL, NULL);
+				NULL, twitter_error_cb, NULL);
 	}
 }
 
