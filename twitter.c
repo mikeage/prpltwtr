@@ -32,7 +32,7 @@
  * separately from libpurple, remove the internal.h include below and replace
  * it with code to include your own config.h or similar.  If you're going to
  * provide for translation, you'll also need to setup the gettext macros. */
-//#include "internal.h"
+#include "config.h"
 
 #include "account.h"
 #include "accountopt.h"
@@ -103,14 +103,14 @@ static void twitter_account_set_last_status_id(PurpleAccount *account, int statu
 	purple_account_set_int(account, "twitter_last_status_id", status_id);
 }
 
-static char *_(char *txt)
+/*static char *_(char *txt)
 {
 	return txt;
 }
 static char *N_(char *txt)
 {
 	return txt;
-}
+}*/
 
 //borrowed almost exactly from msn
 static time_t twitter_status_parse_timestamp(const char *timestamp)
@@ -347,7 +347,7 @@ static void twitter_error_cb(PurpleAccount *account, const TwitterRequestErrorDa
 		case TWITTER_REQUEST_ERROR_TWITTER_GENERAL:
 			if (!strcmp(error_data->message, "This method requires authentication."))
 			{
-				purple_connection_error_reason(gc, PURPLE_CONNECTION_ERROR_AUTHENTICATION_FAILED, _("Invalid password."));
+				purple_connection_error_reason(gc, PURPLE_CONNECTION_ERROR_AUTHENTICATION_FAILED, "Invalid password.");
 				break;
 			} else {
 				purple_notify_error(gc, error_title,
@@ -669,7 +669,7 @@ static void twitter_get_friends_verify_connection_cb(PurpleAccount *account, xml
 	{
 
 		TwitterConnectionData *twitter = gc->proto_data;
-		purple_connection_update_progress(gc, _("Connected"),
+		purple_connection_update_progress(gc, "Connected",
 				1,   /* which connection step this is */
 				2);  /* total number of steps */
 		purple_connection_set_state(gc, PURPLE_CONNECTED);
@@ -713,11 +713,11 @@ static void twitter_get_rate_limit_status_cb(PurpleAccount *account, xmlnode *no
 			}
 		}
 	}
-	message = g_strdup_printf("%d/%d %s", remaining_hits, hourly_limit, _("Remaining"));
+	message = g_strdup_printf("%d/%d %s", remaining_hits, hourly_limit, "Remaining");
 	purple_notify_info(NULL,  /* plugin handle or PurpleConnection */
-			_("Rate Limit Status"),
-			_("Rate Limit Status"),
-			_(message));
+			("Rate Limit Status"),
+			("Rate Limit Status"),
+			(message));
 	g_free(message);
 }
 
@@ -785,7 +785,7 @@ static GList *twitter_status_types(PurpleAccount *acct)
 
 	type = purple_status_type_new(PURPLE_STATUS_AVAILABLE, TWITTER_STATUS_ONLINE,
 			TWITTER_STATUS_ONLINE, TRUE);
-	purple_status_type_add_attr(type, "message", _("Online"),
+	purple_status_type_add_attr(type, "message", ("Online"),
 			purple_value_new(PURPLE_TYPE_STRING));
 	types = g_list_prepend(types, type);
 
@@ -848,19 +848,19 @@ static void twitter_action_get_timeline(PurplePluginAction *action)
 
 	group = purple_request_field_group_new(NULL);
 
-	field = purple_request_field_int_new("id", _("Minutes"), 0);
+	field = purple_request_field_int_new("id", ("Minutes"), 0);
 	purple_request_field_group_add_field(group, field);
 
 	request = purple_request_fields_new();
 	purple_request_fields_add_group(request, group);
 
 	purple_request_fields(action->plugin,
-			N_("Timeline"),
-			_("Set last time"),
+			("Timeline"),
+			("Set last time"),
 			NULL,
 			request,
-			_("_Set"), G_CALLBACK(twitter_request_id_ok),
-			_("_Cancel"), NULL,
+			("_Set"), G_CALLBACK(twitter_request_id_ok),
+			("_Cancel"), NULL,
 			purple_connection_get_account(gc), NULL, NULL,
 			gc);
 }
@@ -907,7 +907,7 @@ static void twitter_login(PurpleAccount *acct)
 	purple_debug_info("twitter", "logging in %s\n", acct->username);
 
 	/* purple wants a minimum of 2 steps */
-	purple_connection_update_progress(gc, _("Connecting"),
+	purple_connection_update_progress(gc, ("Connecting"),
 			0,   /* which connection step this is */
 			2);  /* total number of steps */
 

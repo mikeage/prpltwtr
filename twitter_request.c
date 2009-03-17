@@ -32,7 +32,7 @@
  * separately from libpurple, remove the internal.h include below and replace
  * it with code to include your own config.h or similar.  If you're going to
  * provide for translation, you'll also need to setup the gettext macros. */
-//#include "internal.h"
+#include "config.h"
 
 #include "request.h"
 #include "twitter_request.h"

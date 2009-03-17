@@ -5,7 +5,7 @@
 -include version.mak
 
 # PIDGIN_TREE_TOP is only meaningful on Windows, point it to top directory of Pidgin. IT MUST BE A RELATIVE PATH
-PIDGIN_TREE_TOP := ../pidgin-2.5.2
+PIDGIN_TREE_TOP := ../../pidgin-2.5.4
 
 
 # For Linux
