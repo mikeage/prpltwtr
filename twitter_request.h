@@ -42,6 +42,12 @@ typedef struct
 typedef void (*TwitterSendRequestSuccessFunc)(PurpleAccount *acct, xmlnode *node, gpointer user_data);
 typedef void (*TwitterSendRequestErrorFunc)(PurpleAccount *acct, const TwitterRequestErrorData *error_data, gpointer user_data);
 
+typedef gboolean (*TwitterSendRequestMultiPageSuccessFunc)(PurpleAccount *acct, xmlnode *node, gboolean last_page, gpointer user_data);
+typedef gboolean (*TwitterSendRequestMultiPageErrorFunc)(PurpleAccount *acct, const TwitterRequestErrorData *error_data, gpointer user_data);
+
+typedef void (*TwitterSendRequestMultiPageAllSuccessFunc)(PurpleAccount *acct, GList *nodes, gboolean last_page, gpointer user_data);
+typedef void (*TwitterSendRequestMultiPageAllErrorFunc)(PurpleAccount *acct, const TwitterRequestErrorData *error_data, gpointer user_data);
+
 void twitter_send_request(PurpleAccount *account, gboolean post,
 		const char *url, const char *query_string, 
 		TwitterSendRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback,
@@ -50,6 +56,11 @@ void twitter_send_request(PurpleAccount *account, gboolean post,
 //don't include count in the query_string
 void twitter_send_request_multipage(PurpleAccount *account, 
 		const char *url, const char *query_string,
-		TwitterSendRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback,
+		TwitterSendRequestMultiPageSuccessFunc success_callback, TwitterSendRequestMultiPageErrorFunc error_callback,
 		int expected_count, gpointer data);
 
+void twitter_send_request_multipage_all(PurpleAccount *account,
+		const char *url, const char *query_string,
+		TwitterSendRequestMultiPageAllSuccessFunc success_callback,
+		TwitterSendRequestMultiPageAllErrorFunc error_callback,
+		int expected_count, gpointer data);
