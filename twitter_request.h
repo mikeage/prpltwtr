@@ -45,8 +45,8 @@ typedef void (*TwitterSendRequestErrorFunc)(PurpleAccount *acct, const TwitterRe
 typedef gboolean (*TwitterSendRequestMultiPageSuccessFunc)(PurpleAccount *acct, xmlnode *node, gboolean last_page, gpointer user_data);
 typedef gboolean (*TwitterSendRequestMultiPageErrorFunc)(PurpleAccount *acct, const TwitterRequestErrorData *error_data, gpointer user_data);
 
-typedef void (*TwitterSendRequestMultiPageAllSuccessFunc)(PurpleAccount *acct, GList *nodes, gboolean last_page, gpointer user_data);
-typedef void (*TwitterSendRequestMultiPageAllErrorFunc)(PurpleAccount *acct, const TwitterRequestErrorData *error_data, gpointer user_data);
+typedef void (*TwitterSendRequestMultiPageAllSuccessFunc)(PurpleAccount *acct, GList *nodes, gpointer user_data);
+typedef gboolean (*TwitterSendRequestMultiPageAllErrorFunc)(PurpleAccount *acct, const TwitterRequestErrorData *error_data, gpointer user_data);
 
 void twitter_send_request(PurpleAccount *account, gboolean post,
 		const char *url, const char *query_string, 

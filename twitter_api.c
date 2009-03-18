@@ -64,14 +64,14 @@ void twitter_api_get_rate_limit_status(PurpleAccount *account,
 			success_func, error_func, data);
 }
 void twitter_api_get_friends(PurpleAccount *account,
-		TwitterSendRequestMultiPageSuccessFunc success_func,
-		TwitterSendRequestMultiPageErrorFunc error_func,
+		TwitterSendRequestMultiPageAllSuccessFunc success_func,
+		TwitterSendRequestMultiPageAllErrorFunc error_func,
 		gpointer data)
 {
-	twitter_send_request_multipage(account, 
+	twitter_send_request_multipage_all(account, 
 			"https://twitter.com/statuses/friends.xml", NULL,
 			success_func, error_func,
-			100, NULL);
+			100, data);
 }
 void twitter_api_get_replies(PurpleAccount *account,
 		unsigned int since_id,

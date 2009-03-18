@@ -474,6 +474,18 @@ static GList *twitter_users_node_parse(xmlnode *users_node)
 	}
 	return users;
 }
+static GList *twitter_users_nodes_parse(GList *nodes)
+{
+	GList *l_users_data = NULL;
+	GList *l;
+	for (l = nodes; l; l = l->next)
+	{
+		xmlnode *node = l->data;
+		l_users_data = g_list_concat(twitter_users_node_parse(node), l_users_data);
+	}
+	return l_users_data;
+}
+
 static GList *twitter_statuses_node_parse(xmlnode *statuses_node)
 {
 	GList *statuses = NULL;
@@ -588,13 +600,10 @@ static void twitter_send_im_cb(PurpleAccount *account, xmlnode *node, gpointer u
 	   */
 }
 
-
-static void twitter_get_friends_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)
+static void twitter_buddy_datas_set_all(PurpleAccount *account, GList *buddy_datas)
 {
-	//TODO handle multiple pages of data
-	GList *users = twitter_users_node_parse(node);
 	GList *l;
-	for (l = users; l; l = l->next)
+	for (l = buddy_datas; l; l = l->next)
 	{
 		TwitterBuddyData *data = l->data;
 		TwitterUserData *user = data->user;
@@ -609,7 +618,14 @@ static void twitter_get_friends_cb(PurpleAccount *account, xmlnode *node, gpoint
 
 		g_free(screen_name);
 	}
-	g_list_free(users);
+	g_list_free(buddy_datas);
+}
+
+static void twitter_get_friends_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)
+{
+	//TODO handle multiple pages of data
+	GList *buddy_datas = twitter_users_node_parse(node);
+	twitter_buddy_datas_set_all(account, buddy_datas);
 }
 
 static gboolean twitter_get_replies_cb(PurpleAccount *account, xmlnode *node, gboolean last_page, gpointer user_data)
@@ -650,45 +666,36 @@ static gboolean twitter_timeout(gpointer data)
 	return TRUE;
 }
 
-static gboolean twitter_get_friends_verify_connection_cb(PurpleAccount *account,
-		xmlnode *node, gboolean last_page,
+static void twitter_get_friends_verify_connection_cb(PurpleAccount *account,
+		GList *nodes, 
 		gpointer user_data)
 {
 	PurpleConnection *gc = purple_account_get_connection(account);
-	if (purple_connection_get_state(gc) == PURPLE_CONNECTING)
+	TwitterConnectionData *twitter = gc->proto_data;
+	GList *l_users_data = NULL;
+	GList *l;
+
+	purple_connection_update_progress(gc, "Connected",
+			1,   /* which connection step this is */
+			2);  /* total number of steps */
+	purple_connection_set_state(gc, PURPLE_CONNECTED);
+
+	l_users_data = g_list_concat(twitter_users_nodes_parse(nodes), l_users_data);
+
+	for (l = l_users_data; l; l = l->next)
 	{
+		TwitterBuddyData *data = l->data;
+		TwitterStatusData *status = data->status;
 
-		GList *l_users_data, *l;// = twitter_users_node_parse(node);
-		TwitterConnectionData *twitter = gc->proto_data;
-		purple_connection_update_progress(gc, "Connected",
-				1,   /* which connection step this is */
-				2);  /* total number of steps */
-		purple_connection_set_state(gc, PURPLE_CONNECTED);
-
-		//This needs refactoring
-		l_users_data = twitter_users_node_parse(node);
-		for (l = l_users_data; l; l = l->next)
+		if (status && status->created_at && status->id > twitter_connection_get_last_reply_id(gc))
 		{
-			TwitterBuddyData *data = l->data;
-			TwitterStatusData *status = data->status;
-
-			if (status && status->created_at && status->id > twitter_connection_get_last_reply_id(gc))
-			{
-				twitter_connection_set_last_reply_id(gc, status->id);
-			}
-
-			twitter_status_data_free(status);
-			twitter_user_data_free(data->user);
-			g_free(data);
+			twitter_connection_set_last_reply_id(gc, status->id);
 		}
-		g_list_free(l_users_data);
-
-		if (last_page)
-			twitter->timer = purple_timeout_add(1000 * 60, twitter_timeout, account);
 	}
 
-	twitter_get_friends_cb(account, node, user_data);
-	return TRUE;
+	twitter_buddy_datas_set_all(account, l_users_data);
+	twitter->timer = purple_timeout_add(1000 * 60, twitter_timeout, account);
+
 }
 
 static void twitter_get_rate_limit_status_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)

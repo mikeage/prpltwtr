@@ -1,6 +1,6 @@
 void twitter_api_get_friends(PurpleAccount *account,
-		TwitterSendRequestMultiPageSuccessFunc success_func,
-		TwitterSendRequestMultiPageErrorFunc error_func,
+		TwitterSendRequestMultiPageAllSuccessFunc success_func,
+		TwitterSendRequestMultiPageAllErrorFunc error_func,
 		gpointer data);
 
 void twitter_api_get_replies(PurpleAccount *account,

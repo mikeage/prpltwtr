@@ -55,6 +55,14 @@ typedef struct
 	int expected_count;
 } TwitterMultiPageRequestData;
 
+typedef struct
+{
+	GList *nodes;
+	TwitterSendRequestMultiPageAllSuccessFunc success_callback;
+	TwitterSendRequestMultiPageAllErrorFunc error_callback;
+	gpointer user_data;
+} TwitterMultiPageAllRequestData;
+
 void twitter_send_request_multipage_do(PurpleAccount *account,
 		TwitterMultiPageRequestData *request_data);
 
@@ -228,10 +236,52 @@ void twitter_send_request_multipage(PurpleAccount *account,
 	twitter_send_request_multipage_do(account, request_data);
 }
 
+static void twitter_multipage_all_request_data_free(TwitterMultiPageAllRequestData *request_data_all)
+{
+	GList *l = request_data_all->nodes;
+	for (l = request_data_all->nodes; l; l = l->next)
+	{
+		xmlnode_free(l->data);
+	}
+	g_list_free(request_data_all->nodes);
+	g_free(request_data_all);
+}
+
+static gboolean twitter_send_request_multipage_all_success_cb(PurpleAccount *acct, xmlnode *node, gboolean last_page, gpointer user_data)
+{
+	TwitterMultiPageAllRequestData *request_data_all = user_data;
+	request_data_all->nodes = g_list_append(request_data_all->nodes, xmlnode_copy(node)); //TODO: update
+	if (last_page)
+	{
+		request_data_all->success_callback(acct, request_data_all->nodes, request_data_all->user_data);
+		twitter_multipage_all_request_data_free(request_data_all);
+	}
+	return TRUE;
+}
+static gboolean twitter_send_request_multipage_all_error_cb(PurpleAccount *acct, const TwitterRequestErrorData *error_data, gpointer user_data)
+{
+	TwitterMultiPageAllRequestData *request_data_all = user_data;
+	if (request_data_all->error_callback && request_data_all->error_callback(acct, error_data, request_data_all->user_data))
+		return TRUE;
+	twitter_multipage_all_request_data_free(request_data_all);
+	return FALSE;
+}
+
 void twitter_send_request_multipage_all(PurpleAccount *account,
 		const char *url, const char *query_string,
 		TwitterSendRequestMultiPageAllSuccessFunc success_callback,
 		TwitterSendRequestMultiPageAllErrorFunc error_callback,
 		int expected_count, gpointer data)
 {
+	TwitterMultiPageAllRequestData *request_data_all = g_new0(TwitterMultiPageAllRequestData, 1);
+	request_data_all->success_callback = success_callback;
+	request_data_all->error_callback = error_callback;
+	request_data_all->nodes = NULL;
+	request_data_all->user_data = data;
+
+	twitter_send_request_multipage(account,
+			url, query_string,
+			twitter_send_request_multipage_all_success_cb,
+			twitter_send_request_multipage_all_error_cb,
+			expected_count, request_data_all);
 }
