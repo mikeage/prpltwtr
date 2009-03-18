@@ -90,7 +90,8 @@ typedef struct
 
 typedef struct
 {
-	guint timer;
+	guint get_replies_timer;
+	guint get_friends_timer;
 	gint last_reply_id;
 } TwitterConnectionData;
 
@@ -503,6 +504,17 @@ static GList *twitter_statuses_node_parse(xmlnode *statuses_node)
 	}
 	return statuses;
 }
+static GList *twitter_statuses_nodes_parse(GList *nodes)
+{
+	GList *l_users_data = NULL;
+	GList *l;
+	for (l = nodes; l; l = l->next)
+	{
+		xmlnode *node = l->data;
+		l_users_data = g_list_concat(twitter_statuses_node_parse(node), l_users_data);
+	}
+	return l_users_data;
+}
 static gboolean twitter_get_replies_timeout_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error_data, gpointer user_data)
 {
 	return FALSE; //Don't try again
@@ -621,16 +633,15 @@ static void twitter_buddy_datas_set_all(PurpleAccount *account, GList *buddy_dat
 	g_list_free(buddy_datas);
 }
 
-static void twitter_get_friends_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)
+static void twitter_get_friends_cb(PurpleAccount *account, GList *nodes, gpointer user_data)
 {
-	//TODO handle multiple pages of data
-	GList *buddy_datas = twitter_users_node_parse(node);
+	GList *buddy_datas = twitter_users_nodes_parse(nodes);
 	twitter_buddy_datas_set_all(account, buddy_datas);
 }
 
-static gboolean twitter_get_replies_cb(PurpleAccount *account, xmlnode *node, gboolean last_page, gpointer user_data)
+static void twitter_get_replies_cb(PurpleAccount *account, GList *nodes, gpointer user_data)
 {
-	GList *statuses = twitter_statuses_node_parse(node);
+	GList *statuses = twitter_statuses_nodes_parse(nodes);
 	GList *l = statuses;
 
 	for (l = statuses; l; l = l->next)
@@ -652,8 +663,6 @@ static gboolean twitter_get_replies_cb(PurpleAccount *account, xmlnode *node, gb
 		}
 	}
 	g_list_free(statuses);
-
-	return TRUE;
 }
 
 static gboolean twitter_timeout(gpointer data)
@@ -694,7 +703,8 @@ static void twitter_get_friends_verify_connection_cb(PurpleAccount *account,
 	}
 
 	twitter_buddy_datas_set_all(account, l_users_data);
-	twitter->timer = purple_timeout_add(1000 * 60, twitter_timeout, account);
+	twitter->get_replies_timer = purple_timeout_add(1000 * 60, twitter_timeout, account);
+	//twitter->get_friends_timer = purple_timeout_add(1000 * 60 * 5, twitter_timeout, account);
 
 }
 
@@ -846,18 +856,16 @@ g_free(query);
  */
 static void twitter_action_get_user_info(PurplePluginAction *action)
 {
-	//TODO
-	/*PurpleConnection *gc = (PurpleConnection *)action->context;
+	PurpleConnection *gc = (PurpleConnection *)action->context;
 	PurpleAccount *acct = purple_connection_get_account(gc);
-	twitter_api_get_friends(acct, twitter_get_friends_cb, twitter_error_cb, NULL);*/
+	twitter_api_get_friends(acct, twitter_get_friends_cb, NULL, NULL);
 }
 
 static void twitter_request_id_ok(PurpleConnection *gc, PurpleRequestFields *fields)
 {
-	//TODO
-	//PurpleAccount *acct = purple_connection_get_account(gc);
-	//int id = purple_request_fields_get_integer(fields, "id");
-	//twitter_api_get_replies(acct, id, twitter_get_replies_cb, twitter_error_cb, NULL);
+	PurpleAccount *acct = purple_connection_get_account(gc);
+	int id = purple_request_fields_get_integer(fields, "id");
+	twitter_api_get_replies(acct, id, twitter_get_replies_cb, NULL, NULL);
 }
 static void twitter_action_get_replies(PurplePluginAction *action)
 {
@@ -944,8 +952,8 @@ static void twitter_close(PurpleConnection *gc)
 	/* notify other twitter accounts */
 	TwitterConnectionData *twitter = gc->proto_data;
 
-	if (twitter->timer)
-		purple_timeout_remove(twitter->timer);
+	if (twitter->get_replies_timer)
+		purple_timeout_remove(twitter->get_replies_timer);
 
 	g_free(twitter);
 }

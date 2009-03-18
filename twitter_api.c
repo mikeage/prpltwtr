@@ -75,8 +75,8 @@ void twitter_api_get_friends(PurpleAccount *account,
 }
 void twitter_api_get_replies(PurpleAccount *account,
 		unsigned int since_id,
-		TwitterSendRequestMultiPageSuccessFunc success_func,
-		TwitterSendRequestMultiPageErrorFunc error_func,
+		TwitterSendRequestMultiPageAllSuccessFunc success_func,
+		TwitterSendRequestMultiPageAllErrorFunc error_func,
 		gpointer data)
 {
 	int count = 20;
@@ -85,7 +85,7 @@ void twitter_api_get_replies(PurpleAccount *account,
 		g_strdup_printf("since_id=%d", since_id) :
 		g_strdup("");
 
-	twitter_send_request_multipage(account,
+	twitter_send_request_multipage_all(account,
 			"https://twitter.com/statuses/replies.xml", query,
 			success_func, error_func,
 			count, NULL);

@@ -5,8 +5,8 @@ void twitter_api_get_friends(PurpleAccount *account,
 
 void twitter_api_get_replies(PurpleAccount *account,
 		unsigned int since_id,
-		TwitterSendRequestMultiPageSuccessFunc success_func,
-		TwitterSendRequestMultiPageErrorFunc error_func,
+		TwitterSendRequestMultiPageAllSuccessFunc success_func,
+		TwitterSendRequestMultiPageAllErrorFunc error_func,
 		gpointer data);
 
 void twitter_api_get_rate_limit_status(PurpleAccount *account,
