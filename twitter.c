@@ -93,6 +93,7 @@ typedef struct
 	guint get_replies_timer;
 	guint get_friends_timer;
 	gint last_reply_id;
+	gint failed_get_replies_count;
 } TwitterConnectionData;
 
 static int twitter_account_get_last_reply_id(PurpleAccount *account)
@@ -517,7 +518,15 @@ static GList *twitter_statuses_nodes_parse(GList *nodes)
 }
 static gboolean twitter_get_replies_timeout_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error_data, gpointer user_data)
 {
-	return FALSE; //Don't try again
+	PurpleConnection *gc = purple_account_get_connection(account);
+	TwitterConnectionData *twitter = gc->proto_data;
+	twitter->failed_get_replies_count++;
+
+	if (twitter->failed_get_replies_count >= 3)
+	{
+		purple_connection_error_reason(gc, PURPLE_CONNECTION_ERROR_NETWORK_ERROR, "Could not retrieve replies, giving up trying");
+	}
+	return FALSE;
 }
 static void twitter_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error_data, gpointer user_data)
 {
@@ -672,6 +681,9 @@ static void twitter_get_friends_cb(PurpleAccount *account, GList *nodes, gpointe
 
 static void twitter_get_replies_cb(PurpleAccount *account, GList *nodes, gpointer user_data)
 {
+	PurpleConnection *gc = purple_account_get_connection(account);
+	TwitterConnectionData *twitter = gc->proto_data;
+
 	GList *statuses = twitter_statuses_nodes_parse(nodes);
 	GList *l = statuses;
 
@@ -694,6 +706,8 @@ static void twitter_get_replies_cb(PurpleAccount *account, GList *nodes, gpointe
 		}
 	}
 	g_list_free(statuses);
+
+	twitter->failed_get_replies_count = 0;
 }
 
 static gboolean twitter_get_replies_timeout(gpointer data)
