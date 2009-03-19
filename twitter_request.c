@@ -212,7 +212,7 @@ void twitter_send_request_multipage_do(PurpleAccount *account,
 
 	twitter_send_request(account, FALSE,
 			request_data->url, full_query_string,
-			twitter_send_request_multipage_cb, NULL,
+			twitter_send_request_multipage_cb, twitter_send_request_multipage_error_cb,
 			request_data);
 	g_free(full_query_string);
 }

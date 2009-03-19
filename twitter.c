@@ -965,7 +965,8 @@ static void twitter_verify_connection(PurpleAccount *acct)
 	//To verify the connection, we get the user's friends. 
 	//With that we'll update the buddy list and set the last known reply id
 	twitter_api_get_friends(acct,
-			twitter_get_friends_verify_connection_cb, twitter_get_friends_verify_error_cb,
+			twitter_get_friends_verify_connection_cb,
+			twitter_get_friends_verify_error_cb,
 			NULL);
 }
 
