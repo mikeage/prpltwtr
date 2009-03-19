@@ -76,8 +76,6 @@ void twitter_send_request_cb(PurpleUtilFetchUrlData *url_data, gpointer user_dat
 	xmlnode *response_node = NULL;
 	TwitterRequestErrorType error_type = TWITTER_REQUEST_ERROR_NONE;
 
-	printf("Response: %s\n", url_text);
-
 	if (server_error_message)
 	{
 		error_type = TWITTER_REQUEST_ERROR_SERVER;
@@ -153,7 +151,6 @@ void twitter_send_request(PurpleAccount *account, gboolean post,
 			query_string  && post ? strlen(query_string) : 0,
 			query_string && post ? query_string : "");
 
-	printf("Request: %s\n", request);
 	g_free(auth_text_b64);
 	purple_util_fetch_url_request(url, TRUE,
 			"Mozilla/4.0 (compatible; MSIE 5.5)", TRUE, request, FALSE,
