@@ -528,70 +528,6 @@ static gboolean twitter_get_replies_timeout_error_cb(PurpleAccount *account, con
 	}
 	return FALSE;
 }
-static void twitter_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error_data, gpointer user_data)
-{
-	static gchar *error_title = "Twitter Request Error";
-	PurpleConnection *gc = purple_account_get_connection(account);
-
-	switch (error_data->type)
-	{
-		case TWITTER_REQUEST_ERROR_SERVER:
-			if (purple_connection_get_state(gc) == PURPLE_CONNECTING)
-			{
-				purple_connection_error_reason(gc, PURPLE_CONNECTION_ERROR_NETWORK_ERROR, error_data->message);
-			}
-			purple_notify_error(gc, error_title,
-					"Twitter Server Error", error_data->message);
-			break;
-		case TWITTER_REQUEST_ERROR_INVALID_XML:
-			purple_notify_error(gc, error_title,
-					"Twitter Response Invalid XML", error_data->message);
-			break;
-		case TWITTER_REQUEST_ERROR_TWITTER_GENERAL:
-			if (!strcmp(error_data->message, "This method requires authentication."))
-			{
-				purple_connection_error_reason(gc, PURPLE_CONNECTION_ERROR_AUTHENTICATION_FAILED, "Invalid password.");
-				break;
-			} else {
-				purple_notify_error(gc, error_title,
-						"Error received", error_data->message);
-			}
-			break;
-		case TWITTER_REQUEST_ERROR_NONE: //shouldn't happen
-			break;
-		default:
-			break;
-	}
-	if (purple_connection_get_state(gc) == PURPLE_CONNECTING)
-	{
-		purple_connection_error_reason(gc, PURPLE_CONNECTION_ERROR_OTHER_ERROR, "Error");
-	}
-
-	/*
-	if (!strcmp(error_message, "This method requires authentication."))
-	{
-		PurpleConnection *gc = purple_account_get_connection(account);
-		char *err = _("Invalid password.");
-		purple_connection_error_reason(gc, PURPLE_CONNECTION_ERROR_AUTHENTICATION_FAILED, err);
-		return;
-	}
-	*/
-
-	/*
-	if (error_message)
-	{
-		purple_notify_error(purple_account_get_connection(account),
-				"Twitter Error",
-				error_message,
-				NULL);
-	} else {
-		purple_notify_error(purple_account_get_connection(account),
-				"Twitter Error",
-				"Unknown error",
-				NULL);
-	}
-	*/
-}
 static gboolean twitter_get_friends_verify_error_cb(PurpleAccount *account,
 		const TwitterRequestErrorData *error_data,
 		gpointer user_data)
@@ -722,6 +658,7 @@ static gboolean twitter_get_replies_timeout(gpointer data)
 static gboolean twitter_get_friends_timeout(gpointer data)
 {
 	PurpleAccount *account = data;
+	//TODO handle errors
 	twitter_api_get_friends(account, twitter_get_friends_cb, NULL, NULL);
 	return TRUE;
 }
@@ -800,11 +737,6 @@ static void twitter_get_rate_limit_status_cb(PurpleAccount *account, xmlnode *no
 			("Rate Limit Status"),
 			(message));
 	g_free(message);
-}
-
-static void twitter_get_rate_limit_status(PurpleAccount *account)
-{
-	twitter_api_get_rate_limit_status(account, twitter_get_rate_limit_status_cb, twitter_error_cb, NULL);
 }
 
 /*
@@ -949,7 +881,7 @@ static void twitter_action_get_rate_limit_status(PurplePluginAction *action)
 {
 	PurpleConnection *gc = (PurpleConnection *)action->context;
 	PurpleAccount *acct = purple_connection_get_account(gc);
-	twitter_get_rate_limit_status(acct);
+	twitter_api_get_rate_limit_status(acct, twitter_get_rate_limit_status_cb, NULL, NULL);
 }
 
 /* this is set to the actions member of the PurplePluginInfo struct at the
@@ -960,13 +892,13 @@ static GList *twitter_actions(PurplePlugin *plugin, gpointer context)
 	GList *l = NULL;
 	PurplePluginAction *action;
 
-	action = purple_plugin_action_new("Retrieve users", twitter_action_get_user_info);
+	action = purple_plugin_action_new("Debug - Retrieve users", twitter_action_get_user_info);
 	l = g_list_append(l, action);
 
-	action = purple_plugin_action_new("Retrieve replies", twitter_action_get_replies);
+	action = purple_plugin_action_new("Debug - Retrieve replies", twitter_action_get_replies);
 	l = g_list_append(l, action);
 
-	action = purple_plugin_action_new("Rate Limit Status", twitter_action_get_rate_limit_status);
+	action = purple_plugin_action_new("Debug - Rate Limit Status", twitter_action_get_rate_limit_status);
 	l = g_list_append(l, action);
 
 	return l;
@@ -1027,8 +959,9 @@ static int twitter_send_im(PurpleConnection *gc, const char *who,
 	else
 	{
 		char *status = g_strdup_printf("@%s %s", who, message);
+		//TODO handle errors
 		twitter_api_set_status(purple_connection_get_account(gc), status,
-				twitter_send_im_cb, twitter_error_cb, NULL);
+				twitter_send_im_cb, NULL, NULL);
 		g_free(status);
 		return 1;
 	}
@@ -1126,7 +1059,7 @@ static void twitter_set_status(PurpleAccount *acct, PurpleStatus *status) {
 	{
 		//TODO, sucecss && fail
 		twitter_api_set_status(acct, msg,
-				NULL, twitter_error_cb, NULL);
+				NULL, NULL, NULL);
 	}
 }
 
