@@ -38,10 +38,10 @@ LIBS = $(PIDGIN_LIBS)
 endif
 
 TWITTER_C_SRC = twitter.c twitter_request.c twitter_api.c
-TWITTER_H_SRC = $(TWITTER_C_SRC:%.c=%.h)
+TWITTER_H_SRC = $(TWITTER_C_SRC:%.c=%.h) config.h
 TWITTER_OBJ = $(TWITTER_C_SRC:%.c=%.o)
 
-DISTFILES = $(TWITTER_C_SRC) Makefile global.mak version.mak
+DISTFILES = $(TWITTER_C_SRC) $(TWITTER_H_SRC) Makefile global.mak version.mak
 
 OBJECTS = $(TWITTER_OBJ)
 

@@ -100,5 +100,5 @@ LDFLAGS := $(shell (echo $(PIDGIN_CFLAGS) $(PURPLE_CFLAGS)| tr ' ' '\n' | awk '!
 endif
 
 dist: $(DISTFILES)
-	mkdir -p ../$(PACKAGE)-$(VERSION)/`basename $$PWD`
-	cp -f $(DISTFILES) ../$(PACKAGE)-$(VERSION)/`basename $$PWD`/
+	mkdir -p ../$(PACKAGE)-$(VERSION)
+	cp -f $(DISTFILES) ../$(PACKAGE)-$(VERSION)
