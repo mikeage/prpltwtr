@@ -29,6 +29,7 @@
 static PurplePlugin *_twitter_protocol = NULL;
 
 #define TWITTER_STATUS_ONLINE   "online"
+#define TWITTER_STATUS_OFFLINE   "offline"
 
 #define MAX_TWEET_LENGTH 140
 
@@ -783,38 +784,12 @@ static GList *twitter_status_types(PurpleAccount *acct)
 			purple_value_new(PURPLE_TYPE_STRING));
 	types = g_list_prepend(types, type);
 
-	return types;
+	type = purple_status_type_new(PURPLE_STATUS_OFFLINE, TWITTER_STATUS_OFFLINE,
+			TWITTER_STATUS_OFFLINE, TRUE);
+	types = g_list_prepend(types, type);
+
+	return g_list_reverse(types);
 }
-
-/*
-   static void twitter_get_friends_timeline_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)
-   {
-   GList *statuses = twitter_statuses_node_parse(node);
-
-//TODO
-
-g_list_free(statuses);
-}
-
-static void twitter_get_friends_timeline(PurpleAccount *account,
-unsigned int since_id)
-{
-int count = 200;
-
-//why strdup?
-char *query = since_id ? 
-g_strdup_printf("since_id=%d&count=%d", since_id, count) :
-g_strdup_printf("count=%d", count);
-
-
-twitter_send_request_multipage(account,
-"http://twitter.com/statuses/friends_timeline.xml", query,
-twitter_get_friends_timeline_cb, NULL,
-count);
-g_free(query);
-
-}*/
-
 
 
 /* 
