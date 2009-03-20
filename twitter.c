@@ -92,6 +92,8 @@ static void twitter_connection_set_last_reply_id(PurpleConnection *gc, int reply
 }
 
 //borrowed almost exactly from msn
+//There's still something wrong here...
+//Need to fix this for people who aren't in +0000
 static time_t twitter_status_parse_timestamp(const char *timestamp)
 {
 	//Sat Mar 07 18:12:10 +0000 2009
@@ -158,7 +160,7 @@ static time_t twitter_status_parse_timestamp(const char *timestamp)
 		}
 	}
 
-	purple_debug_info("msn", "Can't parse timestamp %s\n", timestamp);
+	purple_debug_info("twitter", "Can't parse timestamp %s\n", timestamp);
 	return tval;
 }
 
@@ -332,7 +334,7 @@ static void twitter_status_data_update_conv(PurpleAccount *account, char *src_us
 		//Account received an im
 		serv_got_im(gc, src_user,
 				twitter_status_text_get_text(s->text),
-				PURPLE_MESSAGE_RECV, s->created_at);
+				PURPLE_MESSAGE_RECV, time(NULL)/*s->created_at*/); //TODO: once timestamp parsing is fixed...
 	}
 }
 static void twitter_buddy_set_status_data(PurpleAccount *account, char *src_user, TwitterStatusData *s)
