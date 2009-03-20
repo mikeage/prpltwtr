@@ -34,6 +34,7 @@
  * provide for translation, you'll also need to setup the gettext macros. */
 #include "config.h"
 
+#include "debug.h"
 #include "request.h"
 #include "twitter_request.h"
 
@@ -75,6 +76,8 @@ void twitter_send_request_cb(PurpleUtilFetchUrlData *url_data, gpointer user_dat
 	gchar *error_node_text = NULL;
 	xmlnode *response_node = NULL;
 	TwitterRequestErrorType error_type = TWITTER_REQUEST_ERROR_NONE;
+
+	purple_debug_info("twitter", "Response: %s\n", url_text);
 
 	if (server_error_message)
 	{

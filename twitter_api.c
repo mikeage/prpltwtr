@@ -73,7 +73,27 @@ void twitter_api_get_friends(PurpleAccount *account,
 			success_func, error_func,
 			100, data);
 }
+
 void twitter_api_get_replies(PurpleAccount *account,
+		unsigned int since_id,
+		unsigned int count,
+		unsigned int page,
+		TwitterSendRequestSuccessFunc success_func,
+		TwitterSendRequestErrorFunc error_func,
+		gpointer data)
+{
+	//blah
+	char *query = since_id ?
+		g_strdup_printf("count=%d&page=%dsince_id=%d", count, page, since_id) :
+		g_strdup_printf("count=%d&page=%d", count, page);
+
+	twitter_send_request(account, FALSE,
+			"https://twitter.com/statuses/replies.xml", query,
+			success_func, error_func, data);
+
+	g_free(query);
+}
+void twitter_api_get_replies_all(PurpleAccount *account,
 		unsigned int since_id,
 		TwitterSendRequestMultiPageAllSuccessFunc success_func,
 		TwitterSendRequestMultiPageAllErrorFunc error_func,

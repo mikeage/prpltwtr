@@ -341,6 +341,7 @@ static void twitter_buddy_set_status_data(PurpleAccount *account, char *src_user
 {
 	PurpleBuddy *b;
 	TwitterBuddyData *buddy_data;
+	gboolean status_text_same = FALSE;
 
 	if (!s)
 		return;
@@ -369,13 +370,17 @@ static void twitter_buddy_set_status_data(PurpleAccount *account, char *src_user
 
 	if (buddy_data->status != NULL && s != buddy_data->status)
 	{
+		status_text_same = (strcmp(buddy_data->status->text, s->text) == 0);
 		twitter_status_data_free(buddy_data->status);
 	}
 
 	buddy_data->status = s;
 
-	purple_prpl_got_user_status(b->account, b->name, "online",
-			"message", s ? s->text : NULL, NULL);
+	if (!status_text_same)
+	{
+		purple_prpl_got_user_status(b->account, b->name, "online",
+				"message", s ? s->text : NULL, NULL);
+	}
 }
 
 static TwitterUserData *twitter_user_node_parse(xmlnode *user_node)
@@ -500,9 +505,7 @@ static gboolean twitter_get_replies_timeout_error_cb(PurpleAccount *account, con
 	}
 	return FALSE;
 }
-static gboolean twitter_get_friends_verify_error_cb(PurpleAccount *account,
-		const TwitterRequestErrorData *error_data,
-		gpointer user_data)
+static void twitter_verify_connection_error_handler(PurpleAccount *account, const TwitterRequestErrorData *error_data)
 {
 	const gchar *error_message;
 	PurpleConnectionError reason;
@@ -534,6 +537,12 @@ static gboolean twitter_get_friends_verify_error_cb(PurpleAccount *account,
 			break;
 	}
 	purple_connection_error_reason(purple_account_get_connection(account), reason, error_message);
+}
+static gboolean twitter_get_friends_verify_error_cb(PurpleAccount *account,
+		const TwitterRequestErrorData *error_data,
+		gpointer user_data)
+{
+	twitter_verify_connection_error_handler(account, error_data);
 	return FALSE;
 }
 
@@ -621,7 +630,7 @@ static void twitter_get_replies_cb(PurpleAccount *account, GList *nodes, gpointe
 static gboolean twitter_get_replies_timeout(gpointer data)
 {
 	PurpleAccount *account = data;
-	twitter_api_get_replies(account,
+	twitter_api_get_replies_all(account,
 			twitter_connection_get_last_reply_id(purple_account_get_connection(account)),
 			twitter_get_replies_cb, twitter_get_replies_timeout_error_cb,
 			NULL);
@@ -646,8 +655,8 @@ static void twitter_get_friends_verify_connection_cb(PurpleAccount *account,
 	if (purple_connection_get_state(gc) == PURPLE_CONNECTING)
 	{
 		purple_connection_update_progress(gc, "Connected",
-				1,   /* which connection step this is */
-				2);  /* total number of steps */
+				2,   /* which connection step this is */
+				3);  /* total number of steps */
 		purple_connection_set_state(gc, PURPLE_CONNECTED);
 
 		l_users_data = twitter_users_nodes_parse(nodes);
@@ -822,7 +831,7 @@ static void twitter_request_id_ok(PurpleConnection *gc, PurpleRequestFields *fie
 {
 	PurpleAccount *acct = purple_connection_get_account(gc);
 	int id = purple_request_fields_get_integer(fields, "id");
-	twitter_api_get_replies(acct, id, twitter_get_replies_cb, NULL, NULL);
+	twitter_api_get_replies_all(acct, id, twitter_get_replies_cb, NULL, NULL);
 }
 static void twitter_action_get_replies(PurplePluginAction *action)
 {
@@ -878,13 +887,48 @@ static GList *twitter_actions(PurplePlugin *plugin, gpointer context)
 
 
 
+static void twitter_get_replies_verify_connection_cb(PurpleAccount *acct, xmlnode *node, gpointer user_data)
+{
+	PurpleConnection *gc = purple_account_get_connection(acct);
+	if (purple_connection_get_state(gc) == PURPLE_CONNECTING)
+	{
+		int id = 0;
+		xmlnode *status_node = xmlnode_get_child(node, "status");
+		if (status_node != NULL)
+		{
+			TwitterStatusData *status_data = twitter_status_node_parse(status_node);
+			if (status_data != NULL)
+			{
+				id = status_data->id;
+				twitter_status_data_free(status_data);
+				if (id > twitter_account_get_last_reply_id(acct))
+					twitter_account_set_last_reply_id(acct, id);
+			}
+		}
+
+		purple_connection_update_progress(gc, "Connecting...",
+				1,   /* which connection step this is */
+				3);  /* total number of steps */
+
+	}
+	twitter_api_get_friends(acct,
+			twitter_get_friends_verify_connection_cb,
+			twitter_get_friends_verify_error_cb,
+			NULL);
+}
+static void twitter_get_replies_verify_connection_error_cb(PurpleAccount *acct, const TwitterRequestErrorData *error_data, gpointer user_data)
+{
+	twitter_verify_connection_error_handler(acct, error_data);
+}
+
 static void twitter_verify_connection(PurpleAccount *acct)
 {
 	//To verify the connection, we get the user's friends. 
 	//With that we'll update the buddy list and set the last known reply id
-	twitter_api_get_friends(acct,
-			twitter_get_friends_verify_connection_cb,
-			twitter_get_friends_verify_error_cb,
+	twitter_api_get_replies(acct,
+			0, 1, 1,
+			twitter_get_replies_verify_connection_cb, 
+			twitter_get_replies_verify_connection_error_cb,
 			NULL);
 }
 
