@@ -1215,7 +1215,12 @@ static PurplePluginProtocolInfo prpl_info =
 
 static void twitter_init(PurplePlugin *plugin)
 {
+	PurpleAccountOption *option = purple_account_option_string_new(
+			("Example option (unused)"),      /* text shown to user */
+			"example",                         /* pref name */
+			"default");                        /* default value */
 	purple_debug_info("twitter", "starting up\n");
+	prpl_info.protocol_options = g_list_append(NULL, option);
 
 	_twitter_protocol = plugin;
 }
