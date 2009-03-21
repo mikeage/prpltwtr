@@ -60,7 +60,7 @@ void twitter_api_get_rate_limit_status(PurpleAccount *account,
 		gpointer data)
 {
 	twitter_send_request(account, FALSE, 
-			"https://twitter.com/account/rate_limit_status.xml", NULL,
+			"/account/rate_limit_status.xml", NULL,
 			success_func, error_func, data);
 }
 void twitter_api_get_friends(PurpleAccount *account,
@@ -69,7 +69,7 @@ void twitter_api_get_friends(PurpleAccount *account,
 		gpointer data)
 {
 	twitter_send_request_multipage_all(account, 
-			"https://twitter.com/statuses/friends.xml", NULL,
+			"/statuses/friends.xml", NULL,
 			success_func, error_func,
 			100, data);
 }
@@ -88,7 +88,7 @@ void twitter_api_get_replies(PurpleAccount *account,
 		g_strdup_printf("count=%d&page=%d", count, page);
 
 	twitter_send_request(account, FALSE,
-			"https://twitter.com/statuses/replies.xml", query,
+			"/statuses/replies.xml", query,
 			success_func, error_func, data);
 
 	g_free(query);
@@ -106,7 +106,7 @@ void twitter_api_get_replies_all(PurpleAccount *account,
 		g_strdup("");
 
 	twitter_send_request_multipage_all(account,
-			"https://twitter.com/statuses/replies.xml", query,
+			"/statuses/replies.xml", query,
 			success_func, error_func,
 			count, NULL);
 	g_free(query);
@@ -122,7 +122,7 @@ void twitter_api_set_status(PurpleAccount *acct,
 	{
 		char *query = g_strdup_printf("status=%s", purple_url_encode(msg));
 		twitter_send_request(acct, TRUE,
-				"https://twitter.com/statuses/update.xml", query,
+				"/statuses/update.xml", query,
 				success_func, NULL, data);
 		g_free(query);
 	} else {

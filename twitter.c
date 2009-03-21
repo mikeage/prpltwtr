@@ -1119,7 +1119,6 @@ static void twitter_get_cb_info(PurpleConnection *gc, int id, const char *who) {
  */
 static const char *twitter_normalize(const PurpleAccount *acct,
 		const char *input) {
-	purple_debug_info("Twitter", "twitter_normalize"); //?
 	return NULL;
 }
 
@@ -1215,10 +1214,10 @@ static PurplePluginProtocolInfo prpl_info =
 
 static void twitter_init(PurplePlugin *plugin)
 {
-	PurpleAccountOption *option = purple_account_option_string_new(
-			("Example option (unused)"),      /* text shown to user */
-			"example",                         /* pref name */
-			"default");                        /* default value */
+	PurpleAccountOption *option = purple_account_option_bool_new(
+			("Enable HTTPS"),      /* text shown to user */
+			"use_https",                         /* pref name */
+			FALSE);                        /* default value */
 	purple_debug_info("twitter", "starting up\n");
 	prpl_info.protocol_options = g_list_append(NULL, option);
 

@@ -132,8 +132,13 @@ void twitter_send_request(PurpleAccount *account, gboolean post,
 	const char *sn = purple_account_get_username(account);
 	char *auth_text = g_strdup_printf("%s:%s", sn, pass);
 	char *auth_text_b64 = purple_base64_encode((guchar *) auth_text, strlen(auth_text));
+	gboolean use_https = purple_account_get_bool(account, "use_https", FALSE) && purple_ssl_is_supported();
+	char *host = "twitter.com";
 	TwitterSendRequestData *request_data = g_new0(TwitterSendRequestData, 1);
-
+	char *full_url = g_strdup_printf("%s://%s%s",
+			use_https ? "https" : "http",
+			host,
+			url);
 	request_data->account = account;
 	request_data->user_data = data;
 	request_data->success_func = success_callback;
@@ -144,20 +149,23 @@ void twitter_send_request(PurpleAccount *account, gboolean post,
 	request = g_strdup_printf(
 			"%s %s%s%s HTTP/1.0\r\n"
 			"User-Agent: Mozilla/4.0 (compatible; MSIE 5.5)\r\n"
-			"Host: twitter.com\r\n"
+			"Host: %s\r\n"
 			"Authorization: Basic %s\r\n"
 			"Content-Length: %d\r\n\r\n"
 			"%s",
 			post ? "POST" : "GET",
-			url, (!post && query_string ? "?" : ""), (!post && query_string ? query_string : ""),
+			full_url,
+			(!post && query_string ? "?" : ""), (!post && query_string ? query_string : ""),
+			host,
 			auth_text_b64,
 			query_string  && post ? strlen(query_string) : 0,
 			query_string && post ? query_string : "");
 
 	g_free(auth_text_b64);
-	purple_util_fetch_url_request(url, TRUE,
+	purple_util_fetch_url_request(full_url, TRUE,
 			"Mozilla/4.0 (compatible; MSIE 5.5)", TRUE, request, FALSE,
 			twitter_send_request_cb, request_data);
+	g_free(full_url);
 	g_free(request);
 }
 
