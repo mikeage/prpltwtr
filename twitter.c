@@ -206,9 +206,9 @@ static TwitterBuddyData *twitter_buddy_get_buddy_data(PurpleBuddy *b)
 	return b->proto_data;
 }
 
-static char *twitter_status_text_get_dst_user(const char *text)
+static const char *twitter_status_text_get_dst_user(const char *text)
 {
-	static char buf[MAX_TWEET_LENGTH];
+	static char buf[MAX_TWEET_LENGTH + 1];
 	char *space_pos;
 	if (text == NULL)
 		return NULL;
@@ -318,7 +318,7 @@ static void twitter_buddy_set_user_data(PurpleAccount *account, TwitterUserData 
 }
 static void twitter_status_data_update_conv(PurpleAccount *account, char *src_user, TwitterStatusData *s)
 {
-	char *dst_user;
+	const char *dst_user;
 	PurpleConnection *gc = purple_account_get_connection(account);
 	if (!s || !s->text)
 		return;
@@ -674,8 +674,12 @@ static void twitter_get_friends_verify_connection_cb(PurpleAccount *account,
 		}
 
 		twitter_buddy_datas_set_all(account, l_users_data);
-		twitter->get_replies_timer = purple_timeout_add(1000 * 60, twitter_get_replies_timeout, account);
-		twitter->get_friends_timer = purple_timeout_add(1000 * 60 * 5, twitter_get_friends_timeout, account);
+		twitter->get_replies_timer = purple_timeout_add(
+				1000 * purple_account_get_int(account, TWITTER_PREF_REPLIES_TIMEOUT_NAME, TWITTER_PREF_REPLIES_TIMEOUT_DEFAULT),
+				twitter_get_replies_timeout, account);
+		twitter->get_friends_timer = purple_timeout_add(
+				1000 * purple_account_get_int(account, TWITTER_PREF_USER_STATUS_TIMEOUT_NAME, TWITTER_PREF_USER_STATUS_TIMEOUT_DEFAULT),
+				twitter_get_friends_timeout, account);
 	}
 
 }
@@ -683,13 +687,13 @@ static void twitter_get_friends_verify_connection_cb(PurpleAccount *account,
 static void twitter_get_rate_limit_status_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)
 {
 	/*
-	   <hash>
-	   <reset-time-in-seconds type="integer">1236529763</reset-time-in-seconds>
-	   <remaining-hits type="integer">100</remaining-hits>
-	   <hourly-limit type="integer">100</hourly-limit>
-	   <reset-time type="datetime">2009-03-08T16:29:23+00:00</reset-time>
-	   </hash>
-	   */
+	 * <hash>
+	 * <reset-time-in-seconds type="integer">1236529763</reset-time-in-seconds>
+	 * <remaining-hits type="integer">100</remaining-hits>
+	 * <hourly-limit type="integer">100</hourly-limit>
+	 * <reset-time type="datetime">2009-03-08T16:29:23+00:00</reset-time>
+	 * </hash>
+	 */
 
 	xmlnode *child;
 	int remaining_hits = 0;
@@ -777,12 +781,31 @@ static GList *twitter_status_types(PurpleAccount *acct)
 {
 	GList *types = NULL;
 	PurpleStatusType *type;
+	PurpleStatusPrimitive status_primitives[] = {
+		PURPLE_STATUS_UNAVAILABLE,
+		PURPLE_STATUS_INVISIBLE,
+		PURPLE_STATUS_AWAY,
+		PURPLE_STATUS_EXTENDED_AWAY
+	};
+	int status_primitives_count = sizeof(status_primitives) / sizeof(status_primitives[0]);
+	int i;
 
 	type = purple_status_type_new(PURPLE_STATUS_AVAILABLE, TWITTER_STATUS_ONLINE,
 			TWITTER_STATUS_ONLINE, TRUE);
 	purple_status_type_add_attr(type, "message", ("Online"),
 			purple_value_new(PURPLE_TYPE_STRING));
 	types = g_list_prepend(types, type);
+
+	//This is a hack to get notified when another protocol goes into a different status.
+	//Eg aim goes away, we still want to get notified
+	for (i = 0; i < status_primitives_count; i++)
+	{
+		type = purple_status_type_new(status_primitives[i], TWITTER_STATUS_ONLINE,
+				TWITTER_STATUS_ONLINE, FALSE);
+		purple_status_type_add_attr(type, "message", ("Online"),
+				purple_value_new(PURPLE_TYPE_STRING));
+		types = g_list_prepend(types, type);
+	}
 
 	type = purple_status_type_new(PURPLE_STATUS_OFFLINE, TWITTER_STATUS_OFFLINE,
 			TWITTER_STATUS_OFFLINE, TRUE);
@@ -833,6 +856,37 @@ static void twitter_action_get_replies(PurplePluginAction *action)
 			purple_connection_get_account(gc), NULL, NULL,
 			gc);
 }
+static void twitter_action_set_status_ok(PurpleConnection *gc, PurpleRequestFields *fields)
+{
+	PurpleAccount *acct = purple_connection_get_account(gc);
+	const char* status = purple_request_fields_get_string(fields, "status");
+	purple_account_set_status(acct, "online", TRUE, "message", status, NULL);
+}
+static void twitter_action_set_status(PurplePluginAction *action)
+{
+	PurpleRequestFields *request;
+	PurpleRequestFieldGroup *group;
+	PurpleRequestField *field;
+	PurpleConnection *gc = (PurpleConnection *)action->context;
+
+	group = purple_request_field_group_new(NULL);
+
+	field = purple_request_field_string_new("status", ("Status"), "", FALSE);
+	purple_request_field_group_add_field(group, field);
+
+	request = purple_request_fields_new();
+	purple_request_fields_add_group(request, group);
+
+	purple_request_fields(action->plugin,
+			("Status"),
+			("Set Account Status"),
+			NULL,
+			request,
+			("_Set"), G_CALLBACK(twitter_action_set_status_ok),
+			("_Cancel"), NULL,
+			purple_connection_get_account(gc), NULL, NULL,
+			gc);
+}
 static void twitter_action_get_rate_limit_status(PurplePluginAction *action)
 {
 	PurpleConnection *gc = (PurpleConnection *)action->context;
@@ -848,13 +902,18 @@ static GList *twitter_actions(PurplePlugin *plugin, gpointer context)
 	GList *l = NULL;
 	PurplePluginAction *action;
 
+	action = purple_plugin_action_new("Set status", twitter_action_set_status);
+	l = g_list_append(l, action);
+
+	action = purple_plugin_action_new("Rate Limit Status", twitter_action_get_rate_limit_status);
+	l = g_list_append(l, action);
+
+	l = g_list_append(l, NULL);
+
 	action = purple_plugin_action_new("Debug - Retrieve users", twitter_action_get_user_info);
 	l = g_list_append(l, action);
 
 	action = purple_plugin_action_new("Debug - Retrieve replies", twitter_action_get_replies);
-	l = g_list_append(l, action);
-
-	action = purple_plugin_action_new("Debug - Rate Limit Status", twitter_action_get_rate_limit_status);
 	l = g_list_append(l, action);
 
 	return l;
@@ -939,6 +998,23 @@ static void twitter_close(PurpleConnection *gc)
 	g_free(twitter);
 }
 
+static void twitter_set_status_error_cb(PurpleAccount *acct, const TwitterRequestErrorData *error_data, gpointer user_data)
+{
+	const char *message;
+	if (error_data->type == TWITTER_REQUEST_ERROR_SERVER || error_data->type == TWITTER_REQUEST_ERROR_TWITTER_GENERAL)
+	{
+		message = error_data->message;
+	} else if (error_data->type == TWITTER_REQUEST_ERROR_INVALID_XML) {
+		message = "Unknown reply by twitter server";
+	} else {
+		message = "Unknown error";
+	}
+	purple_notify_error(NULL,  /* plugin handle or PurpleConnection */
+			("Twitter Set Status"),
+			("Error setting Twitter Status"),
+			(message));
+}
+
 static int twitter_send_im(PurpleConnection *gc, const char *who,
 		const char *message, PurpleMessageFlags flags)
 {
@@ -952,7 +1028,7 @@ static int twitter_send_im(PurpleConnection *gc, const char *who,
 		char *status = g_strdup_printf("@%s %s", who, message);
 		//TODO handle errors
 		twitter_api_set_status(purple_connection_get_account(gc), status,
-				twitter_send_im_cb, NULL, NULL);
+				twitter_send_im_cb, twitter_set_status_error_cb, NULL);
 		g_free(status);
 		return 1;
 	}
@@ -1041,6 +1117,7 @@ static void twitter_get_info(PurpleConnection *gc, const char *username) {
 			NULL);     /* userdata for callback */
 }
 
+
 static void twitter_set_status(PurpleAccount *acct, PurpleStatus *status) {
 	const char *msg = purple_status_get_attr_string(status, "message");
 	purple_debug_info("twitter", "setting %s's status to %s: %s\n",
@@ -1050,7 +1127,7 @@ static void twitter_set_status(PurpleAccount *acct, PurpleStatus *status) {
 	{
 		//TODO, sucecss && fail
 		twitter_api_set_status(acct, msg,
-				NULL, NULL, NULL);
+				NULL, twitter_set_status_error_cb, NULL);
 	}
 }
 
@@ -1214,12 +1291,26 @@ static PurplePluginProtocolInfo prpl_info =
 
 static void twitter_init(PurplePlugin *plugin)
 {
-	PurpleAccountOption *option = purple_account_option_bool_new(
+	PurpleAccountOption *option;
+	purple_debug_info("twitter", "starting up\n");
+
+	option = purple_account_option_bool_new(
 			("Enable HTTPS"),      /* text shown to user */
 			"use_https",                         /* pref name */
 			FALSE);                        /* default value */
-	purple_debug_info("twitter", "starting up\n");
 	prpl_info.protocol_options = g_list_append(NULL, option);
+
+	option = purple_account_option_int_new(
+			("Check for new replies every (sec):"),      /* text shown to user */
+			TWITTER_PREF_REPLIES_TIMEOUT_NAME,                         /* pref name */
+			TWITTER_PREF_REPLIES_TIMEOUT_DEFAULT);                        /* default value */
+	prpl_info.protocol_options = g_list_append(prpl_info.protocol_options, option);
+
+	option = purple_account_option_int_new(
+			("Check for new user statuses every (sec):"),      /* text shown to user */
+			TWITTER_PREF_USER_STATUS_TIMEOUT_NAME,                         /* pref name */
+			TWITTER_PREF_USER_STATUS_TIMEOUT_DEFAULT);                        /* default value */
+	prpl_info.protocol_options = g_list_append(prpl_info.protocol_options, option);
 
 	_twitter_protocol = plugin;
 }

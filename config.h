@@ -9,3 +9,9 @@
 #ifdef _WIN32
 #	include <win32dep.h>
 #endif
+
+#define TWITTER_PREF_REPLIES_TIMEOUT_NAME "twitter_replies_timeout"
+#define	TWITTER_PREF_REPLIES_TIMEOUT_DEFAULT 60
+
+#define TWITTER_PREF_USER_STATUS_TIMEOUT_NAME "twitter_friends_timeout"
+#define	TWITTER_PREF_USER_STATUS_TIMEOUT_DEFAULT (60 * 5)
