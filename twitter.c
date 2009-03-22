@@ -217,6 +217,8 @@ static const char *twitter_status_text_get_dst_user(const char *text)
 	space_pos = strchr(text, ' ');
 	if (space_pos == NULL)
 		return NULL;
+	if (space_pos - text > MAX_TWEET_LENGTH)
+		return NULL; //should never happen
 	strncpy(buf, text + 1, space_pos - text - 1);
 	buf[space_pos - text - 1] = '\0';
 	return buf;
@@ -797,7 +799,7 @@ static GList *twitter_status_types(PurpleAccount *acct)
 	types = g_list_prepend(types, type);
 
 	//This is a hack to get notified when another protocol goes into a different status.
-	//Eg aim goes away, we still want to get notified
+	//Eg aim goes "away", we still want to get notified
 	for (i = 0; i < status_primitives_count; i++)
 	{
 		type = purple_status_type_new(status_primitives[i], TWITTER_STATUS_ONLINE,
