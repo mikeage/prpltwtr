@@ -1,0 +1,9 @@
+#!/usr/bin/make -f
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/makefile.mk
+
+DEB_MAKE_CLEAN_TARGET := clean
+DEB_MAKE_BUILD_TARGET := build
+DEB_MAKE_INSTALL_TARGET := install DESTDIR=$(CURDIR)/debian/libpurple-twitter-protocol/
+DEB_MAKE_CHECK_TARGET :=
+DEB_MAKE_INVOKE := $(MAKE)

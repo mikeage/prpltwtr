@@ -1,1 +1,3 @@
-TODO
+Twitter protocol plugin tightly integrates Twitter to Maemo Contacts and Conversations. It imports your Twitter friends and saved search queries to Contacts, and receives mentions/replies, DMs and Twitter search results as conversation threads. In addition, you can send replies or DMs to any Twitter friend straight from Contacts, simply by tapping on their Twitter IDs.
+
+This plugin is based on libpurple-twitter-protocol by neaveru (http://code.google.com/u/neaveru). You can find more information at my Twitter @rabbitrun84

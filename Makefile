@@ -6,6 +6,8 @@ all: build
 
 include global.mak
 
+SUBDIRS = data
+
 TARGETS = libpurple-twitter-protocol$(PLUGIN_SUFFIX)
 
 LD = $(CC)
@@ -28,8 +30,7 @@ LIBS =	-lgtk-win32-2.0 \
 			-lgdk-win32-2.0 \
 			-lgobject-2.0 \
 			-lintl \
-			-lpurple \
-			-lpidgin
+			-lpurple
 CFLAGS := $(PURPLE_CFLAGS) $(TWITTER_INC_PATHS)
 else
 CFLAGS := $(PURPLE_CFLAGS) $(PIDGIN_CFLAGS)
@@ -37,7 +38,7 @@ LIB_PATHS =
 LIBS = $(PIDGIN_LIBS)
 endif
 
-TWITTER_C_SRC = twitter.c twitter_request.c twitter_api.c
+TWITTER_C_SRC = twitter.c twitter_request.c twitter_api.c twitter_search.c twitter_util.c twitter_xml.c
 TWITTER_H_SRC = $(TWITTER_C_SRC:%.c=%.h) config.h
 TWITTER_OBJ = $(TWITTER_C_SRC:%.c=%.o)
 
@@ -49,13 +50,21 @@ OBJECTS = $(TWITTER_OBJ)
 
 build: $(TARGETS)
 
+test: test.c
+
 install: $(TARGETS)
 	rm -f $(PURPLE_PLUGIN_DIR)/libpurple-twitter-protocol$(PLUGIN_SUFFIX)
 	install -m 0755 -d $(PURPLE_PLUGIN_DIR)
 	cp libpurple-twitter-protocol$(PLUGIN_SUFFIX) $(PURPLE_PLUGIN_DIR)/libpurple-twitter-protocol$(PLUGIN_SUFFIX)
+	for dir in $(SUBDIRS); do \
+		make -C "$$dir" $@ || exit 1; \
+	done
 
 uninstall: 
 	rm -f $(PURPLE_PLUGIN_DIR)/libpurple-twitter-protocol$(PLUGIN_SUFFIX)
+	for dir in $(SUBDIRS); do \
+		make -C "$$dir" $@ || exit 1; \
+	done
 
 clean:
 	rm -f $(TARGETS) $(OBJECTS)

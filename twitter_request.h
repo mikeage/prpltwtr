@@ -49,18 +49,26 @@ typedef void (*TwitterSendRequestMultiPageAllSuccessFunc)(PurpleAccount *acct, G
 typedef gboolean (*TwitterSendRequestMultiPageAllErrorFunc)(PurpleAccount *acct, const TwitterRequestErrorData *error_data, gpointer user_data);
 
 void twitter_send_request(PurpleAccount *account, gboolean post,
-		const char *url, const char *query_string, 
+		const char *host, const char *url, const char *query_string,
 		TwitterSendRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback,
 		gpointer data);
 
 //don't include count in the query_string
-void twitter_send_request_multipage(PurpleAccount *account, 
-		const char *url, const char *query_string,
+void twitter_send_request_multipage(PurpleAccount *account,
+		const char *host, const char *url, const char *query_string,
 		TwitterSendRequestMultiPageSuccessFunc success_callback, TwitterSendRequestMultiPageErrorFunc error_callback,
 		int expected_count, gpointer data);
 
 void twitter_send_request_multipage_all(PurpleAccount *account,
-		const char *url, const char *query_string,
+		const char *host, const char *url, const char *query_string,
 		TwitterSendRequestMultiPageAllSuccessFunc success_callback,
 		TwitterSendRequestMultiPageAllErrorFunc error_callback,
 		int expected_count, gpointer data);
+
+/* statuses/friends API deprecated page based retrieval,
+ * and use cursor based method instead */
+void twitter_send_request_with_cursor (PurpleAccount *account,
+       const char *host, const char *url, const char *query_string, long long cursor,
+       TwitterSendRequestMultiPageAllSuccessFunc success_callback,
+       TwitterSendRequestMultiPageAllErrorFunc error_callback,
+       gpointer data);

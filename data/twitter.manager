@@ -1,0 +1,23 @@
+
+[Protocol twitter]
+param-account=s required
+param-password=s required
+param-use-https=b
+param-retrieve-tweets-history-after-login=b
+param-sync-availability-status-message-to-twitter=b
+param-add-url-link-to-each-tweet=b
+param-host-url=s
+param-search-host-url=s
+param-refresh-replies-minutes=i
+param-refresh-friendlist-minutes=i
+param-refresh-search-minutes=i
+default-use-https=false
+default-retrieve-tweets-history-after-login=true
+default-sync-availability-status-message-to-twitter=false
+default-add-url-link-to-each-tweet=true
+default-host-url=twitter.com
+default-search-host-url=search.twitter.com
+default-refresh-replies-minutes=30
+default-refresh-friendlist-minutes=60
+default-refresh-search-minutes=5
+
