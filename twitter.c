@@ -454,7 +454,7 @@ static char *twitter_format_tweet(PurpleAccount *account, const char *src_user, 
 			TWITTER_PREF_ADD_URL_TO_TWEET,
 			TWITTER_PREF_ADD_URL_TO_TWEET_DEFAULT);
 
-	if (add_link) {
+	if (add_link && id) {
 		return g_strdup_printf("%s\nhttp://twitter.com/%s/status/%lld\n",
 				message,
 				src_user,
