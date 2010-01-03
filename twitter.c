@@ -980,7 +980,11 @@ static PurpleConversation *twitter_conv_timeline_find(PurpleConnection *gc, cons
 static PurpleConversation *twitter_conv_search_find(PurpleConnection *gc, const gchar *name)
 {
 	TwitterConnectionData *twitter = gc->proto_data;
-	gint *chat_id = g_hash_table_lookup(twitter->search_chat_ids, name);
+	gchar *name_lower = g_utf8_strdown(name, -1);
+	gint *chat_id = g_hash_table_lookup(twitter->search_chat_ids, name_lower);
+
+	g_free(name_lower);
+
 	if (chat_id == NULL)
 		return NULL;
 	else
@@ -1215,7 +1219,7 @@ static void twitter_chat_search_join(PurpleConnection *gc, const char *search, i
                                 search, chat_id);
                 PurpleConversation *conv = serv_got_joined_chat(gc, chat_id, search);
 
-		g_hash_table_replace(twitter->search_chat_ids, g_strdup(search), g_memdup(&chat_id, sizeof(chat_id)));
+		g_hash_table_replace(twitter->search_chat_ids, g_utf8_strdown(search, -1), g_memdup(&chat_id, sizeof(chat_id)));
                 purple_conversation_set_title(conv, search);
                 purple_conversation_set_data(conv, "twitter-chat-context", ctx);
 
