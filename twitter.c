@@ -511,7 +511,8 @@ static const char *twitter_linkify(PurpleAccount *account, const char *message)
 		if (delim == NULL)
 			delim = end;
 		link_text = g_strndup(ptr, delim - ptr);
-		g_string_append_printf(ret, "<a href=\"" TWITTER_URI ":///%s?account=%s&text=%s\">%s</a>",
+		//Added the 'a' before the account name because of a highlighting issue... ugly hack
+		g_string_append_printf(ret, "<a href=\"" TWITTER_URI ":///%s?account=a%s&text=%s\">%s</a>",
 				current_action,
 				purple_account_get_username(account),
 				purple_url_encode(link_text),
@@ -2194,13 +2195,14 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 	text = purple_url_decode(g_hash_table_lookup(params, "text"));
 	username = g_hash_table_lookup(params, "account");
 
-	if (text == NULL || username == NULL)
+	if (text == NULL || username == NULL || username[0] == '\0')
 	{
 		purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri.\n");
 		return FALSE;
 	}
 
-	account = purple_accounts_find(username, TWITTER_PROTOCOL_ID);
+	//ugly hack to fix username highlighting
+	account = purple_accounts_find(username+1, TWITTER_PROTOCOL_ID);
 
 	if (account == NULL)
 	{
