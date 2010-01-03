@@ -26,12 +26,20 @@
 
 #include "twitter.h"
 
+#if _HAVE_PIDGIN_
+#include <gtkconv.h>
+#include <gtkimhtml.h>
+#endif
+
 static PurplePlugin *_twitter_protocol = NULL;
 
 #define TWITTER_STATUS_ONLINE   "online"
 #define TWITTER_STATUS_OFFLINE   "offline"
 
 #define MAX_TWEET_LENGTH 140
+
+#define TWITTER_URI_ACTION_USER		"user"
+#define TWITTER_URI_ACTION_SEARCH	"search"
 
 typedef enum
 {
@@ -448,20 +456,93 @@ static void twitter_buddy_set_user_data(PurpleAccount *account, TwitterUserData 
 	twitter_buddy_update_icon(b);
 }
 
+#if _HAVE_PIDGIN_
+static const char *_find_first_delimiter(const char *text, const char *delimiters, int *delim_id)
+{
+	const char *delimiter;
+	if (text == NULL || text[0] == '\0')
+		return NULL;
+	do
+	{
+		for (delimiter = delimiters; *delimiter != '\0'; delimiter++)
+		{
+			if (*text == *delimiter)
+			{
+				if (delim_id != NULL)
+					*delim_id = delimiter - delimiters;
+				return text;
+			}
+		}
+	} while (*++text != '\0');
+	return NULL;
+}
+#endif
+
+static const char *twitter_linkify(PurpleAccount *account, const char *message)
+{
+#if _HAVE_PIDGIN_
+	GString *ret;
+	static char symbols[] = "#@";
+	static char *symbol_actions[] = {TWITTER_URI_ACTION_SEARCH, TWITTER_URI_ACTION_USER};
+	static char delims[] = " :"; //I don't know if this is how I want to do this...
+	const char *ptr = message;
+	const char *end = message + strlen(message);
+	const char *delim = NULL;
+	g_return_val_if_fail(message != NULL, NULL);
+
+	ret = g_string_new("");
+
+	while (ptr != NULL && ptr < end)
+	{
+		const char *first_token = NULL;
+		char *current_action = NULL;
+		char *link_text = NULL;
+		int symbol_index = 0;
+		first_token = _find_first_delimiter(ptr, symbols, &symbol_index);
+		if (first_token == NULL)
+		{
+			g_string_append(ret, ptr);
+			break;
+		}
+		current_action = symbol_actions[symbol_index];
+		g_string_append_len(ret, ptr, first_token - ptr);
+		ptr = first_token;
+		delim = _find_first_delimiter(ptr, delims, NULL);
+		if (delim == NULL)
+			delim = end;
+		link_text = g_strndup(ptr, delim - ptr);
+		g_string_append_printf(ret, "<a href=\"" TWITTER_URI ":///%s?account=%s&text=%s\">%s</a>",
+				current_action,
+				purple_account_get_username(account),
+				purple_url_encode(link_text),
+				purple_markup_escape_text(link_text, -1));
+		ptr = delim;
+	}
+
+	return g_string_free(ret, FALSE);
+#else
+	return message;
+#endif
+}
+
 static char *twitter_format_tweet(PurpleAccount *account, const char *src_user, const char *message, long long id)
 {
+	const char *linkified_message = twitter_linkify(account, message);
 	gboolean add_link = purple_account_get_bool(account,
 			TWITTER_PREF_ADD_URL_TO_TWEET,
 			TWITTER_PREF_ADD_URL_TO_TWEET_DEFAULT);
 
+	g_return_val_if_fail(linkified_message != NULL, NULL);
+	g_return_val_if_fail(src_user != NULL, NULL);
+
 	if (add_link && id) {
 		return g_strdup_printf("%s\nhttp://twitter.com/%s/status/%lld\n",
-				message,
+				linkified_message,
 				src_user,
 				id);
 	}
 	else {
-		return g_strdup_printf("%s", message);
+		return g_strdup_printf("%s", linkified_message);
 	}
 }
 
@@ -487,7 +568,8 @@ static void twitter_status_data_update_conv(PurpleAccount *account,
 
 	serv_got_im(gc, src_user,
 			tweet,
-			PURPLE_MESSAGE_RECV, s->created_at);
+			PURPLE_MESSAGE_RECV,
+			s->created_at);
 
 	g_free(tweet);
 }
@@ -1113,18 +1195,15 @@ static gint twitter_get_next_chat_id()
 	return chat_id++;
 }
 
-static void twitter_chat_search_join(PurpleConnection *gc, GHashTable *components) {
-        const char *search = g_hash_table_lookup(components, "search");
-        const char *interval_str = g_hash_table_lookup(components, "interval");
-        int interval = 0;
+static void twitter_chat_search_join(PurpleConnection *gc, const char *search, int interval)
+{
         int default_interval = purple_account_get_int(purple_connection_get_account(gc),
                         TWITTER_PREF_SEARCH_TIMEOUT, TWITTER_PREF_SEARCH_TIMEOUT_DEFAULT);
 
-        purple_debug_info(TWITTER_PROTOCOL_ID, "%s is performing search %s\n", gc->account->username, search);
-
         g_return_if_fail(search != NULL);
 
-        interval = strtol(interval_str, NULL, 10);
+        purple_debug_info(TWITTER_PROTOCOL_ID, "%s is performing search %s\n", gc->account->username, search);
+
         if (interval < 1)
                 interval = default_interval;
 
@@ -1155,6 +1234,14 @@ static void twitter_chat_search_join(PurpleConnection *gc, GHashTable *component
                 purple_notify_info(gc, "Perform Search", "Perform Search", tmp);
                 g_free(tmp);
         }
+}
+static void twitter_chat_search_join_components(PurpleConnection *gc, GHashTable *components) {
+        const char *search = g_hash_table_lookup(components, "search");
+        const char *interval_str = g_hash_table_lookup(components, "interval");
+        int interval = 0;
+
+        interval = interval_str == NULL ? 0 : strtol(interval_str, NULL, 10);
+	twitter_chat_search_join(gc, search, interval);
 }
 
 static gboolean twitter_timeline_timeout(gpointer data)
@@ -1264,7 +1351,7 @@ static void twitter_chat_join(PurpleConnection *gc, GHashTable *components) {
 	switch (conv_type)
 	{
 		case TWITTER_CHAT_SEARCH:
-			twitter_chat_search_join(gc, components);
+			twitter_chat_search_join_components(gc, components);
 			break;
 		case TWITTER_CHAT_TIMELINE:
 			twitter_chat_timeline_join(gc, components);
@@ -2085,8 +2172,74 @@ static PurplePluginProtocolInfo prpl_info =
 	NULL
 };
 
+#if _HAVE_PIDGIN_
+static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHashTable *params)
+{
+	const char *text;
+	const char *username;
+	PurpleAccount *account;
+	purple_debug_info(TWITTER_PROTOCOL_ID, "%s PROTO %s CMD_ARG %s\n", G_STRFUNC, proto, cmd_arg);
+
+	g_return_val_if_fail(proto != NULL, FALSE);
+	g_return_val_if_fail(cmd_arg != NULL, FALSE);
+
+	//don't handle someone elses proto
+	if (strcmp(proto, TWITTER_URI))
+		return FALSE;
+
+	text = purple_url_decode(g_hash_table_lookup(params, "text"));
+	username = g_hash_table_lookup(params, "account");
+
+	if (text == NULL || username == NULL)
+	{
+		purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri.\n");
+		return FALSE;
+	}
+
+	account = purple_accounts_find(username, TWITTER_PROTOCOL_ID);
+
+	if (account == NULL)
+	{
+		purple_debug_info(TWITTER_PROTOCOL_ID, "could not find account %s\n", username);
+		return FALSE;
+	}
+
+	while (cmd_arg[0] == '/')
+		cmd_arg++;
+
+	purple_debug_info(TWITTER_PROTOCOL_ID, "Account %s got action %s with text %s\n", username, cmd_arg, text);
+	if (!strcmp(cmd_arg, TWITTER_URI_ACTION_USER))
+	{
+		purple_notify_info(purple_account_get_connection(account),
+				"Clicked URI",
+				"@name clicked",
+				"Sorry, this has not been implemented yet");
+	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_SEARCH)) {
+		twitter_chat_search_join(purple_account_get_connection(account), text, 0);
+	}
+	return TRUE;
+}
+
+static gboolean twitter_url_clicked_cb(GtkIMHtml *imhtml, GtkIMHtmlLink *link)
+{
+	const gchar *url = gtk_imhtml_link_get_url(link);
+	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+	purple_got_protocol_handler_uri(url);
+
+	return TRUE;
+}
+
+static gboolean twitter_context_menu(GtkIMHtml *imhtml, GtkIMHtmlLink *link, GtkWidget *menu)
+{
+	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+	return TRUE;
+}
+#endif
+
+
 static void twitter_init(PurplePlugin *plugin)
 {
+
 	PurpleAccountOption *option;
 	purple_debug_info(TWITTER_PROTOCOL_ID, "starting up\n");
 
@@ -2153,6 +2306,14 @@ static void twitter_init(PurplePlugin *plugin)
 			TWITTER_PREF_SEARCH_TIMEOUT,                         /* pref name */
 			TWITTER_PREF_SEARCH_TIMEOUT_DEFAULT);                        /* default value */
 	prpl_info.protocol_options = g_list_append(prpl_info.protocol_options, option);
+
+#if _HAVE_PIDGIN_
+	purple_signal_connect(purple_get_core(), "uri-handler", plugin,
+			PURPLE_CALLBACK(twitter_uri_handler), NULL);
+
+	gtk_imhtml_class_register_protocol(TWITTER_URI "://", twitter_url_clicked_cb, twitter_context_menu);
+#endif
+
 
 
 	_twitter_protocol = plugin;

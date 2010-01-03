@@ -34,6 +34,7 @@
 #include <cmds.h>
 #include <conversation.h>
 #include <connection.h>
+#include <core.h>
 #include <debug.h>
 #include <notify.h>
 #include <privacy.h>

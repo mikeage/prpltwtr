@@ -48,3 +48,8 @@
 #define TWITTER_EVERY_REPLIES_COUNT 40
 
 #define TWITTER_PROTOCOL_ID "prpl-twitter"
+
+/* We'll handle TWITTER_URI://foo as an internal action */
+#define TWITTER_URI "putter"
+
+#define _HAVE_PIDGIN_ 1
