@@ -365,7 +365,11 @@ static PurpleChat *twitter_blist_chat_timeline_new(PurpleAccount *account, gint 
 
 	components = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, g_free);
 
-	//TODO
+	//TODO: fix all of this
+	//1) search shouldn't be set, but is currently a hack to fix purple_blist_find_chat (persistent chat, etc)
+	//2) need this to work with multiple timelines.
+	//3) this should be an option. Some people may not want the home timeline
+	g_hash_table_insert(components, "search", "Home Timeline"); 
 	g_hash_table_insert(components, "interval",
 			g_strdup_printf("%d", purple_account_get_int(account,
 					TWITTER_PREF_SEARCH_TIMEOUT, TWITTER_PREF_SEARCH_TIMEOUT_DEFAULT)));
