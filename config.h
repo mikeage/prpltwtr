@@ -41,6 +41,9 @@
 #define TWITTER_PREF_SEARCH_TIMEOUT "refresh_search_minutes"
 #define TWITTER_PREF_SEARCH_TIMEOUT_DEFAULT 5
 
+#define TWITTER_PREF_GET_FRIENDS "get_friends"
+#define TWITTER_PREF_GET_FRIENDS_DEFAULT TRUE
+
 /* The number of tweets to return per page, up to a max of 100 */
 #define TWITTER_SEARCH_RPP_DEFAULT 20
 
