@@ -99,7 +99,7 @@ void twitter_send_request_cb(PurpleUtilFetchUrlData *url_data, gpointer user_dat
 	xmlnode *response_node = NULL;
 	TwitterRequestErrorType error_type = TWITTER_REQUEST_ERROR_NONE;
 
-	purple_debug_info("twitter", "Response: %s\n", url_text);
+	purple_debug_info(TWITTER_PROTOCOL_ID, "Response: %s\n", url_text);
 
 	if (server_error_message)
 	{
@@ -208,7 +208,7 @@ void twitter_send_request_multipage_cb(PurpleAccount *account, xmlnode *node, gp
 	if (count < request_data->expected_count)
 		last_page = TRUE;
 
-	purple_debug_info("twitter--",
+	purple_debug_info(TWITTER_PROTOCOL_ID,
 			"%s: last_page: %s, count: %d, expected_count: %d\n",
 			G_STRFUNC, last_page?"yes":"no",
 			count, request_data->expected_count);
@@ -216,14 +216,14 @@ void twitter_send_request_multipage_cb(PurpleAccount *account, xmlnode *node, gp
 	if (!request_data->success_callback) {
 		get_next_page = TRUE;
 
-		purple_debug_info("twitter--",
+		purple_debug_info(TWITTER_PROTOCOL_ID,
 				"%s no request_data->success_callback, get_next_page: yes\n",
 				G_STRFUNC);
 	}
 	else {
 		get_next_page = request_data->success_callback(account, node, last_page, request_data->user_data);
 
-		purple_debug_info("twitter--",
+		purple_debug_info(TWITTER_PROTOCOL_ID,
 				"%s get_next_page: %s\n",
 				G_STRFUNC, get_next_page?"yes":"no");
 	}
@@ -261,7 +261,7 @@ void twitter_send_request_multipage_do(PurpleAccount *account,
 			request_data->query_string && strlen(request_data->query_string) > 0 ? "&" : "",
 			request_data->page);
 
-	purple_debug_info("twitter--", "%s: page: %d\n", G_STRFUNC, request_data->page);
+	purple_debug_info(TWITTER_PROTOCOL_ID, "%s: page: %d\n", G_STRFUNC, request_data->page);
 
 	twitter_send_request(account, FALSE,
 			request_data->host, request_data->url, full_query_string,
@@ -305,7 +305,7 @@ static gboolean twitter_send_request_multipage_all_success_cb(PurpleAccount *acc
 {
 	TwitterMultiPageAllRequestData *request_data_all = user_data;
 
-	purple_debug_info ("twitter--", "%s\n", G_STRFUNC);
+	purple_debug_info (TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
 
 	request_data_all->nodes = g_list_prepend(request_data_all->nodes, xmlnode_copy(node)); //TODO: update
 	if (last_page)
@@ -374,7 +374,7 @@ static void twitter_send_request_with_cursor_cb (PurpleAccount *account,
 	request_data->next_cursor = strtoll (next_cursor_str, NULL, 10);
 	g_free (next_cursor_str);
 
-	purple_debug_info ("twitter--", "%s next_cursor: %lld\n",
+	purple_debug_info (TWITTER_PROTOCOL_ID, "%s next_cursor: %lld\n",
 			G_STRFUNC, request_data->next_cursor);
 
 	users = xmlnode_get_child (node, "users");

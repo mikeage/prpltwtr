@@ -103,7 +103,7 @@ static void twitter_send_search_cb (PurpleUtilFetchUrlData *url_data,
 
 	response_node = xmlnode_from_str(url_text, len);
 	if (response_node == NULL) {
-		purple_debug_info("twitter", "error parsing search results");
+		purple_debug_info(TWITTER_PROTOCOL_ID, "error parsing search results");
 		// error
 	}
 	else {
@@ -140,7 +140,7 @@ static void twitter_send_search_cb (PurpleUtilFetchUrlData *url_data,
 
 		g_array_sort(search_results, _twitter_search_results_sort);
 
-		purple_debug_info("twitter", "refresh_url: %s, max_id: %lld\n",
+		purple_debug_info(TWITTER_PROTOCOL_ID, "refresh_url: %s, max_id: %lld\n",
 				refresh_url, max_id);
 	}
 

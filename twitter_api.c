@@ -81,7 +81,7 @@ void twitter_api_get_friends(PurpleAccount *account,
 		TwitterSendRequestMultiPageAllErrorFunc error_func,
 		gpointer data)
 {
-	purple_debug_info ("twitter--", "%s\n", G_STRFUNC);
+	purple_debug_info (TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
 
 	twitter_send_request_with_cursor (account,
 			twitter_api_get_pref_host_url(account),
@@ -101,7 +101,7 @@ void twitter_api_get_home_timeline(PurpleAccount *account,
 		g_strdup_printf("count=%d&page=%d&since_id=%lld", count, page, since_id) :
 		g_strdup_printf("count=%d&page=%d", count, page);
 
-	purple_debug_info ("twitter--", "%s\n", G_STRFUNC);
+	purple_debug_info (TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
 
 	twitter_send_request(account, FALSE,
 			twitter_api_get_pref_host_api_url(account),
@@ -122,7 +122,7 @@ void twitter_api_get_home_timeline_all(PurpleAccount *account,
 		g_strdup_printf ("since_id=%lld&count=%d", since_id, count) :
 		g_strdup_printf ("count=%d", count);
 
-	purple_debug_info ("twitter--", "%s\n", G_STRFUNC);
+	purple_debug_info (TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
 
 	twitter_send_request_multipage_all(account,
 			twitter_api_get_pref_host_api_url(account),
@@ -143,7 +143,7 @@ void twitter_api_get_replies(PurpleAccount *account,
 		g_strdup_printf("count=%d&page=%d&since_id=%lld", count, page, since_id) :
 		g_strdup_printf("count=%d&page=%d", count, page);
 
-	purple_debug_info ("twitter--", "%s\n", G_STRFUNC);
+	purple_debug_info (TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
 
 	twitter_send_request(account, FALSE,
 			twitter_api_get_pref_host_url(account),
@@ -164,7 +164,7 @@ void twitter_api_get_replies_all(PurpleAccount *account,
 		g_strdup_printf ("since_id=%lld&count=%d", since_id, count) :
 		g_strdup_printf ("count=%d", count);
 
-	purple_debug_info ("twitter--", "%s\n", G_STRFUNC);
+	purple_debug_info (TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
 
 	twitter_send_request_multipage_all(account,
 			twitter_api_get_pref_host_url(account),
@@ -225,7 +225,7 @@ void twitter_api_get_saved_searches (PurpleAccount *account,
 		TwitterSendRequestErrorFunc error_func,
 		gpointer data)
 {
-	purple_debug_info ("twitter--", "%s\n", G_STRFUNC);
+	purple_debug_info (TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
 
 	twitter_send_request (account, FALSE,
 			twitter_api_get_pref_host_url(account),
