@@ -12,6 +12,7 @@
 #include <debug.h>
 #include <request.h>
 
+#include "twitter_prefs.h"
 #include "twitter_util.h"
 #include "twitter_search.h"
 
@@ -156,9 +157,7 @@ void twitter_search (PurpleAccount *account, const char *query,
 		gpointer data)
 {
 	/* by default "search.twitter.com" */
-	const char *search_host_url = purple_account_get_string (
-			account, TWITTER_PREF_SEARCH_HOST_URL,
-			TWITTER_PREF_SEARCH_HOST_URL_DEFAULT);
+	const char *search_host_url = twitter_option_host_search_url(account);
 	gchar *full_url = g_strdup_printf ("http://%s/search.atom", search_host_url);
 
 	gchar *request = g_strdup_printf (

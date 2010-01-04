@@ -36,6 +36,7 @@
 
 #include <debug.h>
 #include <request.h>
+#include "twitter_prefs.h"
 #include "twitter_request.h"
 #include "twitter_util.h"
 
@@ -155,7 +156,7 @@ void twitter_send_request(PurpleAccount *account, gboolean post,
 	const char *sn = purple_account_get_username(account);
 	char *auth_text = g_strdup_printf("%s:%s", sn, pass);
 	char *auth_text_b64 = purple_base64_encode((guchar *) auth_text, strlen(auth_text));
-	gboolean use_https = purple_account_get_bool(account, "use_https", FALSE) && purple_ssl_is_supported();
+	gboolean use_https = twitter_option_use_https(account) && purple_ssl_is_supported();
 	TwitterSendRequestData *request_data = g_new0(TwitterSendRequestData, 1);
 	char *full_url = g_strdup_printf("%s://%s%s",
 			use_https ? "https" : "http",

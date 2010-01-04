@@ -277,8 +277,7 @@ GHashTable *twitter_chat_info_defaults(PurpleConnection *gc, const char *chat_na
 
 	//bug in pidgin prevents this from working
 	g_hash_table_insert(defaults, "interval",
-			g_strdup_printf("%d", purple_account_get_int(purple_connection_get_account(gc),
-					TWITTER_PREF_SEARCH_TIMEOUT, TWITTER_PREF_SEARCH_TIMEOUT_DEFAULT)));
+			g_strdup_printf("%d", twitter_option_search_timeout(purple_connection_get_account(gc))));
 	return defaults;
 }
 
@@ -359,6 +358,9 @@ static PurpleChat *twitter_blist_chat_timeline_new(PurpleAccount *account, gint 
 	{
 		return c;
 	}
+	/* No point in making this a preference (yet?)
+	 * the idea is that this will only be done once, and the user can move the
+	 * chat to wherever they want afterwards */
 	g = purple_find_group(TWITTER_PREF_DEFAULT_TIMELINE_GROUP);
 	if (g == NULL)
 		g = purple_group_new(TWITTER_PREF_DEFAULT_TIMELINE_GROUP);
@@ -371,8 +373,7 @@ static PurpleChat *twitter_blist_chat_timeline_new(PurpleAccount *account, gint 
 	//3) this should be an option. Some people may not want the home timeline
 	g_hash_table_insert(components, "search", "Home Timeline"); 
 	g_hash_table_insert(components, "interval",
-			g_strdup_printf("%d", purple_account_get_int(account,
-					TWITTER_PREF_SEARCH_TIMEOUT, TWITTER_PREF_SEARCH_TIMEOUT_DEFAULT)));
+			g_strdup_printf("%d", twitter_option_timeline_timeout(account)));
 	g_hash_table_insert(components, "chat_type",
 			g_strdup_printf("%d", TWITTER_CHAT_TIMELINE));
 	g_hash_table_insert(components, "timeline_id",
@@ -387,14 +388,18 @@ static PurpleChat *twitter_blist_chat_new(PurpleAccount *account, const char *se
 {
 	PurpleGroup *g;
 	PurpleChat *c = twitter_blist_chat_find_search(account, searchtext);
+	const char *group_name;
 	GHashTable *components;
 	if (c != NULL)
 	{
 		return c;
 	}
-	g = purple_find_group(TWITTER_PREF_DEFAULT_SEARCH_GROUP);
+	/* This is an option for when we sync our searches, the user
+	 * doesn't have to continuously move the chats */
+	group_name = twitter_option_search_group(account);
+	g = purple_find_group(group_name);
 	if (g == NULL)
-		g = purple_group_new(TWITTER_PREF_DEFAULT_SEARCH_GROUP);
+		g = purple_group_new(group_name);
 
 	components = twitter_chat_info_defaults(purple_account_get_connection(account), searchtext);
 
@@ -406,6 +411,7 @@ static PurpleBuddy *twitter_buddy_new(PurpleAccount *account, const char *screen
 {
 	PurpleGroup *g;
 	PurpleBuddy *b = purple_find_buddy(account, screenname);
+	const char *group_name;
 	if (b != NULL)
 	{
 		if (b->proto_data == NULL)
@@ -413,9 +419,10 @@ static PurpleBuddy *twitter_buddy_new(PurpleAccount *account, const char *screen
 		return b;
 	}
 
-	g = purple_find_group(TWITTER_PREF_DEFAULT_BUDDY_GROUP);
+	group_name = twitter_option_buddy_group(account);
+	g = purple_find_group(group_name);
 	if (g == NULL)
-		g = purple_group_new(TWITTER_PREF_DEFAULT_BUDDY_GROUP);
+		g = purple_group_new(group_name);
 	b = purple_buddy_new(account, screenname, alias);
 	purple_blist_add_buddy(b, NULL, g, NULL);
 	b->proto_data = g_new0(TwitterBuddyData, 1);
@@ -533,9 +540,7 @@ static const char *twitter_linkify(PurpleAccount *account, const char *message)
 static char *twitter_format_tweet(PurpleAccount *account, const char *src_user, const char *message, long long id)
 {
 	const char *linkified_message = twitter_linkify(account, message);
-	gboolean add_link = purple_account_get_bool(account,
-			TWITTER_PREF_ADD_URL_TO_TWEET,
-			TWITTER_PREF_ADD_URL_TO_TWEET_DEFAULT);
+	gboolean add_link = twitter_option_add_link_to_tweet(account);
 
 	g_return_val_if_fail(linkified_message != NULL, NULL);
 	g_return_val_if_fail(src_user != NULL, NULL);
@@ -1202,8 +1207,7 @@ static gint twitter_get_next_chat_id()
 
 static void twitter_chat_search_join(PurpleConnection *gc, const char *search, int interval)
 {
-        int default_interval = purple_account_get_int(purple_connection_get_account(gc),
-                        TWITTER_PREF_SEARCH_TIMEOUT, TWITTER_PREF_SEARCH_TIMEOUT_DEFAULT);
+        int default_interval = twitter_option_search_timeout(purple_connection_get_account(gc));
 
         g_return_if_fail(search != NULL);
 
@@ -1281,9 +1285,7 @@ static void twitter_chat_timeline_join(PurpleConnection *gc, GHashTable *compone
         const char *interval_str = g_hash_table_lookup(components, "interval");
 	guint timeline_id = 0;
         int interval = 0;
-	//TODO change this to a separate pref
-        int default_interval = purple_account_get_int(purple_connection_get_account(gc),
-                        TWITTER_PREF_SEARCH_TIMEOUT, TWITTER_PREF_SEARCH_TIMEOUT_DEFAULT);
+        int default_interval = twitter_option_timeline_timeout(purple_connection_get_account(gc));
 
         interval = strtol(interval_str, NULL, 10);
         if (interval < 1)
@@ -1410,18 +1412,18 @@ static void twitter_connected(PurpleAccount *account)
 
 	/* Install periodic timers to retrieve replies and friend list */
 	twitter->get_replies_timer = purple_timeout_add_seconds(
-			60 * purple_account_get_int(account, TWITTER_PREF_REPLIES_TIMEOUT, TWITTER_PREF_REPLIES_TIMEOUT_DEFAULT),
+			60 * twitter_option_replies_timeout(account),
 			twitter_get_replies_timeout, account);
 
-	int get_friends_timer_timeout = purple_account_get_int(account, TWITTER_PREF_USER_STATUS_TIMEOUT, TWITTER_PREF_USER_STATUS_TIMEOUT_DEFAULT);
-	gboolean get_following = purple_account_get_bool(account, TWITTER_PREF_GET_FRIENDS, TWITTER_PREF_GET_FRIENDS_DEFAULT);
+	int get_friends_timer_timeout = twitter_option_user_status_timeout(account);
+	gboolean get_following = twitter_option_get_following(account);
 
 	/* Only update the buddy list if the user set the timeout to a positive number
 	 * and the user wants to retrieve his following list */
 	if (get_friends_timer_timeout > 0 && get_following)
 	{
 		twitter->get_friends_timer = purple_timeout_add_seconds(
-				60 * purple_account_get_int(account, TWITTER_PREF_USER_STATUS_TIMEOUT, TWITTER_PREF_USER_STATUS_TIMEOUT_DEFAULT),
+				60 * get_friends_timer_timeout,
 				twitter_get_friends_timeout, account);
 	} else {
 		twitter->get_friends_timer = 0;
@@ -1720,8 +1722,7 @@ static void twitter_get_replies_verify_connection_cb(PurpleAccount *acct, xmlnod
 
 	}
 
-	if (purple_account_get_bool(acct, TWITTER_PREF_GET_FRIENDS,
-				TWITTER_PREF_GET_FRIENDS_DEFAULT))
+	if (twitter_option_get_following(acct))
 	{
 		twitter_api_get_friends(acct,
 				twitter_get_friends_verify_connection_cb,
@@ -1747,9 +1748,7 @@ static void twitter_verify_connection(PurpleAccount *acct)
 
 	/* If history retrieval enabled, read last reply id from config file.
 	 * There's no config file, just set last reply id to 0 */
-	retrieve_history = purple_account_get_bool (
-			acct, TWITTER_PREF_RETRIEVE_HISTORY,
-			TWITTER_PREF_RETRIEVE_HISTORY_DEFAULT);
+	retrieve_history = twitter_option_get_history(acct);
 
 	//If we don't have a stored last reply id, we don't want to get the entire history (EVERY reply)
 	if (retrieve_history && twitter_account_get_last_reply_id(acct) != 0) {
@@ -1762,8 +1761,7 @@ static void twitter_verify_connection(PurpleAccount *acct)
 					3);  /* total number of steps */
 		}
 
-		if (purple_account_get_bool(acct, TWITTER_PREF_GET_FRIENDS,
-					TWITTER_PREF_GET_FRIENDS_DEFAULT))
+		if (twitter_option_get_following(acct))
 		{
 			twitter_api_get_friends(acct,
 					twitter_get_friends_verify_connection_cb,
@@ -2044,12 +2042,11 @@ static void twitter_get_info(PurpleConnection *gc, const char *username) {
 
 
 static void twitter_set_status(PurpleAccount *acct, PurpleStatus *status) {
-	gboolean sync_status = purple_account_get_bool (
-			acct, TWITTER_PREF_SYNC_STATUS,
-			TWITTER_PREF_SYNC_STATUS_DEFAULT);
+	gboolean sync_status = twitter_option_sync_status(acct);
 	if (!sync_status)
 		return ;
 
+	//TODO: I'm pretty sure this is broken
 	const char *msg = purple_status_get_attr_string(status, "message");
 	purple_debug_info(TWITTER_PROTOCOL_ID, "setting %s's status to %s: %s\n",
 			acct->username, purple_status_get_name(status), msg);
@@ -2290,79 +2287,9 @@ static gboolean twitter_context_menu(GtkIMHtml *imhtml, GtkIMHtmlLink *link, Gtk
 static void twitter_init(PurplePlugin *plugin)
 {
 
-	PurpleAccountOption *option;
 	purple_debug_info(TWITTER_PROTOCOL_ID, "starting up\n");
 
-	option = purple_account_option_bool_new(
-			("Enable HTTPS"),      /* text shown to user */
-			"use_https",                         /* pref name */
-			FALSE);                        /* default value */
-	prpl_info.protocol_options = g_list_append(NULL, option);
-
-	/* Retrieve tweets history after login */
-	option = purple_account_option_bool_new (
-			("Retrieve tweets history after login"),
-			TWITTER_PREF_RETRIEVE_HISTORY,
-			TWITTER_PREF_RETRIEVE_HISTORY_DEFAULT);
-	prpl_info.protocol_options = g_list_append (prpl_info.protocol_options, option);
-
-	/* Sync presence update to twitter */
-	option = purple_account_option_bool_new (
-			("Sync availability status message to Twitter"),
-			TWITTER_PREF_SYNC_STATUS,
-			TWITTER_PREF_SYNC_STATUS_DEFAULT);
-	prpl_info.protocol_options = g_list_append (prpl_info.protocol_options, option);
-
-	/* Automatically generate a buddylist based on followers */
-	option = purple_account_option_bool_new (
-			("Add followers as friends (NOT recommended for large follower list)"),
-			TWITTER_PREF_GET_FRIENDS,
-			TWITTER_PREF_GET_FRIENDS_DEFAULT);
-	prpl_info.protocol_options = g_list_append (prpl_info.protocol_options, option);
-
-	/* Add URL link to each tweet */
-	option = purple_account_option_bool_new (
-			("Add URL link to each tweet"),
-			TWITTER_PREF_ADD_URL_TO_TWEET,
-			TWITTER_PREF_ADD_URL_TO_TWEET_DEFAULT);
-	prpl_info.protocol_options = g_list_append (prpl_info.protocol_options, option);
-
-	/* API host URL. twitter.com by default.
-	 * Users can change it to a proxy URL
-	 * This can fuck GFW (http://en.wikipedia.org/wiki/Golden_Shield_Project) */
-	option = purple_account_option_string_new (
-			("Host URL"),      /* text shown to user */
-			TWITTER_PREF_HOST_URL,                         /* pref name */
-			TWITTER_PREF_HOST_URL_DEFAULT);                        /* default value */
-	prpl_info.protocol_options = g_list_append(prpl_info.protocol_options, option);
-
-	/* Search API host URL. search.twitter.com by default */
-	option = purple_account_option_string_new (
-			("Search Host URL"),      /* text shown to user */
-			TWITTER_PREF_SEARCH_HOST_URL,                         /* pref name */
-			TWITTER_PREF_SEARCH_HOST_URL_DEFAULT);                        /* default value */
-	prpl_info.protocol_options = g_list_append(prpl_info.protocol_options, option);
-
-	/* Mentions/replies tweets refresh interval */
-	option = purple_account_option_int_new(
-			("Refresh replies every (min)"),      /* text shown to user */
-			TWITTER_PREF_REPLIES_TIMEOUT,                         /* pref name */
-			TWITTER_PREF_REPLIES_TIMEOUT_DEFAULT);                        /* default value */
-	prpl_info.protocol_options = g_list_append(prpl_info.protocol_options, option);
-
-	/* Friendlist refresh interval */
-	option = purple_account_option_int_new(
-			("Refresh friendlist every (min)"),      /* text shown to user */
-			TWITTER_PREF_USER_STATUS_TIMEOUT,                         /* pref name */
-			TWITTER_PREF_USER_STATUS_TIMEOUT_DEFAULT);                        /* default value */
-	prpl_info.protocol_options = g_list_append(prpl_info.protocol_options, option);
-
-	/* Search results refresh interval */
-	option = purple_account_option_int_new(
-			("Refresh search results every (min)"),      /* text shown to user */
-			TWITTER_PREF_SEARCH_TIMEOUT,                         /* pref name */
-			TWITTER_PREF_SEARCH_TIMEOUT_DEFAULT);                        /* default value */
-	prpl_info.protocol_options = g_list_append(prpl_info.protocol_options, option);
+	prpl_info.protocol_options = twitter_get_protocol_options();
 
 #if _HAVE_PIDGIN_
 	purple_signal_connect(purple_get_core(), "uri-handler", plugin,
@@ -2370,8 +2297,6 @@ static void twitter_init(PurplePlugin *plugin)
 
 	gtk_imhtml_class_register_protocol(TWITTER_URI "://", twitter_url_clicked_cb, twitter_context_menu);
 #endif
-
-
 
 	_twitter_protocol = plugin;
 }
