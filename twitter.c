@@ -616,7 +616,7 @@ static void twitter_buddy_set_status_data(PurpleAccount *account, const char *sr
 
 	if (!status_text_same)
 	{
-		purple_prpl_got_user_status(b->account, b->name, "online",
+		purple_prpl_got_user_status(b->account, b->name, TWITTER_STATUS_ONLINE,
 				"message", s ? s->text : NULL, NULL);
 	}
 }
@@ -1368,7 +1368,7 @@ static void twitter_set_all_buddies_online(PurpleAccount *account)
 	GSList *l;
 	for (l = buddies; l; l = l->next)
 	{
-		purple_prpl_got_user_status(account, ((PurpleBuddy *) l->data)->name, "online",
+		purple_prpl_got_user_status(account, ((PurpleBuddy *) l->data)->name, TWITTER_STATUS_ONLINE,
 				"message", NULL, NULL);
 	}
 	g_slist_free(buddies);
@@ -1630,7 +1630,7 @@ static void twitter_action_set_status_ok(PurpleConnection *gc, PurpleRequestFiel
 {
 	PurpleAccount *acct = purple_connection_get_account(gc);
 	const char* status = purple_request_fields_get_string(fields, "status");
-	purple_account_set_status(acct, "online", TRUE, "message", status, NULL);
+	purple_account_set_status(acct, TWITTER_STATUS_ONLINE, TRUE, "message", status, NULL);
 }
 static void twitter_action_set_status(PurplePluginAction *action)
 {
