@@ -21,5 +21,3 @@
 
 /* We'll handle TWITTER_URI://foo as an internal action */
 #define TWITTER_URI "putter"
-
-#define _HAVE_PIDGIN_ 1

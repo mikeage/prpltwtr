@@ -10,8 +10,6 @@ PIDGIN_TREE_TOP := ../pidgin-2.6.4
 
 # For Linux
 DESTDIR := 
-PREFIX := $(shell pkg-config --variable=prefix $(PIDGIN_NAME) 2> /dev/null || echo /usr)
-LIBDIR := $(PREFIX)/lib
 
 # Is this WIN32?
 IS_WIN32 = $(shell (uname -a | grep -q -i cygwin) && echo 1 || echo 0)
@@ -55,7 +53,7 @@ LIBS += -lglib-2.0 \
 			$(PIDGIN_TOP)/pidgin$(PLUGIN_SUFFIX)
 			
 PURPLE_LIBS = -L$(GTK_TOP)/lib -L$(PURPLE_TOP) $(LIBS)
-PURPLE_CFLAGS = -DPURPLE_PLUGINS -DENABLE_NLS -Wall -DMBPURPLE_VERSION=\"$(VERSION)\" $(INCLUDE_PATHS)
+PURPLE_CFLAGS = -DPURPLE_PLUGINS -DENABLE_NLS -Wall -DPRPL_TWITTER_VERSION=\"$(VERSION)\" -D_HAVE_PIDGIN_=1 $(INCLUDE_PATHS)
 
 PURPLE_PROTOCOL_PIXMAP_DIR = $(PURPLE_INSTALL_DIR)/pixmaps/pidgin/protocols
 PURPLE_PLUGIN_DIR = $(PURPLE_INSTALL_PLUGINS_DIR)
@@ -63,27 +61,19 @@ PURPLE_PLUGIN_DIR = $(PURPLE_INSTALL_PLUGINS_DIR)
 
 #include $(PIDGIN_COMMON_RULES)
 
-else
-
-IS_PIDGIN = $(shell pkg-config --atleast-version=2.0 pidgin && echo 1 || echo 0)
-IS_CARRIER = $(shell pkg-config --atleast-version=2.0 carrier && echo 1 || echo 0)
+else #LINUX
 
 ifeq ($(strip $(IS_PIDGIN)), 1)
 	PIDGIN_NAME := pidgin
-else 
-ifeq ($(strip $(IS_CARRIER)), 1)
-        PIDGIN_NAME := carrier
-endif
 endif
 
-PREFIX := $(shell pkg-config --variable=prefix $(PIDGIN_NAME) 2> /dev/null || echo /usr)
+PREFIX := $(shell pkg-config --variable=prefix purple 2> /dev/null || echo /usr)
 LIBDIR := $(PREFIX)/lib
 
 # LINUX and others, use pkg-config
 PURPLE_LIBS = $(shell pkg-config --libs purple)
-PURPLE_CFLAGS = $(CFLAGS) -DPURPLE_PLUGINS -DENABLE_NLS -DMBPURPLE_VERSION=\"$(VERSION)\"
+PURPLE_CFLAGS = $(CFLAGS) -DPURPLE_PLUGINS -DENABLE_NLS -DPRPL_TWITTER_VERSION=\"$(VERSION)\" -D_HAVE_PIDGIN_=$(IS_PIDGIN)
 PURPLE_CFLAGS += $(shell pkg-config --cflags purple)
-PURPLE_CFLAGS += $(shell pkg-config --cflags pidgin)
 PURPLE_CFLAGS += -Wall -pthread -I. -g -O2 -pipe -fPIC -DPIC 
 PLUGIN_SUFFIX := .so
 EXE_SUFFIX := 
@@ -91,10 +81,12 @@ EXE_SUFFIX :=
 PURPLE_PROTOCOL_PIXMAP_DIR := $(DESTDIR)$(PREFIX)/share/pixmaps/pidgin/protocols
 PURPLE_PLUGIN_DIR := $(DESTDIR)$(LIBDIR)/purple-2
 
+ifeq ($(strip $(IS_PIDGIN)), 1)
 PIDGIN_LIBS = $(shell pkg-config --libs $(PIDGIN_NAME))
-PIDGIN_CFLAGS = $(CFLAGS) -DPIDGIN_PLUGINS -DENABLE_NLS -DMBPURPLE_VERSION=\"$(VERSION)\"
+PIDGIN_CFLAGS = $(CFLAGS) -DPIDGIN_PLUGINS -DENABLE_NLS -DPRPL_TWITTER_VERSION=\"$(VERSION)\"
 PIDGIN_CFLAGS += $(shell pkg-config --cflags $(PIDGIN_NAME))
 PIDGIN_CFLAGS += -Wall -pthread -I. -g -O2 -pipe -fPIC -DPIC 
+endif
 
 LDFLAGS := $(shell (echo $(PIDGIN_CFLAGS) $(PURPLE_CFLAGS)| tr ' ' '\n' | awk '!a[$$0]++' | tr '\n' ' '))
 endif

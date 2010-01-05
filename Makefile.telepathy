@@ -4,8 +4,7 @@
 
 all: build 
 
-IS_PIDGIN = $(shell pkg-config --atleast-version=2.0 pidgin && echo 1 || echo 0)
-
+IS_PIDGIN=0
 include global.mak
 
 SUBDIRS = data
