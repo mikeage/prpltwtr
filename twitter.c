@@ -371,7 +371,7 @@ static PurpleChat *twitter_blist_chat_timeline_new(PurpleAccount *account, gint 
 	//1) search shouldn't be set, but is currently a hack to fix purple_blist_find_chat (persistent chat, etc)
 	//2) need this to work with multiple timelines.
 	//3) this should be an option. Some people may not want the home timeline
-	g_hash_table_insert(components, "search", "Home Timeline"); 
+	g_hash_table_insert(components, "search", "NA");  //search is not applicable... maybe we should set this optional?
 	g_hash_table_insert(components, "interval",
 			g_strdup_printf("%d", twitter_option_timeline_timeout(account)));
 	g_hash_table_insert(components, "chat_type",
@@ -383,6 +383,41 @@ static PurpleChat *twitter_blist_chat_timeline_new(PurpleAccount *account, gint 
 	purple_blist_add_chat(c, g, NULL);
 	return c;
 }
+
+PurpleChat *twitter_find_blist_chat(PurpleAccount *account, const char *name)
+{
+	static char *timeline = "Timeline: ";
+	static char *search = "Search: ";
+	PurpleChat *c = NULL;
+	if (strlen(name) > strlen(timeline) && !strncmp(timeline, name, strlen(timeline)))
+	{
+		c = twitter_blist_chat_find_timeline(account, 0);
+	} else if (strlen(name) > strlen(search) && !strncmp(search, name, strlen(search))) {
+		c = twitter_blist_chat_find_search(account, name + strlen(search));
+	} else {
+		c = twitter_blist_chat_find_search(account, name);
+	}
+	return c;
+}
+
+static char *twitter_get_chat_name(GHashTable *components) {
+	const char *chat_type_str = g_hash_table_lookup(components, "chat_type");
+	TwitterChatType chat_type = chat_type_str == NULL ? 0 : strtol(chat_type_str, NULL, 10);
+
+	switch (chat_type)
+	{
+		case TWITTER_CHAT_TIMELINE:
+			return g_strdup("Timeline: Home");
+			break;
+		case TWITTER_CHAT_SEARCH:
+			return g_strdup_printf("Search: %s", (char *) g_hash_table_lookup(components, "search"));
+			break;
+		default:
+			purple_debug_info(TWITTER_PROTOCOL_ID, "%s unknown chat_type %d\n", G_STRFUNC, chat_type);
+			return g_strdup("Unknown");
+			break;
+	}
+}         
 
 static PurpleChat *twitter_blist_chat_new(PurpleAccount *account, const char *searchtext)
 {
@@ -996,6 +1031,8 @@ static PurpleConversation *twitter_conv_search_find(PurpleConnection *gc, const 
 	else
 		return purple_find_chat(gc, *chat_id);
 }
+
+
 static void twitter_search_cb(PurpleAccount *account,
 		const GArray *search_results,
 		const gchar *refresh_url,
@@ -1222,10 +1259,11 @@ static void twitter_chat_search_join(PurpleConnection *gc, const char *search, i
                 PurpleAccount *account = purple_connection_get_account(gc);
                 TwitterSearchTimeoutContext *ctx = twitter_search_timeout_context_new(account,
                                 search, chat_id);
-                PurpleConversation *conv = serv_got_joined_chat(gc, chat_id, search);
+		char *chat_name = g_strdup_printf("Search: %s", search);
+                PurpleConversation *conv = serv_got_joined_chat(gc, chat_id, chat_name);
+		g_free(chat_name);
 
 		g_hash_table_replace(twitter->search_chat_ids, g_utf8_strdown(search, -1), g_memdup(&chat_id, sizeof(chat_id)));
-                purple_conversation_set_title(conv, search);
                 purple_conversation_set_data(conv, "twitter-chat-context", ctx);
 
                 twitter_api_search(account,
@@ -1302,7 +1340,7 @@ static void twitter_chat_timeline_join(PurpleConnection *gc, GHashTable *compone
 		TwitterTimelineTimeoutContext *ctx = twitter_timeline_timeout_context_new(
 				account, timeline_id, chat_id);
 
-		conv = serv_got_joined_chat(gc, chat_id, "Home Timeline");
+		conv = serv_got_joined_chat(gc, chat_id, "Timeline: Home");
 		ctx->base.chat_id = chat_id;
 		ctx->base.account = account;
 
@@ -2181,7 +2219,7 @@ static PurplePluginProtocolInfo prpl_info =
 	NULL,//TODO?	    /* set_permit_deny */
 	twitter_chat_join,		  /* join_chat */
 	NULL,		/* reject_chat */
-	NULL,	      /* get_chat_name */
+	twitter_get_chat_name,	      /* get_chat_name */
 	NULL,		/* chat_invite */
 	twitter_chat_leave,		 /* chat_leave */
 	NULL,//twitter_chat_whisper,	       /* chat_whisper */
@@ -2200,7 +2238,7 @@ static PurplePluginProtocolInfo prpl_info =
 	NULL,	       /* remove_group */
 	NULL,//TODO?				/* get_cb_real_name */
 	NULL,	     /* set_chat_topic */
-	NULL,				/* find_blist_chat */
+	twitter_find_blist_chat,				/* find_blist_chat */
 	NULL,	  /* roomlist_get_list */
 	NULL,	    /* roomlist_cancel */
 	NULL,   /* roomlist_expand_category */
