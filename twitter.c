@@ -1276,10 +1276,7 @@ static void twitter_chat_search_join(PurpleConnection *gc, const char *search, i
                                 60 * interval,
                                 twitter_search_timeout, ctx);
         } else {
-                char *tmp = g_strdup_printf("Search %s is already open.", search);
                 purple_debug_info(TWITTER_PROTOCOL_ID, "Search %s is already open.", search);
-                purple_notify_info(gc, "Perform Search", "Perform Search", tmp);
-                g_free(tmp);
         }
 }
 static void twitter_chat_search_join_components(PurpleConnection *gc, GHashTable *components) {
@@ -1383,10 +1380,7 @@ static void twitter_chat_timeline_join(PurpleConnection *gc, GHashTable *compone
 				60 * interval,
 				twitter_search_timeout, ctx);*/
 	} else {
-		//char *tmp = g_strdup_printf("Search %s is already open.", search);
-		//purple_debug_info(TWITTER_PROTOCOL_ID, "Search %s is already open.\n", search);
-		//purple_notify_info(gc, "Perform Search", "Perform Search", tmp);
-		//g_free(tmp);
+		purple_debug_info(TWITTER_PROTOCOL_ID, "Timeline %d is already open.\n", timeline_id);
 	}
 
 }
