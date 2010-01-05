@@ -250,7 +250,7 @@ static GList *twitter_chat_info(PurpleConnection *gc) {
 	pce = g_new0(struct proto_chat_entry, 1);
 	pce->label = "Search";
 	pce->identifier = "search";
-	pce->required = TRUE;
+	pce->required = FALSE;
 
 	chat_info = g_list_append(chat_info, pce);
 
@@ -368,10 +368,9 @@ static PurpleChat *twitter_blist_chat_timeline_new(PurpleAccount *account, gint 
 	components = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, g_free);
 
 	//TODO: fix all of this
-	//1) search shouldn't be set, but is currently a hack to fix purple_blist_find_chat (persistent chat, etc)
+	//1) FIXED: search shouldn't be set, but is currently a hack to fix purple_blist_find_chat (persistent chat, etc)
 	//2) need this to work with multiple timelines.
 	//3) this should be an option. Some people may not want the home timeline
-	g_hash_table_insert(components, "search", "NA");  //search is not applicable... maybe we should set this optional?
 	g_hash_table_insert(components, "interval",
 			g_strdup_printf("%d", twitter_option_timeline_timeout(account)));
 	g_hash_table_insert(components, "chat_type",
@@ -1246,7 +1245,14 @@ static void twitter_chat_search_join(PurpleConnection *gc, const char *search, i
 {
         int default_interval = twitter_option_search_timeout(purple_connection_get_account(gc));
 
-        g_return_if_fail(search != NULL);
+	if (search == NULL || search[0] == '\0')
+	{
+		purple_notify_info(gc,  /* plugin handle or PurpleConnection */
+				("Chat Join"),
+				("Invalid Search"),
+				("Search must be filled in when joining a search chat"));
+		return;
+	}
 
         purple_debug_info(TWITTER_PROTOCOL_ID, "%s is performing search %s\n", gc->account->username, search);
 
