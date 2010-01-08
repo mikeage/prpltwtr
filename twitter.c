@@ -1285,6 +1285,34 @@ static int twitter_chat_send(PurpleConnection *gc, int id, const char *message,
 			return 0;
 	}
 }
+static gboolean twitter_timeline_timeout(gpointer data)
+{
+	TwitterTimelineTimeoutContext *ctx = (TwitterTimelineTimeoutContext *)data;
+	PurpleAccount *account = ctx->base->account;
+	PurpleConnection *gc = purple_account_get_connection(account);
+	long long since_id = twitter_connection_get_last_home_timeline_id(gc);
+	if (since_id == 0)
+	{
+		purple_debug_info(TWITTER_PROTOCOL_ID, "Retrieving %s statuses for first time\n", account->username);
+		twitter_api_get_home_timeline(account,
+				since_id,
+				20,
+				1,
+				twitter_get_home_timeline_cb,
+				NULL,
+				ctx);
+	} else {
+		purple_debug_info(TWITTER_PROTOCOL_ID, "Retrieving %s statuses since %lld\n", account->username, since_id);
+		twitter_api_get_home_timeline_all(account,
+				since_id,
+				twitter_get_home_timeline_all_cb,
+				NULL,
+				ctx);
+	}
+
+	return TRUE;
+}
+
 
 static TwitterConvChatContext *twitter_find_chat_context(PurpleAccount *account, const char *chat_name)
 {
@@ -1300,7 +1328,7 @@ static gpointer twitter_find_chat_context_endpoint_data(PurpleAccount *account, 
 	return ctx_base->endpoint_data;
 }
 
-static void twitter_chat_search_join(PurpleConnection *gc, const char *search, int interval, gboolean open_conv)
+static void twitter_chat_search_join(PurpleConnection *gc, gboolean open_conv, int interval, const char *search)
 {
 	PurpleAccount *account = purple_connection_get_account(gc);
         int default_interval = twitter_option_search_timeout(purple_connection_get_account(gc));
@@ -1351,45 +1379,14 @@ static void twitter_chat_search_join_components(PurpleConnection *gc, GHashTable
         int interval = 0;
 
         interval = interval_str == NULL ? 0 : strtol(interval_str, NULL, 10);
-	twitter_chat_search_join(gc, search, interval, open_conv);
+	twitter_chat_search_join(gc, open_conv, interval, search);
 }
 
-static gboolean twitter_timeline_timeout(gpointer data)
+static void twitter_chat_timeline_join(PurpleConnection *gc, gboolean open_conv, int interval, guint timeline_id) 
 {
-	TwitterTimelineTimeoutContext *ctx = (TwitterTimelineTimeoutContext *)data;
-	PurpleAccount *account = ctx->base->account;
-	PurpleConnection *gc = purple_account_get_connection(account);
-	long long since_id = twitter_connection_get_last_home_timeline_id(gc);
-	if (since_id == 0)
-	{
-		purple_debug_info(TWITTER_PROTOCOL_ID, "Retrieving %s statuses for first time\n", account->username);
-		twitter_api_get_home_timeline(account,
-				since_id,
-				20,
-				1,
-				twitter_get_home_timeline_cb,
-				NULL,
-				ctx);
-	} else {
-		purple_debug_info(TWITTER_PROTOCOL_ID, "Retrieving %s statuses since %lld\n", account->username, since_id);
-		twitter_api_get_home_timeline_all(account,
-				since_id,
-				twitter_get_home_timeline_all_cb,
-				NULL,
-				ctx);
-	}
-
-	return TRUE;
-}
-
-static void twitter_chat_timeline_join(PurpleConnection *gc, GHashTable *components, gboolean open_conv) {
 	PurpleAccount *account = purple_connection_get_account(gc);
-        const char *interval_str = g_hash_table_lookup(components, "interval");
-	guint timeline_id = 0;
-        int interval = 0;
         int default_interval = twitter_option_timeline_timeout(account);
 
-        interval = strtol(interval_str, NULL, 10);
         if (interval < 1)
                 interval = default_interval;
 
@@ -1438,21 +1435,22 @@ static void twitter_chat_timeline_join(PurpleConnection *gc, GHashTable *compone
 		} else {
 			purple_debug_info(TWITTER_PROTOCOL_ID, "%s using previous timeline context\n", account->username);
 		}
-		/*twitter_api_search(account,
-				search, ctx->last_tweet_id,
-				TWITTER_SEARCH_RPP_DEFAULT,
-				twitter_search_cb, NULL, ctx);*/
-
-
-		/*ctx->timer_handle = purple_timeout_add_seconds(
-				60 * interval,
-				twitter_search_timeout, ctx);*/
 	} else {
 		purple_debug_info(TWITTER_PROTOCOL_ID, "Timeline %d is already open.\n", timeline_id);
 	}
 	g_free(chat_name);
 
 }
+static void twitter_chat_timeline_join_components(PurpleConnection *gc, GHashTable *components, gboolean open_conv) 
+{
+	guint timeline_id = 0;
+        const char *interval_str = g_hash_table_lookup(components, "interval");
+        int interval = 0;
+
+        interval = interval_str == NULL ? 0 : strtol(interval_str, NULL, 10);
+	twitter_chat_timeline_join(gc, open_conv, interval, timeline_id);
+}
+
 static void twitter_chat_join_do(PurpleConnection *gc, GHashTable *components, gboolean open_conv) {
 	const char *conv_type_str = g_hash_table_lookup(components, "chat_type");
 	gint conv_type = conv_type_str == NULL ? 0 : strtol(conv_type_str, NULL, 10);
@@ -1462,7 +1460,7 @@ static void twitter_chat_join_do(PurpleConnection *gc, GHashTable *components, g
 			twitter_chat_search_join_components(gc, components, open_conv);
 			break;
 		case TWITTER_CHAT_TIMELINE:
-			twitter_chat_timeline_join(gc, components, open_conv);
+			twitter_chat_timeline_join_components(gc, components, open_conv);
 			break;
 		default:
 			purple_debug_info(TWITTER_PROTOCOL_ID, "Unknown chat type %d\n", conv_type);
@@ -2463,7 +2461,7 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 				"Sorry, this has not been implemented yet");
 	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_SEARCH)) {
 		//join chat with default interval, open in conv window
-		twitter_chat_search_join(purple_account_get_connection(account), text, 0, TRUE);
+		twitter_chat_search_join(purple_account_get_connection(account), TRUE, 0, text);
 	}
 	return TRUE;
 }
