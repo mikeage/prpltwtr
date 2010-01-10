@@ -70,10 +70,15 @@ TwitterEndpointChat *twitter_endpoint_chat_find_by_id(TwitterEndpointChatId *cha
 
 PurpleConversation *twitter_chat_context_find_conv(TwitterEndpointChat *ctx)
 {
+#if _HAZE_
+	return purple_find_conversation_with_account(PURPLE_CONV_TYPE_IM, ctx->chat_name, ctx->account);
+#else
 	return purple_find_conversation_with_account(PURPLE_CONV_TYPE_CHAT, ctx->chat_name, ctx->account);
+#endif
 }
 
 //Taken mostly from blist.c
+//XXX
 static PurpleChat *_twitter_blist_chat_find(PurpleAccount *account, TwitterChatType chat_type,
 	const char *component_key, const char *component_value)
 {
@@ -129,10 +134,13 @@ static PurpleChat *_twitter_blist_chat_find(PurpleAccount *account, TwitterChatT
 	return NULL;
 }
 
+//XXX
 PurpleChat *twitter_blist_chat_find_search(PurpleAccount *account, const char *name)
 {
 	return _twitter_blist_chat_find(account, TWITTER_CHAT_SEARCH, "search", name);
 }
+
+//XXX
 PurpleChat *twitter_blist_chat_find_timeline(PurpleAccount *account, gint timeline_id)
 {
 	char *tmp = g_strdup_printf("%d", timeline_id);
@@ -141,7 +149,7 @@ PurpleChat *twitter_blist_chat_find_timeline(PurpleAccount *account, gint timeli
 	return chat;
 }
 
-//TODO: fix me
+//XXX TODO: fix me
 PurpleChat *twitter_find_blist_chat(PurpleAccount *account, const char *name)
 {
 	static char *timeline = "Timeline: ";
@@ -167,7 +175,11 @@ gboolean twitter_chat_auto_open(PurpleChat *chat)
 	return (auto_open != NULL && auto_open[0] != '0');
 }
 
+#if _HAZE_
+void twitter_chat_add_tweet(PurpleConvIm *chat, const char *who, const char *message, long long id, time_t time)
+#else
 void twitter_chat_add_tweet(PurpleConvChat *chat, const char *who, const char *message, long long id, time_t time)
+#endif
 {
 	gchar *tweet;
 	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
@@ -176,10 +188,17 @@ void twitter_chat_add_tweet(PurpleConvChat *chat, const char *who, const char *m
 	g_return_if_fail(message != NULL);
 
 	tweet = twitter_format_tweet(
-			purple_conversation_get_account(purple_conv_chat_get_conversation(chat)),
+			purple_conversation_get_account(chat->conv),
 			who,
 			message,
 			id);
+#if _HAZE_
+	//This isn't in twitter_Format_tweet because we can't distinguish between a im and a chat
+	gchar *tweet2 = g_strdup_printf("%s: %s", who, tweet);
+	g_free(tweet);
+	tweet = tweet2;
+	serv_got_im(purple_conversation_get_gc(chat->conv), chat->conv->name, tweet, PURPLE_MESSAGE_RECV, time);
+#else
 	if (!purple_conv_chat_find_user(chat, who))
 	{
 		purple_debug_info(TWITTER_PROTOCOL_ID, "added %s to chat %s\n",
@@ -198,6 +217,7 @@ void twitter_chat_add_tweet(PurpleConvChat *chat, const char *who, const char *m
 			PURPLE_MESSAGE_RECV,
 			tweet,
 			time);
+#endif
 	g_free(tweet);
 }
 
@@ -239,12 +259,18 @@ void twitter_endpoint_chat_start(PurpleConnection *gc, TwitterEndpointChatSettin
 
 	char *chat_name = settings->get_name(components);
 
+#if _HAZE_
+	//HAZE only works when the conv has already been created
+	//as opposed to right before the conversation has been created
+        if (purple_find_conversation_with_account(PURPLE_CONV_TYPE_IM, chat_name, account)) {
+#else
         if (!purple_find_conversation_with_account(PURPLE_CONV_TYPE_CHAT, chat_name, account)) {
 		if (open_conv)
 		{
 			guint chat_id = twitter_get_next_chat_id();
 			serv_got_joined_chat(gc, chat_id, chat_name);
 		}
+#endif
 		if (!twitter_find_chat_context(account, chat_name))
 		{
 			TwitterConnectionData *twitter = gc->proto_data;
@@ -277,6 +303,12 @@ gpointer twitter_find_chat_context_endpoint_data(PurpleAccount *account, const c
 	return ctx_base->endpoint_data;
 }
 
+#if _HAZE_
+PurpleConvIm *twitter_endpoint_chat_get_conv(TwitterEndpointChat *endpoint_chat)
+{
+	return PURPLE_CONV_IM(twitter_chat_context_find_conv(endpoint_chat));
+}
+#else
 PurpleConvChat *twitter_endpoint_chat_get_conv(TwitterEndpointChat *endpoint_chat)
 {
 	PurpleConversation *conv = twitter_chat_context_find_conv(endpoint_chat);
@@ -294,3 +326,4 @@ PurpleConvChat *twitter_endpoint_chat_get_conv(TwitterEndpointChat *endpoint_cha
 		return NULL;
 	return PURPLE_CONV_CHAT(conv);
 }
+#endif

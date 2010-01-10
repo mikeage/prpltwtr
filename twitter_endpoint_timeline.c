@@ -62,7 +62,12 @@ static int twitter_chat_timeline_send(TwitterEndpointChat *ctx_base, const gchar
 				message, 0,
 				NULL, NULL,//TODO: verify & error
 				NULL);
+#if _HAZE_
+		//It's already in the message box in haze. Maybe we should edit it before hand?
+		//twitter_chat_add_tweet(PURPLE_CONV_IM(conv), account->username, message, 0, time(NULL));//TODO: FIX TIME
+#else
 		twitter_chat_add_tweet(PURPLE_CONV_CHAT(conv), account->username, message, 0, time(NULL));//TODO: FIX TIME
+#endif
 		return 0;
 	}
 }
@@ -81,7 +86,11 @@ static void twitter_get_home_timeline_parse_statuses(PurpleAccount *account,
 		TwitterEndpointChat *endpoint_chat, GList *statuses)
 {
 	PurpleConnection *gc = purple_account_get_connection(account);
+#if _HAZE_
+	PurpleConvIm *chat;
+#else
 	PurpleConvChat *chat;
+#endif
 	GList *l;
 
 	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
@@ -222,6 +231,9 @@ static gboolean twitter_timeline_timeout(TwitterEndpointChat *endpoint_chat)
 static TwitterEndpointChatSettings TwitterEndpointTimelineSettings =
 {
 	TWITTER_CHAT_TIMELINE,
+#if _HAZE_
+	'!',
+#endif
 	twitter_chat_timeline_send, //send_message
 	twitter_timeline_timeout_context_free, //endpoint_data_free
 	twitter_option_search_timeout, //get_default_interval

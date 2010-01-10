@@ -64,7 +64,12 @@ static int twitter_chat_search_send(TwitterEndpointChat *ctx_base, const gchar *
 				status, 0,
 				NULL, NULL,//TODO: verify & error
 				NULL);
+#if _HAZE_
+		//It's already in the message box in haze. Maybe we should edit it before hand?
+		//twitter_chat_add_tweet(PURPLE_CONV_IM(conv), account->username, status, 0, time(NULL));//TODO: FIX TIME
+#else
 		twitter_chat_add_tweet(PURPLE_CONV_CHAT(conv), account->username, status, 0, time(NULL));//TODO: FIX TIME
+#endif
 		g_free(status);
 		return 0;
 	}
@@ -73,10 +78,14 @@ static int twitter_chat_search_send(TwitterEndpointChat *ctx_base, const gchar *
 
 static char *twitter_chat_name_from_search(const char *search)
 {
+#if _HAZE_
+	return g_strdup_printf("#%s", search);
+#else
 	char *search_lower = g_utf8_strdown(search, -1);
 	char *chat_name = g_strdup_printf("Search: %s", search_lower);
 	g_free(search_lower);
 	return chat_name;
+#endif
 }
 
 
@@ -104,17 +113,26 @@ static void twitter_search_cb(PurpleAccount *account,
 {
 	TwitterEndpointChatId *id = (TwitterEndpointChatId *) user_data;
 	gint i, len = search_results->len;
+#if _HAZE_
+	PurpleConvIm *chat;
+#else
 	PurpleConvChat *chat;
+#endif
 	TwitterEndpointChat *endpoint_chat;
 	TwitterSearchTimeoutContext *ctx;
 
 	g_return_if_fail(id != NULL);
 
+	purple_debug_info(TWITTER_PROTOCOL_ID, "%s, chat_name %s len: %d\n", G_STRFUNC, id->chat_name,  len);
+
 	endpoint_chat = twitter_endpoint_chat_find_by_id(id);
 	twitter_endpoint_chat_id_free(id);
 
 	if (endpoint_chat == NULL)
+	{
+		purple_debug_info(TWITTER_PROTOCOL_ID, "%s, chat data went away\n", G_STRFUNC);
 		return;
+	}
 	ctx = (TwitterSearchTimeoutContext *) endpoint_chat->endpoint_data;
 
 	g_return_if_fail (ctx != NULL);
@@ -125,6 +143,7 @@ static void twitter_search_cb(PurpleAccount *account,
 		chat = twitter_endpoint_chat_get_conv(endpoint_chat);
 		if (chat)
 		{
+			purple_debug_info(TWITTER_PROTOCOL_ID, "%s found chat %s, adding tweets\n", G_STRFUNC, endpoint_chat->chat_name);
 			for (i = len-1; i >= 0; i--) {
 				TwitterSearchData *search_data;
 
@@ -134,6 +153,7 @@ static void twitter_search_cb(PurpleAccount *account,
 				twitter_chat_add_tweet(chat, search_data->from_user, search_data->text, search_data->id, search_data->created_at);
 			}
 		} else {
+			purple_debug_info(TWITTER_PROTOCOL_ID, "%s could not find chat %s", G_STRFUNC, endpoint_chat->chat_name);
 			//destroy context
 			return;
 		}
@@ -188,6 +208,9 @@ static gboolean twitter_search_timeout(TwitterEndpointChat *endpoint_chat)
 static TwitterEndpointChatSettings TwitterEndpointSearchSettings =
 {
 	TWITTER_CHAT_SEARCH,
+#if _HAZE_
+	'#',
+#endif
 	twitter_chat_search_send, //send_message
 	twitter_search_timeout_context_free, //endpoint_data_free
 	twitter_option_timeline_timeout, //get_default_interval

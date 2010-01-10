@@ -104,6 +104,12 @@ GHashTable *twitter_chat_info_defaults(PurpleConnection *gc, const char *chat_na
 }
 
 
+#if _HAZE_
+static PurpleBuddy *twitter_blist_chat_timeline_new(PurpleAccount *account, gint timeline_id)
+{
+	return twitter_buddy_new(account, "Timeline: Home", NULL);
+}
+#else
 static PurpleChat *twitter_blist_chat_timeline_new(PurpleAccount *account, gint timeline_id)
 {
 	PurpleGroup *g;
@@ -137,6 +143,7 @@ static PurpleChat *twitter_blist_chat_timeline_new(PurpleAccount *account, gint 
 	purple_blist_add_chat(c, g, NULL);
 	return c;
 }
+#endif
 
 static PurpleChat *twitter_blist_chat_new(PurpleAccount *account, const char *searchtext)
 {
@@ -414,8 +421,15 @@ static void get_saved_searches_cb (PurpleAccount *account,
 	for (search = node->child; search; search = search->next) {
 		if (search->name && !g_strcmp0 (search->name, "saved_search")) {
 			gchar *query = xmlnode_get_child_data (search, "query");
+#if _HAZE_
+			char *buddy_name = g_strdup_printf("#%s", query);
 
+			twitter_buddy_new(account, buddy_name, NULL);
+			purple_prpl_got_user_status(account, buddy_name, TWITTER_STATUS_ONLINE, NULL);
+			g_free(buddy_name);
+#else
 			twitter_blist_chat_new(account, query);
+#endif
 			g_free (query);
 		}
 	}
@@ -506,10 +520,66 @@ static void twitter_init_auto_open_contexts(PurpleAccount *account)
 	return;
 }
 
+#if _HAZE_
+static void conversation_created_cb(PurpleConversation *conv, PurpleAccount *account)
+{
+	const char *name = purple_conversation_get_name(conv);
+	g_return_if_fail(name != NULL && name[0] != '\0');
+
+	if (name[0] == '#')
+	{
+		GHashTable *components = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, g_free);
+		g_hash_table_insert(components, "search", g_strdup(name + 1));
+		g_hash_table_insert(components, "chat_type", g_strdup_printf("%d", TWITTER_CHAT_SEARCH));
+		twitter_endpoint_chat_start(purple_account_get_connection(account),
+				twitter_get_endpoint_chat_settings(TWITTER_CHAT_SEARCH),
+				components,
+				 TRUE) ;
+	} else if (!strcmp(name, "Timeline: Home")) {
+		GHashTable *components = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, g_free);
+		g_hash_table_insert(components, "timeline_id", g_strdup("0"));
+		g_hash_table_insert(components, "chat_type", g_strdup_printf("%d", TWITTER_CHAT_TIMELINE)); //i don't think this is needed
+		twitter_endpoint_chat_start(purple_account_get_connection(account),
+				twitter_get_endpoint_chat_settings(TWITTER_CHAT_TIMELINE),
+				components,
+				TRUE) ;
+	}
+}
+
+static void deleting_conversation_cb(PurpleConversation *conv, PurpleAccount *account)
+{
+	const char *name = purple_conversation_get_name(conv);
+
+	g_return_if_fail(name != NULL && name[0] != '\0');
+
+	if (name[0] == '#' || !strcmp(name, "Timeline: Home"))
+	{
+		PurpleConnection *gc = purple_conversation_get_gc(conv);
+		TwitterConnectionData *twitter = gc->proto_data;
+		TwitterEndpointChat *ctx = (TwitterEndpointChat *) g_hash_table_lookup(twitter->chat_contexts, purple_conversation_get_name(conv));
+		if (ctx)
+		{
+			purple_debug_info(TWITTER_PROTOCOL_ID, "destroying haze im chat %s\n",
+				ctx->chat_name);
+			g_hash_table_remove(twitter->chat_contexts, ctx->chat_name);
+		}
+	}
+}
+#endif
+
 static void twitter_connected(PurpleAccount *account)
 {
 	PurpleConnection *gc = purple_account_get_connection(account);
 	TwitterConnectionData *twitter = gc->proto_data;
+	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+
+#if _HAZE_
+	purple_signal_connect(purple_conversations_get_handle(), "conversation-created",
+			twitter, PURPLE_CALLBACK(conversation_created_cb), account);
+	purple_signal_connect(purple_conversations_get_handle(), "deleting-conversation",
+			twitter, PURPLE_CALLBACK(deleting_conversation_cb), account);
+
+#endif
 
 	purple_connection_update_progress(gc, "Connected",
 			2,   /* which connection step this is */
@@ -517,6 +587,11 @@ static void twitter_connected(PurpleAccount *account)
 	purple_connection_set_state(gc, PURPLE_CONNECTED);
 
 	twitter_blist_chat_timeline_new(account, 0);
+#if _HAZE_
+	//Set home timeline online
+	purple_prpl_got_user_status(account, "Timeline: Home", TWITTER_STATUS_ONLINE, NULL);
+#endif
+
 
 	/* Retrieve user's saved search queries */
 	twitter_api_get_saved_searches (account,
@@ -1044,6 +1119,21 @@ static int twitter_send_im(PurpleConnection *gc, const char *who,
 		const char *message, PurpleMessageFlags flags)
 {
 	/* TODO should truncate it rather than drop it????? */
+	g_return_val_if_fail(message != NULL && message[0] != '\0' && who != NULL && who[0] != '\0', 0);
+#if _HAZE_
+	if (who[0] == '#')
+	{
+		purple_debug_info(TWITTER_PROTOCOL_ID, "%s of search %s\n", G_STRFUNC, who);
+		TwitterEndpointChat *endpoint = twitter_find_chat_context(purple_connection_get_account(gc), who);
+		TwitterEndpointChatSettings *settings = twitter_get_endpoint_chat_settings(TWITTER_CHAT_SEARCH);
+		return settings->send_message(endpoint, message);
+	} else if (!strcmp(who, "Timeline: Home")) {
+		purple_debug_info(TWITTER_PROTOCOL_ID, "%s of home timeline\n", G_STRFUNC);
+		TwitterEndpointChat *endpoint = twitter_find_chat_context(purple_connection_get_account(gc), who);
+		TwitterEndpointChatSettings *settings = twitter_get_endpoint_chat_settings(TWITTER_CHAT_TIMELINE);
+		return settings->send_message(endpoint, message);
+	}
+#endif
 	if (strlen(who) + strlen(message) + 2 > MAX_TWEET_LENGTH)
 	{
 		purple_conv_present_error(who, purple_connection_get_account(gc), "Message is too long");

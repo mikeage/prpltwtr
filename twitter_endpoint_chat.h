@@ -45,6 +45,9 @@ typedef gint (*TwitterChatSendMessageFunc)(TwitterEndpointChat *ctx, const char 
 struct _TwitterEndpointChatSettings
 {
 	TwitterChatType type;
+#if _HAZE_
+	gchar conv_id;
+#endif
 	int (*send_message)(TwitterEndpointChat *endpoint_chat, const gchar *message);
 	void (*endpoint_data_free)(gpointer endpoint_data);
 	gint (*get_default_interval)(PurpleAccount *account);
@@ -91,11 +94,21 @@ PurpleChat *twitter_blist_chat_find_timeline(PurpleAccount *account, gint timeli
 PurpleChat *twitter_find_blist_chat(PurpleAccount *account, const char *name);
 
 gboolean twitter_chat_auto_open(PurpleChat *chat);
-void twitter_chat_add_tweet(PurpleConvChat *chat, const char *who, const char *message, long long id, time_t time);;
-PurpleConvChat *twitter_endpoint_chat_get_conv(TwitterEndpointChat *endpoint_chat);
 void twitter_endpoint_chat_start(PurpleConnection *gc, TwitterEndpointChatSettings *settings,
 		GHashTable *components, gboolean open_conv);
 TwitterEndpointChat *twitter_find_chat_context(PurpleAccount *account, const char *chat_name);
 gpointer twitter_find_chat_context_endpoint_data(PurpleAccount *account, const char *chat_name);
+
+#if _HAZE_
+void twitter_chat_add_tweet(PurpleConvIm *chat, const char *who, const char *message, long long id, time_t time);
+#else
+void twitter_chat_add_tweet(PurpleConvChat *chat, const char *who, const char *message, long long id, time_t time);
+#endif
+
+#if _HAZE_
+PurpleConvIm *twitter_endpoint_chat_get_conv(TwitterEndpointChat *endpoint_chat);
+#else
+PurpleConvChat *twitter_endpoint_chat_get_conv(TwitterEndpointChat *endpoint_chat);
+#endif
 
 #endif
