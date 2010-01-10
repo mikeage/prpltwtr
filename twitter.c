@@ -1127,6 +1127,7 @@ static void twitter_get_info(PurpleConnection *gc, const char *username) {
 	//TODO: fix for buddy not on list?
 	PurpleNotifyUserInfo *info = purple_notify_user_info_new();
 	PurpleBuddy *b = purple_find_buddy(purple_connection_get_account(gc), username);
+	gchar *url;
 
 	if (b)
 	{
@@ -1145,17 +1146,14 @@ static void twitter_get_info(PurpleConnection *gc, const char *username) {
 			{
 				purple_notify_user_info_add_pair(info, "Status:", status_data->text);
 			}
-
-			/* show a buddy's user info in a nice dialog box */
-			purple_notify_userinfo(gc,	/* connection the buddy info came through */
-					username,  /* buddy's username */
-					info,      /* body */
-					NULL,      /* callback called when dialog closed */
-					NULL);     /* userdata for callback */
-			return;
 		}
+	} else {
+		purple_notify_user_info_add_pair(info, "Description:", "No user info");
 	}
-	purple_notify_user_info_add_pair(info, "Description:", "No user info");
+	url = g_strdup_printf("http://%s/%s",
+			twitter_option_host_url(purple_connection_get_account(gc)), username);
+	purple_notify_user_info_add_pair(info, "Accout Link:", url);
+	g_free(url);
 	purple_notify_userinfo(gc,
 		username,
 		info,
