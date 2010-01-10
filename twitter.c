@@ -1136,8 +1136,7 @@ static int twitter_send_im(PurpleConnection *gc, const char *who,
 #endif
 	if (strlen(who) + strlen(message) + 2 > MAX_TWEET_LENGTH)
 	{
-		purple_conv_present_error(who, purple_connection_get_account(gc), "Message is too long");
-		return 0;
+		return -E2BIG;
 	}
 	else
 	{

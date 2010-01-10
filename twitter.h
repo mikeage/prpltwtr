@@ -26,6 +26,7 @@
 #define _TWITTER_H_
 #include "config.h"
 
+#include <errno.h>
 #include <stdarg.h>
 #include <string.h>
 #include <time.h>

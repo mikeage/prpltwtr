@@ -54,7 +54,7 @@ static int twitter_chat_timeline_send(TwitterEndpointChat *ctx_base, const gchar
 	if (strlen(message) > MAX_TWEET_LENGTH)
 	{
 		//TODO: SHOW ERROR
-		return -1;
+		return -E2BIG;
 	}
 	else
 	{

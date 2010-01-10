@@ -55,7 +55,7 @@ static int twitter_chat_search_send(TwitterEndpointChat *ctx_base, const gchar *
 	{
 		//TODO: SHOW ERROR
 		g_free(status);
-		return -1;
+		return -E2BIG;
 	}
 	else
 	{
