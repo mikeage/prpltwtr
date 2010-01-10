@@ -1242,7 +1242,7 @@ static void twitter_get_info(PurpleConnection *gc, const char *username) {
 	}
 	url = g_strdup_printf("http://%s/%s",
 			twitter_option_host_url(purple_connection_get_account(gc)), username);
-	purple_notify_user_info_add_pair(info, "Accout Link:", url);
+	purple_notify_user_info_add_pair(info, "Account Link:", url);
 	g_free(url);
 	purple_notify_userinfo(gc,
 		username,
