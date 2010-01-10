@@ -22,6 +22,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02111-1301  USA
  */
 
+#ifndef _TWITTER_REQUEST_H_
+#define _TWITTER_REQUEST_H_
+
 #include <glib.h>
 
 typedef enum
@@ -72,3 +75,5 @@ void twitter_send_request_with_cursor (PurpleAccount *account,
        TwitterSendRequestMultiPageAllSuccessFunc success_callback,
        TwitterSendRequestMultiPageAllErrorFunc error_callback,
        gpointer data);
+
+#endif

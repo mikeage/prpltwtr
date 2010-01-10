@@ -1,4 +1,13 @@
 #include "twitter_xml.h"
+//TODO move back
+gchar *xmlnode_get_child_data(const xmlnode *node, const char *name)
+{
+    xmlnode *child = xmlnode_get_child(node, name);
+    if (!child)
+        return NULL;
+    return xmlnode_get_data_unescaped(child);
+}
+
 
 static time_t twitter_get_timezone_offset()
 {
@@ -197,4 +206,36 @@ GList *twitter_statuses_nodes_parse(GList *nodes)
 		l_users_data = g_list_concat(l_users_data, twitter_statuses_node_parse(node));
 	}
 	return l_users_data;
+}
+
+void twitter_user_data_free(TwitterUserData *user_data)
+{
+	if (!user_data)
+		return;
+	if (user_data->name)
+		g_free(user_data->name);
+	if (user_data->screen_name)
+		g_free(user_data->screen_name);
+	if (user_data->profile_image_url)
+		g_free(user_data->profile_image_url);
+	if (user_data->description)
+		g_free(user_data->description);
+	g_free(user_data);
+	user_data = NULL;
+}
+
+void twitter_status_data_free(TwitterStatusData *status)
+{
+	if (status == NULL)
+		return;
+
+	if (status->text != NULL)
+		g_free(status->text);
+	status->text = NULL;
+
+	if (status->in_reply_to_screen_name)
+		g_free (status->in_reply_to_screen_name);
+	status->in_reply_to_screen_name = NULL;
+
+	g_free(status);
 }

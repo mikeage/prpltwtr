@@ -3,8 +3,8 @@
  * Contact: Tan Miaoqing <rabbitrun84@gmail.com>
  */
 
-#ifndef TWITTER_SEARCH_H_
-#define TWITTER_SEARCH_H_
+#ifndef _TWITTER_SEARCH_H_
+#define _TWITTER_SEARCH_H_
 
 #include <glib.h>
 

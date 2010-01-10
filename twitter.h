@@ -21,6 +21,9 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02111-1301  USA
  */
+
+#ifndef _TWITTER_H_
+#define _TWITTER_H_
 #include "config.h"
 
 #include <stdarg.h>
@@ -47,13 +50,15 @@
 #include <sslconn.h>
 #include <request.h>
 
-/* If you're using this as the basis of a prpl that will be distributed
- * separately from libpurple, remove the internal.h include below and replace
- * it with code to include your own config.h or similar.  If you're going to
- * provide for translation, you'll also need to setup the gettext macros. */
+#include "twitter_xml.h"
 #include "twitter_prefs.h"
 #include "twitter_request.h"
 #include "twitter_search.h"
 #include "twitter_api.h"
 #include "twitter_util.h"
-#include "twitter_xml.h"
+#include "twitter_endpoint_search.h"
+#include "twitter_endpoint_timeline.h"
+#include "twitter_buddy.h"
+#include "twitter_conn.h"
+
+#endif

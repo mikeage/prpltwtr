@@ -21,6 +21,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02111-1301  USA
  */
+#ifndef _TWITTER_PREFS_H_
+#define _TWITTER_PREFS_H_
 #include "config.h"
 
 #include <account.h>
@@ -79,3 +81,5 @@ gboolean twitter_option_use_https(PurpleAccount *account);
 const gchar *twitter_option_host_url(PurpleAccount *account);
 const gchar *twitter_option_host_api_url(PurpleAccount *account);
 const gchar *twitter_option_host_search_url(PurpleAccount *account);
+
+#endif

@@ -3,15 +3,26 @@
  * Contact: Tan Miaoqing <rabbitrun84@gmail.com>
  */
 
-#ifndef UTIL_H_
-#define UTIL_H_
+#ifndef _TWITTER_UTIL_H_
+#define _TWITTER_UTIL_H_
 
+#include <string.h>
 #include <glib.h>
 #include <xmlnode.h>
+#include <debug.h>
 
-gchar *xmlnode_get_child_data(const xmlnode *node, const char *name);
+#include "config.h"
+#include "twitter_xml.h"
+#include "twitter_prefs.h" //TODO move
 
-#endif /* UTIL_H_ */
+#define TWITTER_URI_ACTION_USER		"user" //TODO: move?
+#define TWITTER_URI_ACTION_SEARCH	"search" //TODO: move?
+
+
+
+
+long long purple_account_get_long_long(PurpleAccount *account, const gchar *key, long long default_value);
+void purple_account_set_long_long(PurpleAccount *account, const gchar *key, long long value);
 
 #ifndef g_slice_new0
 #define g_slice_new0(a) g_new0(a, 1)
@@ -21,3 +32,7 @@ gchar *xmlnode_get_child_data(const xmlnode *node, const char *name);
 #ifndef g_strcmp0
 #define g_strcmp0(a, b) (a == NULL && b == NULL ? 0 : a == NULL ? -1 : b == NULL ? 1 : strcmp(a, b))
 #endif
+
+//TODO: move this?
+char *twitter_format_tweet(PurpleAccount *account, const char *src_user, const char *message, long long id);
+#endif /* UTIL_H_ */

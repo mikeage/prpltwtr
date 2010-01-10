@@ -1,3 +1,28 @@
+#ifndef _TWITTER_API_H_
+#define _TWITTER_API_H_
+
+#include "config.h"
+
+#include <account.h>
+#include <accountopt.h>
+#include <blist.h>
+#include <cmds.h>
+#include <conversation.h>
+#include <connection.h>
+#include <debug.h>
+#include <notify.h>
+#include <privacy.h>
+#include <prpl.h>
+#include <roomlist.h>
+#include <status.h>
+#include <util.h>
+#include <version.h>
+#include <cipher.h>
+#include <request.h>
+
+#include "twitter_request.h"
+#include "twitter_prefs.h"
+#include "twitter_search.h"
 
 void twitter_api_get_friends(PurpleAccount *account,
 		TwitterSendRequestMultiPageAllSuccessFunc success_func,
@@ -71,3 +96,5 @@ void twitter_api_search_refresh (PurpleAccount *account,
         TwitterSearchSuccessFunc success_func,
         TwitterSearchErrorFunc error_func,
         gpointer data);
+
+#endif
