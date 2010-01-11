@@ -1134,76 +1134,35 @@ static int twitter_send_im(PurpleConnection *gc, const char *who,
 		return settings->send_message(endpoint, message);
 	}
 #endif
-	if (strlen(who) + strlen(message) + 2 > MAX_TWEET_LENGTH)
+	if (!strncmp(who, "d ", 2))
 	{
-		return -E2BIG;
-	}
-	else
-	{
-		TwitterConnectionData *twitter = gc->proto_data;
-		long long in_reply_to_status_id = 0;
-		const gchar *reply_id;
-		char *status;
+		return twitter_send_dm(gc, who + 2, message, flags);
+	} else {
+		if (strlen(who) + strlen(message) + 2 > MAX_TWEET_LENGTH)
+		{
+			return -E2BIG;
+		}
+		else
+		{
+			TwitterConnectionData *twitter = gc->proto_data;
+			long long in_reply_to_status_id = 0;
+			const gchar *reply_id;
+			char *status;
 
-		status = g_strdup_printf("@%s %s", who, message);
-		reply_id = (const gchar *)g_hash_table_lookup (
-				twitter->user_reply_id_table, who);
-		if (reply_id)
-			in_reply_to_status_id = strtoll (reply_id, NULL, 10);
+			status = g_strdup_printf("@%s %s", who, message);
+			reply_id = (const gchar *)g_hash_table_lookup (
+					twitter->user_reply_id_table, who);
+			if (reply_id)
+				in_reply_to_status_id = strtoll (reply_id, NULL, 10);
 
-		//TODO handle errors
-		twitter_api_set_status(purple_connection_get_account(gc),
-				status, in_reply_to_status_id, twitter_send_im_cb,
-				twitter_set_status_error_cb, NULL);
-		g_free(status);
-		return 1;
+			//TODO handle errors
+			twitter_api_set_status(purple_connection_get_account(gc),
+					status, in_reply_to_status_id, twitter_send_im_cb,
+					twitter_set_status_error_cb, NULL);
+			g_free(status);
+			return 1;
+		}
 	}
-	//  const char *from_username = gc->account->username;
-	//  PurpleMessageFlags receive_flags = ((flags & ~PURPLE_MESSAGE_SEND)
-	//				      | PURPLE_MESSAGE_RECV);
-	//  PurpleAccount *to_acct = purple_accounts_find(who, TWITTER_PROTOCOL_ID);
-	//  PurpleConnection *to;
-	//
-	//  purple_debug_info(TWITTER_PROTOCOL_ID, "sending message from %s to %s: %s\n",
-	//		    from_username, who, message);
-	//
-	//  /* is the sender blocked by the recipient's privacy settings? */
-	//  if (to_acct && !purple_privacy_check(to_acct, gc->account->username)) {
-	//    char *msg = g_strdup_printf(
-	//      _("Your message was blocked by %s's privacy settings."), who);
-	//    purple_debug_info(TWITTER_PROTOCOL_ID,
-	//		      "discarding; %s is blocked by %s's privacy settings\n",
-	//		      from_username, who);
-	//    purple_conv_present_error(who, gc->account, msg);
-	//    g_free(msg);
-	//    return 0;
-	//  }
-	//
-	//  /* is the recipient online? */
-	//  to = get_twitter_gc(who);
-	//  if (to) {  /* yes, send */
-	//  PurpleMessageFlags receive_flags = ((flags & ~PURPLE_MESSAGE_SEND)
-	//				      | PURPLE_MESSAGE_RECV);
-	//    serv_got_im(to, from_username, message, receive_flags, time(NULL));
-	//
-	//  } else {  /* nope, store as an offline message */
-	//    GOfflineMessage *offline_message;
-	//    GList *messages;
-	//
-	//    purple_debug_info(TWITTER_PROTOCOL_ID,
-	//		      "%s is offline, sending as offline message\n", who);
-	//    offline_message = g_new0(GOfflineMessage, 1);
-	//    offline_message->from = g_strdup(from_username);
-	//    offline_message->message = g_strdup(message);
-	//    offline_message->mtime = time(NULL);
-	//    offline_message->flags = receive_flags;
-	//
-	//    messages = g_hash_table_lookup(goffline_messages, who);
-	//    messages = g_list_append(messages, offline_message);
-	//    g_hash_table_insert(goffline_messages, g_strdup(who), messages);
-	//  }
-	//
-	//   return 1;
 }
 
 static void twitter_set_info(PurpleConnection *gc, const char *info) {
@@ -1368,6 +1327,15 @@ static void twitter_blist_chat_auto_open_toggle(PurpleBlistNode *node, gpointer 
 			(new_state ? g_strdup("1") : g_strdup("0")));
 }
 
+static void twitter_blist_buddy_dm(PurpleBlistNode *node, gpointer userdata)
+{
+	PurpleBuddy *buddy = PURPLE_BUDDY(node);
+	char *name = g_strdup_printf("d %s", buddy->name);
+	purple_conversation_new(PURPLE_CONV_TYPE_IM, purple_buddy_get_account(buddy),
+			name);
+	g_free(name);
+}
+
 
 static GList *twitter_blist_node_menu(PurpleBlistNode *node) {
 	purple_debug_info(TWITTER_PROTOCOL_ID, "providing buddy list context menu item\n");
@@ -1383,6 +1351,14 @@ static GList *twitter_blist_node_menu(PurpleBlistNode *node) {
 				NULL,   /* userdata passed to the callback */
 				NULL);  /* child menu items */
 		g_free(label);
+		return g_list_append(NULL, action);
+	} else if (PURPLE_BLIST_NODE_IS_BUDDY(node)) {
+
+		PurpleMenuAction *action = purple_menu_action_new(
+				"Direct Message",
+				PURPLE_CALLBACK(twitter_blist_buddy_dm),
+				NULL,   /* userdata passed to the callback */
+				NULL);  /* child menu items */
 		return g_list_append(NULL, action);
 	} else {
 		return NULL;
