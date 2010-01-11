@@ -88,17 +88,25 @@ TwitterEndpointChat *twitter_endpoint_chat_new(
 
 void twitter_endpoint_chat_free(TwitterEndpointChat *ctx);
 
-PurpleConversation *twitter_chat_context_find_conv(TwitterEndpointChat *ctx);
+//Find open conversation
+PurpleConversation *twitter_endpoint_chat_find_open_conv(TwitterEndpointChat *ctx);
+//Find open conversation, or create it if it doesn't exist
+#if _HAZE_
+PurpleConvIm *twitter_endpoint_chat_get_conv(TwitterEndpointChat *endpoint_chat);
+#else
+PurpleConvChat *twitter_endpoint_chat_get_conv(TwitterEndpointChat *endpoint_chat);
+#endif
 
-PurpleChat *twitter_blist_chat_find_search(PurpleAccount *account, const char *name);
-PurpleChat *twitter_blist_chat_find_timeline(PurpleAccount *account, gint timeline_id);
-PurpleChat *twitter_find_blist_chat(PurpleAccount *account, const char *name);
-
-gboolean twitter_chat_auto_open(PurpleChat *chat);
 void twitter_endpoint_chat_start(PurpleConnection *gc, TwitterEndpointChatSettings *settings,
 		GHashTable *components, gboolean open_conv);
-TwitterEndpointChat *twitter_find_chat_context(PurpleAccount *account, const char *chat_name);
-gpointer twitter_find_chat_context_endpoint_data(PurpleAccount *account, const char *chat_name);
+TwitterEndpointChat *twitter_endpoint_chat_find(PurpleAccount *account, const char *chat_name);
+
+//TODO: we should replace this with a find by components. What's going on here with HAZE?
+PurpleChat *twitter_blist_chat_find_search(PurpleAccount *account, const char *name);
+PurpleChat *twitter_blist_chat_find_timeline(PurpleAccount *account, gint timeline_id);
+PurpleChat *twitter_blist_chat_find(PurpleAccount *account, const char *name);
+
+gboolean twitter_blist_chat_is_auto_open(PurpleChat *chat);
 
 #if _HAZE_
 void twitter_chat_add_tweet(PurpleConvIm *chat, const char *who, const char *message, long long id, time_t time);
@@ -106,10 +114,5 @@ void twitter_chat_add_tweet(PurpleConvIm *chat, const char *who, const char *mes
 void twitter_chat_add_tweet(PurpleConvChat *chat, const char *who, const char *message, long long id, time_t time);
 #endif
 
-#if _HAZE_
-PurpleConvIm *twitter_endpoint_chat_get_conv(TwitterEndpointChat *endpoint_chat);
-#else
-PurpleConvChat *twitter_endpoint_chat_get_conv(TwitterEndpointChat *endpoint_chat);
-#endif
 
 #endif

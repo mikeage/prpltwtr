@@ -47,7 +47,7 @@ static void twitter_timeline_timeout_context_free(gpointer _ctx)
 static int twitter_chat_timeline_send(TwitterEndpointChat *ctx_base, const gchar *message)
 {
 	PurpleAccount *account = ctx_base->account;
-	PurpleConversation *conv = twitter_chat_context_find_conv(ctx_base);
+	PurpleConversation *conv = twitter_endpoint_chat_find_open_conv(ctx_base);
 
 	if (conv == NULL) return -1; //TODO: error?
 

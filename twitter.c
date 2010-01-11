@@ -442,8 +442,8 @@ static void twitter_chat_leave(PurpleConnection *gc, int id) {
 
 	g_return_if_fail(ctx != NULL);
 
-	PurpleChat *blist_chat = twitter_find_blist_chat(purple_connection_get_account(gc), ctx->chat_name);
-	if (blist_chat != NULL && twitter_chat_auto_open(blist_chat))
+	PurpleChat *blist_chat = twitter_blist_chat_find(purple_connection_get_account(gc), ctx->chat_name);
+	if (blist_chat != NULL && twitter_blist_chat_is_auto_open(blist_chat))
 	{
 		return;
 	}
@@ -508,7 +508,7 @@ static void twitter_init_auto_open_contexts(PurpleAccount *account)
 				if (account != chat->account)
 					continue;
 
-				if (twitter_chat_auto_open(chat))
+				if (twitter_blist_chat_is_auto_open(chat))
 				{
 					components = purple_chat_get_components(chat);
 					twitter_chat_join_do(gc, components, FALSE);
@@ -1124,12 +1124,12 @@ static int twitter_send_im(PurpleConnection *gc, const char *who,
 	if (who[0] == '#')
 	{
 		purple_debug_info(TWITTER_PROTOCOL_ID, "%s of search %s\n", G_STRFUNC, who);
-		TwitterEndpointChat *endpoint = twitter_find_chat_context(purple_connection_get_account(gc), who);
+		TwitterEndpointChat *endpoint = twitter_endpoint_chat_find(purple_connection_get_account(gc), who);
 		TwitterEndpointChatSettings *settings = twitter_get_endpoint_chat_settings(TWITTER_CHAT_SEARCH);
 		return settings->send_message(endpoint, message);
 	} else if (!strcmp(who, "Timeline: Home")) {
 		purple_debug_info(TWITTER_PROTOCOL_ID, "%s of home timeline\n", G_STRFUNC);
-		TwitterEndpointChat *endpoint = twitter_find_chat_context(purple_connection_get_account(gc), who);
+		TwitterEndpointChat *endpoint = twitter_endpoint_chat_find(purple_connection_get_account(gc), who);
 		TwitterEndpointChatSettings *settings = twitter_get_endpoint_chat_settings(TWITTER_CHAT_TIMELINE);
 		return settings->send_message(endpoint, message);
 	}
@@ -1348,18 +1348,18 @@ static void twitter_blist_chat_auto_open_toggle(PurpleBlistNode *node, gpointer 
 	GHashTable *components = purple_chat_get_components(chat);
 	const char *chat_name = twitter_chat_get_name(components);
 
-	gboolean new_state = !twitter_chat_auto_open(chat);
+	gboolean new_state = !twitter_blist_chat_is_auto_open(chat);
 
 	//If no conversation exists and we've set this to NOT auto open, let's free some memory
 	if (!new_state 
 		&& !purple_find_conversation_with_account(PURPLE_CONV_TYPE_CHAT, chat_name, account)
-		&& (ctx = twitter_find_chat_context(account, chat_name)))
+		&& (ctx = twitter_endpoint_chat_find(account, chat_name)))
 
 	{
 		TwitterConnectionData *twitter = purple_account_get_connection(account)->proto_data;
 		purple_debug_info(TWITTER_PROTOCOL_ID, "No more auto open, destroying context\n");
 		g_hash_table_remove(twitter->chat_contexts, ctx->chat_name);
-	} else if (new_state && !twitter_find_chat_context(account, chat_name)) {
+	} else if (new_state && !twitter_endpoint_chat_find(account, chat_name)) {
 		//Join the chat, but don't automatically open the conversation
 		twitter_chat_join_do(purple_account_get_connection(account), components, FALSE);
 	}
@@ -1375,7 +1375,7 @@ static GList *twitter_blist_node_menu(PurpleBlistNode *node) {
 	if (PURPLE_BLIST_NODE_IS_CHAT(node)) {
 		PurpleChat *chat = PURPLE_CHAT(node);
 		char *label = g_strdup_printf("Automatically open chat on new tweets (Currently: %s)",
-			(twitter_chat_auto_open(chat) ? "On" : "Off"));
+			(twitter_blist_chat_is_auto_open(chat) ? "On" : "Off"));
 
 		PurpleMenuAction *action = purple_menu_action_new(
 				label,
@@ -1470,7 +1470,7 @@ static PurplePluginProtocolInfo prpl_info =
 	NULL,	       /* remove_group */
 	NULL,//TODO?				/* get_cb_real_name */
 	NULL,	     /* set_chat_topic */
-	twitter_find_blist_chat,				/* find_blist_chat */
+	twitter_blist_chat_find,				/* find_blist_chat */
 	NULL,	  /* roomlist_get_list */
 	NULL,	    /* roomlist_cancel */
 	NULL,   /* roomlist_expand_category */

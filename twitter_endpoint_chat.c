@@ -65,10 +65,10 @@ void twitter_endpoint_chat_id_free(TwitterEndpointChatId *chat_id)
 TwitterEndpointChat *twitter_endpoint_chat_find_by_id(TwitterEndpointChatId *chat_id)
 {
 	g_return_val_if_fail(chat_id != NULL, NULL);
-	return twitter_find_chat_context(chat_id->account, chat_id->chat_name);
+	return twitter_endpoint_chat_find(chat_id->account, chat_id->chat_name);
 }
 
-PurpleConversation *twitter_chat_context_find_conv(TwitterEndpointChat *ctx)
+PurpleConversation *twitter_endpoint_chat_find_open_conv(TwitterEndpointChat *ctx)
 {
 #if _HAZE_
 	return purple_find_conversation_with_account(PURPLE_CONV_TYPE_IM, ctx->chat_name, ctx->account);
@@ -150,7 +150,7 @@ PurpleChat *twitter_blist_chat_find_timeline(PurpleAccount *account, gint timeli
 }
 
 //XXX TODO: fix me
-PurpleChat *twitter_find_blist_chat(PurpleAccount *account, const char *name)
+PurpleChat *twitter_blist_chat_find(PurpleAccount *account, const char *name)
 {
 	static char *timeline = "Timeline: ";
 	static char *search = "Search: ";
@@ -167,7 +167,7 @@ PurpleChat *twitter_find_blist_chat(PurpleAccount *account, const char *name)
 }
 
 //TODO should be static?
-gboolean twitter_chat_auto_open(PurpleChat *chat)
+gboolean twitter_blist_chat_is_auto_open(PurpleChat *chat)
 {
 	g_return_val_if_fail(chat != NULL, FALSE);
 	GHashTable *components = purple_chat_get_components(chat);
@@ -271,7 +271,7 @@ void twitter_endpoint_chat_start(PurpleConnection *gc, TwitterEndpointChatSettin
 			serv_got_joined_chat(gc, chat_id, chat_name);
 		}
 #endif
-		if (!twitter_find_chat_context(account, chat_name))
+		if (!twitter_endpoint_chat_find(account, chat_name))
 		{
 			TwitterConnectionData *twitter = gc->proto_data;
 			TwitterEndpointChat *endpoint_chat = twitter_endpoint_chat_new(
@@ -289,33 +289,26 @@ void twitter_endpoint_chat_start(PurpleConnection *gc, TwitterEndpointChatSettin
 	g_free(chat_name);
 }
 
-TwitterEndpointChat *twitter_find_chat_context(PurpleAccount *account, const char *chat_name)
+TwitterEndpointChat *twitter_endpoint_chat_find(PurpleAccount *account, const char *chat_name)
 {
 	PurpleConnection *gc = purple_account_get_connection(account);
 	TwitterConnectionData *twitter = gc->proto_data;
 	return (TwitterEndpointChat *) g_hash_table_lookup(twitter->chat_contexts, chat_name);
 }
-gpointer twitter_find_chat_context_endpoint_data(PurpleAccount *account, const char *chat_name)
-{
-	TwitterEndpointChat *ctx_base = twitter_find_chat_context(account, chat_name);
-	if (!ctx_base)
-		return NULL;
-	return ctx_base->endpoint_data;
-}
 
 #if _HAZE_
 PurpleConvIm *twitter_endpoint_chat_get_conv(TwitterEndpointChat *endpoint_chat)
 {
-	return PURPLE_CONV_IM(twitter_chat_context_find_conv(endpoint_chat));
+	return PURPLE_CONV_IM(twitter_endpoint_chat_find_open_conv(endpoint_chat));
 }
 #else
 PurpleConvChat *twitter_endpoint_chat_get_conv(TwitterEndpointChat *endpoint_chat)
 {
-	PurpleConversation *conv = twitter_chat_context_find_conv(endpoint_chat);
+	PurpleConversation *conv = twitter_endpoint_chat_find_open_conv(endpoint_chat);
 	PurpleChat *blist_chat;
-	if (conv == NULL && (blist_chat = twitter_find_blist_chat(endpoint_chat->account, endpoint_chat->chat_name)))
+	if (conv == NULL && (blist_chat = twitter_blist_chat_find(endpoint_chat->account, endpoint_chat->chat_name)))
 	{
-		if (twitter_chat_auto_open(blist_chat))
+		if (twitter_blist_chat_is_auto_open(blist_chat))
 		{
 			purple_debug_info(TWITTER_PROTOCOL_ID, "%s, recreated conv for auto open chat (%s)\n", G_STRFUNC, endpoint_chat->chat_name);
 			guint chat_id = twitter_get_next_chat_id();

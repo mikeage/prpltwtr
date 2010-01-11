@@ -33,7 +33,7 @@ static int twitter_chat_search_send(TwitterEndpointChat *ctx_base, const gchar *
 	PurpleAccount *account = ctx_base->account;
 	PurpleConnection *gc = purple_account_get_connection(account);
 	TwitterSearchTimeoutContext *ctx = (TwitterSearchTimeoutContext *) ctx_base->endpoint_data;
-	PurpleConversation *conv = twitter_chat_context_find_conv(ctx_base);
+	PurpleConversation *conv = twitter_endpoint_chat_find_open_conv(ctx_base);
 	char *status;
 	char *message_lower, *search_text_lower;
 
