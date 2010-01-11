@@ -44,6 +44,9 @@
 #define TWITTER_PREF_ADD_URL_TO_TWEET "add_url_link_to_each_tweet"
 #define TWITTER_PREF_ADD_URL_TO_TWEET_DEFAULT TRUE
 
+#define TWITTER_PREF_HOME_TIMELINE_MAX_TWEETS "home_timeline_max_tweets"
+#define TWITTER_PREF_HOME_TIMELINE_MAX_TWEETS_DEFAULT 100
+
 #define TWITTER_PREF_HOST_URL "host_url"
 #define TWITTER_PREF_HOST_URL_DEFAULT "twitter.com"
 
@@ -81,5 +84,6 @@ gboolean twitter_option_use_https(PurpleAccount *account);
 const gchar *twitter_option_host_url(PurpleAccount *account);
 const gchar *twitter_option_host_api_url(PurpleAccount *account);
 const gchar *twitter_option_host_search_url(PurpleAccount *account);
+gint twitter_option_home_timeline_max_tweets(PurpleAccount *account);
 
 #endif

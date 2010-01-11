@@ -185,7 +185,7 @@ static gboolean twitter_endpoint_timeline_interval_start(TwitterEndpointChat *en
 		purple_debug_info(TWITTER_PROTOCOL_ID, "Retrieving %s statuses for first time\n", gc->account->username);
 		twitter_api_get_home_timeline(account,
 				since_id,
-				20,
+				TWITTER_HOME_TIMELINE_INITIAL_COUNT,
 				1,
 				twitter_get_home_timeline_cb,
 				NULL,
@@ -196,6 +196,7 @@ static gboolean twitter_endpoint_timeline_interval_start(TwitterEndpointChat *en
 				since_id,
 				twitter_get_home_timeline_all_cb,
 				NULL,
+				twitter_option_home_timeline_max_tweets(account),
 				chat_id);
 	}
 	return TRUE;
@@ -222,6 +223,7 @@ static gboolean twitter_timeline_timeout(TwitterEndpointChat *endpoint_chat)
 				since_id,
 				twitter_get_home_timeline_all_cb,
 				NULL,
+				twitter_option_home_timeline_max_tweets(account),
 				chat_id);
 	}
 

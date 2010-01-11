@@ -79,6 +79,13 @@ GList *twitter_get_protocol_options()
 			TWITTER_PREF_SEARCH_HOST_URL_DEFAULT);                        /* default value */
 	options = g_list_append(options, option);
 
+	/* Max tweets to retrieve when retrieving timeline data */
+	option = purple_account_option_int_new(
+			("Max historical timeline tweets to retrieve (0: infinite)"),      /* text shown to user */
+			TWITTER_PREF_HOME_TIMELINE_MAX_TWEETS,                         /* pref name */
+			TWITTER_PREF_HOME_TIMELINE_MAX_TWEETS_DEFAULT);                        /* default value */
+	options = g_list_append(options, option);
+
 	/* Mentions/replies tweets refresh interval */
 	option = purple_account_option_int_new(
 			("Refresh replies every (min)"),      /* text shown to user */
@@ -183,6 +190,12 @@ const gchar *twitter_option_host_url(PurpleAccount *account)
 	return purple_account_get_string(account,
 			TWITTER_PREF_HOST_URL,
 			TWITTER_PREF_HOST_URL_DEFAULT);
+}
+gint twitter_option_home_timeline_max_tweets(PurpleAccount *account)
+{
+	return purple_account_get_int(account,
+			TWITTER_PREF_HOME_TIMELINE_MAX_TWEETS,
+			TWITTER_PREF_HOME_TIMELINE_MAX_TWEETS_DEFAULT);
 }
 const gchar *twitter_option_host_api_url(PurpleAccount *account)
 {

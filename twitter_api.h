@@ -33,6 +33,7 @@ void twitter_api_get_home_timeline_all(PurpleAccount *account,
 		long long since_id,
 		TwitterSendRequestMultiPageAllSuccessFunc success_func,
 		TwitterSendRequestMultiPageAllErrorFunc error_func,
+		gint max_count,
 		gpointer data);
 
 void twitter_api_get_home_timeline(PurpleAccount *account,

@@ -83,20 +83,21 @@ void twitter_api_get_home_timeline_all(PurpleAccount *account,
 		long long since_id,
 		TwitterSendRequestMultiPageAllSuccessFunc success_func,
 		TwitterSendRequestMultiPageAllErrorFunc error_func,
+		gint max_count,
 		gpointer data)
 {
-	int count = TWITTER_EVERY_REPLIES_COUNT; //TODO set this its own pref
+	int count_per_page = TWITTER_HOME_TIMELINE_PAGE_COUNT;
 	char *query = since_id ?
-		g_strdup_printf ("since_id=%lld&count=%d", since_id, count) :
-		g_strdup_printf ("count=%d", count);
+		g_strdup_printf ("since_id=%lld&count=%d", since_id, count_per_page) :
+		g_strdup_printf ("count=%d", count_per_page);
 
 	purple_debug_info (TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
 
-	twitter_send_request_multipage_all(account,
+	twitter_send_request_multipage_all_max_count(account,
 			twitter_option_host_api_url(account),
 			"/1/statuses/home_timeline.xml", query,
 			success_func, error_func,
-			count, data);
+			count_per_page, max_count, data);
 	g_free(query);
 }
 void twitter_api_get_replies(PurpleAccount *account,
