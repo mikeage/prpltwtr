@@ -68,6 +68,8 @@ typedef struct
 	GList *nodes;
 	TwitterSendRequestMultiPageAllSuccessFunc success_callback;
 	TwitterSendRequestMultiPageAllErrorFunc error_callback;
+	gint max_count;
+	gint current_count;
 	gpointer user_data;
 } TwitterMultiPageAllRequestData;
 
@@ -193,6 +195,18 @@ void twitter_send_request(PurpleAccount *account, gboolean post,
 	g_free(request);
 }
 
+static int xmlnode_child_count(xmlnode *parent)
+{
+	int count = 0;
+	xmlnode *child;
+	if (parent == NULL)
+		return 0;
+	for (child = parent->child; child; child = child->next)
+		if (child->name)
+			count++;
+	return count;
+}
+
 void twitter_send_request_multipage_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)
 {
 	TwitterMultiPageRequestData *request_data = user_data;
@@ -229,7 +243,7 @@ void twitter_send_request_multipage_cb(PurpleAccount *account, xmlnode *node, gp
 				G_STRFUNC, get_next_page?"yes":"no");
 	}
 
-	if (last_page)
+	if (last_page || !get_next_page)
 	{
 		g_free(request_data->host);
 		g_free(request_data->url);
@@ -309,10 +323,12 @@ static gboolean twitter_send_request_multipage_all_success_cb(PurpleAccount *acc
 	purple_debug_info (TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
 
 	request_data_all->nodes = g_list_prepend(request_data_all->nodes, xmlnode_copy(node)); //TODO: update
-	if (last_page)
+	request_data_all->current_count += xmlnode_child_count(node);
+	if (last_page || (request_data_all->max_count > 0 && request_data_all->current_count >= request_data_all->max_count))
 	{
 		request_data_all->success_callback(acct, request_data_all->nodes, request_data_all->user_data);
 		twitter_multipage_all_request_data_free(request_data_all);
+		return FALSE;
 	}
 	return TRUE;
 }
@@ -326,17 +342,18 @@ static gboolean twitter_send_request_multipage_all_error_cb(PurpleAccount *acct,
 	return FALSE;
 }
 
-void twitter_send_request_multipage_all(PurpleAccount *account,
+void twitter_send_request_multipage_all_max_count(PurpleAccount *account,
 		const char *host, const char *url, const char *query_string,
 		TwitterSendRequestMultiPageAllSuccessFunc success_callback,
 		TwitterSendRequestMultiPageAllErrorFunc error_callback,
-		int expected_count, gpointer data)
+		int expected_count, gint max_count, gpointer data)
 {
 	TwitterMultiPageAllRequestData *request_data_all = g_new0(TwitterMultiPageAllRequestData, 1);
 	request_data_all->success_callback = success_callback;
 	request_data_all->error_callback = error_callback;
 	request_data_all->nodes = NULL;
 	request_data_all->user_data = data;
+	request_data_all->max_count = max_count;
 
 	twitter_send_request_multipage(account,
 			host, url, query_string,
