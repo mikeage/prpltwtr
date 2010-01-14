@@ -191,7 +191,8 @@ void twitter_chat_add_tweet(PurpleConvChat *chat, const char *who, const char *m
 			purple_conversation_get_account(chat->conv),
 			who,
 			message,
-			id);
+			id,
+			TRUE);
 #if _HAZE_
 	//This isn't in twitter_Format_tweet because we can't distinguish between a im and a chat
 	gchar *tweet2 = g_strdup_printf("%s: %s", who, tweet);

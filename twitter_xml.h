@@ -45,6 +45,9 @@ GList *twitter_users_node_parse(xmlnode *users_node);
 GList *twitter_users_nodes_parse(GList *nodes);
 GList *twitter_statuses_node_parse(xmlnode *statuses_node);
 GList *twitter_statuses_nodes_parse(GList *nodes);
+TwitterStatusData *twitter_dm_node_parse(xmlnode *dm_node);
+GList *twitter_dms_node_parse(xmlnode *dms_node);
+GList *twitter_dms_nodes_parse(GList *nodes);
 void twitter_user_data_free(TwitterUserData *user_data);
 void twitter_status_data_free(TwitterStatusData *status);
 

@@ -42,11 +42,27 @@ typedef struct
 	const gchar *message;
 } TwitterRequestErrorData;
 
+
 typedef void (*TwitterSendRequestSuccessFunc)(PurpleAccount *acct, xmlnode *node, gpointer user_data);
 typedef void (*TwitterSendRequestErrorFunc)(PurpleAccount *acct, const TwitterRequestErrorData *error_data, gpointer user_data);
 
-typedef gboolean (*TwitterSendRequestMultiPageSuccessFunc)(PurpleAccount *acct, xmlnode *node, gboolean last_page, gpointer user_data);
+typedef struct _TwitterMultiPageRequestData TwitterMultiPageRequestData;
+
+typedef gboolean (*TwitterSendRequestMultiPageSuccessFunc)(PurpleAccount *acct, xmlnode *node, gboolean last_page, TwitterMultiPageRequestData *request, gpointer user_data);
 typedef gboolean (*TwitterSendRequestMultiPageErrorFunc)(PurpleAccount *acct, const TwitterRequestErrorData *error_data, gpointer user_data);
+
+struct _TwitterMultiPageRequestData
+{
+	gpointer user_data;
+	char *host;
+	char *url;
+	char *query_string;
+	TwitterSendRequestMultiPageSuccessFunc success_callback;
+	TwitterSendRequestMultiPageErrorFunc error_callback;
+	int page;
+	int expected_count;
+};
+
 
 typedef void (*TwitterSendRequestMultiPageAllSuccessFunc)(PurpleAccount *acct, GList *nodes, gpointer user_data);
 typedef gboolean (*TwitterSendRequestMultiPageAllErrorFunc)(PurpleAccount *acct, const TwitterRequestErrorData *error_data, gpointer user_data);

@@ -13,7 +13,7 @@ long long purple_account_get_long_long(PurpleAccount *account, const gchar *key,
 	if(tmp_str)
 		return strtoll(tmp_str, NULL, 10);
 	else
-		return 0;
+		return default_value;
 }
 
 void purple_account_set_long_long(PurpleAccount *account, const gchar *key, long long value)
@@ -99,10 +99,10 @@ static const char *twitter_linkify(PurpleAccount *account, const char *message)
 }
 
 //TODO: move those
-char *twitter_format_tweet(PurpleAccount *account, const char *src_user, const char *message, long long id)
+char *twitter_format_tweet(PurpleAccount *account, const char *src_user, const char *message, long long id, gboolean allow_link)
 {
 	const char *linkified_message = twitter_linkify(account, message);
-	gboolean add_link = twitter_option_add_link_to_tweet(account);
+	gboolean add_link = twitter_option_add_link_to_tweet(account) && allow_link;
 
 	g_return_val_if_fail(linkified_message != NULL, NULL);
 	g_return_val_if_fail(src_user != NULL, NULL);

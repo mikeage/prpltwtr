@@ -144,6 +144,41 @@ TwitterStatusData *twitter_status_node_parse(xmlnode *status_node)
 
 }
 
+
+TwitterStatusData *twitter_dm_node_parse(xmlnode *dm_node)
+{
+	return twitter_status_node_parse(dm_node);
+}
+
+GList *twitter_dms_node_parse(xmlnode *dms_node)
+{
+	GList *dms = NULL;
+	xmlnode *dm_node;
+	for (dm_node = xmlnode_get_child(dms_node, "direct_message"); dm_node; dm_node = xmlnode_get_next_twin(dm_node))
+	{
+		TwitterBuddyData *data = g_new0(TwitterBuddyData, 1);
+
+		data->user = twitter_user_node_parse(xmlnode_get_child(dm_node, "sender"));
+		data->status = twitter_dm_node_parse(dm_node);
+
+		dms = g_list_prepend(dms, data);
+
+	}
+	return dms;
+}
+
+GList *twitter_dms_nodes_parse(GList *nodes)
+{
+	GList *l_users_data = NULL;
+	GList *l;
+	for (l = nodes; l; l = l->next)
+	{
+		xmlnode *node = l->data;
+		l_users_data = g_list_concat(l_users_data, twitter_dms_node_parse(node));
+	}
+	return l_users_data;
+}
+
 GList *twitter_users_node_parse(xmlnode *users_node)
 {
 	GList *users = NULL;

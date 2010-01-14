@@ -18,9 +18,6 @@
 #define TWITTER_URI_ACTION_USER		"user" //TODO: move?
 #define TWITTER_URI_ACTION_SEARCH	"search" //TODO: move?
 
-
-
-
 long long purple_account_get_long_long(PurpleAccount *account, const gchar *key, long long default_value);
 void purple_account_set_long_long(PurpleAccount *account, const gchar *key, long long value);
 
@@ -34,5 +31,5 @@ void purple_account_set_long_long(PurpleAccount *account, const gchar *key, long
 #endif
 
 //TODO: move this?
-char *twitter_format_tweet(PurpleAccount *account, const char *src_user, const char *message, long long id);
+char *twitter_format_tweet(PurpleAccount *account, const char *src_user, const char *message, long long id, gboolean allow_link);
 #endif /* UTIL_H_ */

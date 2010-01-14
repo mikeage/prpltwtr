@@ -2,14 +2,15 @@
 #define _TWITTER_CONN_H_
 
 #include <glib.h>
+#include <twitter_endpoint_im.h>
 
 typedef struct
 {
-	guint get_replies_timer;
-	guint get_friends_timer;
-	long long last_reply_id;
-	long long last_home_timeline_id;
 	long long failed_get_replies_count;
+
+	guint get_friends_timer;
+
+	long long last_home_timeline_id;
 
 	/* a table of TwitterEndpointChat
 	 * where the key will be the chat name
@@ -27,6 +28,13 @@ typedef struct
 	GHashTable *user_reply_id_table;
 
 	gboolean requesting;
+	TwitterEndpointIm *endpoint_ims[TWITTER_IM_TYPE_UNKNOWN];
 } TwitterConnectionData;
+
+void twitter_connection_foreach_endpoint_im(TwitterConnectionData *twitter,
+		void (*cb)(TwitterConnectionData *twitter, TwitterEndpointIm *im, gpointer data),
+		gpointer data);
+TwitterEndpointIm *twitter_connection_get_endpoint_im(TwitterConnectionData *twitter, TwitterImType type);
+void twitter_connection_set_endpoint_im(TwitterConnectionData *twitter, TwitterImType type, TwitterEndpointIm *endpoint);
 
 #endif
