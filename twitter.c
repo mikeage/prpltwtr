@@ -396,24 +396,10 @@ static void twitter_get_replies_timeout_error_cb (PurpleAccount *account,
 
 }
 
-static void twitter_get_replies_cb (PurpleAccount *account,
-		xmlnode *node,
-		gpointer user_data)
-{
-	PurpleConnection *gc = purple_account_get_connection (account);
-	TwitterConnectionData *twitter = gc->proto_data;
-
-	GList *statuses = twitter_statuses_node_parse (node);
-	_process_replies (account, statuses, twitter);
-
-	g_list_free(statuses);
-}
-
 static gboolean twitter_get_dms_all_timeout_error_cb (PurpleAccount *account,
 		const TwitterRequestErrorData *error_data,
 		gpointer user_data)
 {
-	//twitter_get_dms_timeout_error_cb (account, error_data, user_data);
 	return TRUE; //restart timer and try again
 }
 
@@ -687,12 +673,6 @@ static void twitter_connected(PurpleAccount *account)
 	twitter_connection_foreach_endpoint_im(twitter, twitter_endpoint_im_start_foreach, NULL);
 
 	/* Immediately retrieve replies */
-	/*twitter_api_get_replies (account,
-			twitter_endpoint_im_get_since_id(replies_context),
-			TWITTER_INITIAL_REPLIES_COUNT, 1,
-			twitter_get_replies_cb,
-			twitter_get_replies_timeout_error_cb,
-			NULL);*/
 
 	int get_friends_timer_timeout = twitter_option_user_status_timeout(account);
 	gboolean get_following = twitter_option_get_following(account);
