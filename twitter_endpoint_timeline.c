@@ -104,23 +104,21 @@ static void twitter_get_home_timeline_parse_statuses(PurpleAccount *account,
 
 	for (l = statuses; l; l = l->next)
 	{
-		TwitterBuddyData *data = l->data;
-		TwitterStatusData *status = data->status;
-		TwitterUserData *user_data = data->user;
-		g_free(data);
+		TwitterUserTweet *data = l->data;
+		TwitterTweet *status = twitter_user_tweet_take_tweet(data);
+		TwitterUserData *user_data = twitter_user_tweet_take_user_data(data);
 
 		if (!user_data)
 		{
 			twitter_status_data_free(status);
 		} else {
-			const char *screen_name = user_data->screen_name;
 			const char *text = status->text;
-			twitter_chat_add_tweet(chat, screen_name, text, status->id, status->created_at);
+			twitter_chat_add_tweet(chat, data->screen_name, text, status->id, status->created_at);
 			if (status->id && status->id > twitter_connection_get_last_home_timeline_id(gc))
 			{
 				twitter_connection_set_last_home_timeline_id(gc, status->id);
 			}
-			twitter_buddy_set_status_data(account, screen_name, status);
+			twitter_buddy_set_status_data(account, data->screen_name, status);
 			twitter_buddy_set_user_data(account, user_data, FALSE);
 
 			/* update user_reply_id_table table */
@@ -128,6 +126,7 @@ static void twitter_get_home_timeline_parse_statuses(PurpleAccount *account,
 			//g_hash_table_insert (twitter->user_reply_id_table,
 					//g_strdup (screen_name), reply_id);
 		}
+		twitter_user_tweet_free(data);
 	}
 }
 

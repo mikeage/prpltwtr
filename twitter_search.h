@@ -7,24 +7,16 @@
 #define _TWITTER_SEARCH_H_
 
 #include <glib.h>
+#include "twitter_xml.h"
 
-typedef struct _TwitterSearchData TwitterSearchData;
 typedef struct _TwitterSearchErrorData TwitterSearchErrorData;
-
-struct _TwitterSearchData
-{
-    char *text;
-    char *from_user;
-    long long id;
-    time_t created_at;
-};
 
 struct _TwitterSearchErrorData
 {
 
 };
 
-/* @search_result: an array of TwitterSearchData */
+/* @search_result: an array of TwitterUserTweet */
 typedef void (*TwitterSearchSuccessFunc)(PurpleAccount *acct,
         const GArray *search_results,
         const gchar *refresh_url,

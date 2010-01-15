@@ -108,15 +108,15 @@ TwitterUserData *twitter_user_node_parse(xmlnode *user_node)
 
 	return user;
 }
-TwitterStatusData *twitter_status_node_parse(xmlnode *status_node)
+TwitterTweet *twitter_status_node_parse(xmlnode *status_node)
 {
-	TwitterStatusData *status;
+	TwitterTweet *status;
 	char *data;
 
 	if (status_node == NULL)
 		return NULL;
 
-	status = g_new0(TwitterStatusData, 1);
+	status = g_new0(TwitterTweet, 1);
 	status->text = xmlnode_get_child_data(status_node, "text");
 
 	if ((data = xmlnode_get_child_data(status_node, "created_at")))
@@ -145,9 +145,47 @@ TwitterStatusData *twitter_status_node_parse(xmlnode *status_node)
 }
 
 
-TwitterStatusData *twitter_dm_node_parse(xmlnode *dm_node)
+TwitterTweet *twitter_dm_node_parse(xmlnode *dm_node)
 {
 	return twitter_status_node_parse(dm_node);
+}
+
+TwitterUserTweet *twitter_user_tweet_new(const char *screen_name, TwitterUserData *user, TwitterTweet *tweet)
+{
+	TwitterUserTweet *data = g_new0(TwitterUserTweet, 1);
+
+	data->user = user;
+	data->status = tweet;
+	data->screen_name = g_strdup(screen_name);
+	
+	return data;
+}
+
+TwitterUserData *twitter_user_tweet_take_user_data(TwitterUserTweet *ut)
+{
+	TwitterUserData *data = ut->user;
+	ut->user = NULL;
+	return data;
+}
+
+TwitterTweet *twitter_user_tweet_take_tweet(TwitterUserTweet *ut)
+{
+	TwitterTweet *data = ut->status;
+	ut->status = NULL;
+	return data;
+}
+
+void twitter_user_tweet_free(TwitterUserTweet *ut)
+{
+	if (!ut)
+		return;
+	if (ut->user)
+		twitter_user_data_free(ut->user);
+	if (ut->status)
+		twitter_status_data_free(ut->status);
+	if (ut->screen_name)
+		g_free(ut->screen_name);
+	g_free(ut);
 }
 
 GList *twitter_dms_node_parse(xmlnode *dms_node)
@@ -156,10 +194,9 @@ GList *twitter_dms_node_parse(xmlnode *dms_node)
 	xmlnode *dm_node;
 	for (dm_node = xmlnode_get_child(dms_node, "direct_message"); dm_node; dm_node = xmlnode_get_next_twin(dm_node))
 	{
-		TwitterBuddyData *data = g_new0(TwitterBuddyData, 1);
-
-		data->user = twitter_user_node_parse(xmlnode_get_child(dm_node, "sender"));
-		data->status = twitter_dm_node_parse(dm_node);
+		TwitterUserData *user = twitter_user_node_parse(xmlnode_get_child(dm_node, "sender"));
+		TwitterTweet *tweet = twitter_dm_node_parse(dm_node);
+		TwitterUserTweet *data = twitter_user_tweet_new(user->screen_name, user, tweet);
 
 		dms = g_list_prepend(dms, data);
 
@@ -187,12 +224,9 @@ GList *twitter_users_node_parse(xmlnode *users_node)
 	{
 		if (user_node->name && !strcmp(user_node->name, "user"))
 		{
-			TwitterBuddyData *data = g_new0(TwitterBuddyData, 1);
-
-			xmlnode *status_node = xmlnode_get_child(user_node, "status");
-
-			data->user = twitter_user_node_parse(user_node);
-			data->status = twitter_status_node_parse(status_node);
+			TwitterUserData *user = twitter_user_node_parse(user_node);
+			TwitterTweet *tweet = twitter_dm_node_parse(xmlnode_get_child(user_node, "status"));
+			TwitterUserTweet *data = twitter_user_tweet_new(user->screen_name, user, tweet);
 
 			users = g_list_append(users, data);
 		}
@@ -220,10 +254,10 @@ GList *twitter_statuses_node_parse(xmlnode *statuses_node)
 	{
 		if (status_node->name && !strcmp(status_node->name, "status"))
 		{
-			TwitterBuddyData *data = g_new0(TwitterBuddyData, 1);
-			xmlnode *user_node = xmlnode_get_child(status_node, "user");
-			data->user = twitter_user_node_parse(user_node);
-			data->status = twitter_status_node_parse(status_node);
+			TwitterUserData *user = twitter_user_node_parse(xmlnode_get_child(status_node, "user"));
+			TwitterTweet *tweet = twitter_dm_node_parse(status_node);
+			TwitterUserTweet *data = twitter_user_tweet_new(user->screen_name, user, tweet);
+
 			statuses = g_list_prepend(statuses, data);
 		}
 	}
@@ -259,7 +293,7 @@ void twitter_user_data_free(TwitterUserData *user_data)
 	user_data = NULL;
 }
 
-void twitter_status_data_free(TwitterStatusData *status)
+void twitter_status_data_free(TwitterTweet *status)
 {
 	if (status == NULL)
 		return;

@@ -145,12 +145,12 @@ static void twitter_search_cb(PurpleAccount *account,
 		{
 			purple_debug_info(TWITTER_PROTOCOL_ID, "%s found chat %s, adding tweets\n", G_STRFUNC, endpoint_chat->chat_name);
 			for (i = len-1; i >= 0; i--) {
-				TwitterSearchData *search_data;
+				TwitterUserTweet *search_data;
 
 				search_data = g_array_index (search_results,
-						TwitterSearchData *, i);
+						TwitterUserTweet *, i);
 
-				twitter_chat_add_tweet(chat, search_data->from_user, search_data->text, search_data->id, search_data->created_at);
+				twitter_chat_add_tweet(chat, search_data->screen_name, search_data->status->text, search_data->status->id, search_data->status->created_at);
 			}
 		} else {
 			purple_debug_info(TWITTER_PROTOCOL_ID, "%s could not find chat %s", G_STRFUNC, endpoint_chat->chat_name);

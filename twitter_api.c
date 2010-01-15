@@ -260,8 +260,8 @@ void twitter_api_search (PurpleAccount *account,
 {
 	/* http://search.twitter.com/search.atom + query (e.g. ?q=n900) */
 	char *query = since_id > 0 ?
-		g_strdup_printf ("?q=%s&rpp=%u&since_id=%lld", purple_url_encode(keyword), rpp, since_id) :
-		g_strdup_printf ("?q=%s&rpp=%u", purple_url_encode(keyword), rpp);
+		g_strdup_printf ("q=%s&rpp=%u&since_id=%lld", purple_url_encode(keyword), rpp, since_id) :
+		g_strdup_printf ("q=%s&rpp=%u", purple_url_encode(keyword), rpp);
 
 	twitter_search (account, query, success_func, error_func, data);
 	g_free (query);
