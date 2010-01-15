@@ -238,7 +238,7 @@ static TwitterEndpointChatSettings TwitterEndpointTimelineSettings =
 #endif
 	twitter_chat_timeline_send, //send_message
 	twitter_timeline_timeout_context_free, //endpoint_data_free
-	twitter_option_search_timeout, //get_default_interval
+	twitter_option_timeline_timeout, //get_default_interval
 	twitter_timeline_chat_name_from_components, //get_name
 	NULL, //verify_components
 	twitter_timeline_timeout,

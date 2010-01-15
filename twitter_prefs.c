@@ -116,7 +116,7 @@ GList *twitter_get_protocol_options()
 
 	/* Search results refresh interval */
 	option = purple_account_option_int_new(
-			("Refresh search results every (min)"),      /* text shown to user */
+			("Default refresh search results every (min)"),      /* text shown to user */
 			TWITTER_PREF_SEARCH_TIMEOUT,                         /* pref name */
 			TWITTER_PREF_SEARCH_TIMEOUT_DEFAULT);                        /* default value */
 	options = g_list_append(options, option);
@@ -139,10 +139,7 @@ gint twitter_option_search_timeout(PurpleAccount *account)
 
 gint twitter_option_timeline_timeout(PurpleAccount *account)
 {
-	//TODO: create own option
-	return purple_account_get_int(account,
-			TWITTER_PREF_SEARCH_TIMEOUT,
-			TWITTER_PREF_SEARCH_TIMEOUT_DEFAULT);
+	return TWITTER_TIMELINE_REFRESH_DEFAULT;
 }
 const gchar *twitter_option_search_group(PurpleAccount *account)
 {
