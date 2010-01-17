@@ -49,7 +49,8 @@ struct _TwitterEndpointChatSettings
 #if _HAZE_
 	gchar conv_id;
 #endif
-	int (*send_message)(TwitterEndpointChat *endpoint_chat, const gchar *message);
+	gchar *(*get_status_added_text)(TwitterEndpointChat *endpoint_chat);
+	//int (*send_message)(TwitterEndpointChat *endpoint_chat, const gchar *message);
 	void (*endpoint_data_free)(gpointer endpoint_data);
 	gint (*get_default_interval)(PurpleAccount *account);
 	gchar *(*get_name)(GHashTable *components);
@@ -113,6 +114,7 @@ void twitter_chat_add_tweet(PurpleConvIm *chat, const char *who, const char *mes
 #else
 void twitter_chat_add_tweet(PurpleConvChat *chat, const char *who, const char *message, long long id, time_t time);
 #endif
+int twitter_endpoint_chat_send(TwitterEndpointChat *ctx, const gchar *message);
 
 
 #endif

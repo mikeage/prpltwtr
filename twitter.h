@@ -31,6 +31,7 @@
 #include <string.h>
 #include <time.h>
 #include <glib.h>
+#include <errno.h>
 
 #include <account.h>
 #include <accountopt.h>

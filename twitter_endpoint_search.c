@@ -28,54 +28,6 @@ static void twitter_search_timeout_context_free(gpointer _ctx)
 	g_slice_free (TwitterSearchTimeoutContext, ctx);
 } 
 
-static int twitter_chat_search_send(TwitterEndpointChat *ctx_base, const gchar *message)
-{
-	PurpleAccount *account = ctx_base->account;
-	PurpleConnection *gc = purple_account_get_connection(account);
-	TwitterSearchTimeoutContext *ctx = (TwitterSearchTimeoutContext *) ctx_base->endpoint_data;
-	PurpleConversation *conv = twitter_endpoint_chat_find_open_conv(ctx_base);
-	char *status;
-	char *message_lower, *search_text_lower;
-
-	if (conv == NULL) return -1; //TODO: error?
-
-	//TODO: verify that we want utf8 case insensitive, and not ascii
-	message_lower = g_utf8_strdown(message, -1);
-	search_text_lower = g_utf8_strdown(ctx->search_text, -1);
-	if (strstr(message_lower, search_text_lower))
-	{
-		status = g_strdup(message);
-	} else {
-		status = g_strdup_printf("%s %s", ctx->search_text, message);
-	}
-	g_free(message_lower);
-	g_free(search_text_lower);
-
-	if (strlen(status) > MAX_TWEET_LENGTH)
-	{
-		//TODO: SHOW ERROR
-		g_free(status);
-		return -E2BIG;
-	}
-	else
-	{
-		PurpleAccount *account = purple_connection_get_account(gc);
-		twitter_api_set_status(purple_connection_get_account(gc),
-				status, 0,
-				NULL, NULL,//TODO: verify & error
-				NULL);
-#if _HAZE_
-		//It's already in the message box in haze. Maybe we should edit it before hand?
-		//twitter_chat_add_tweet(PURPLE_CONV_IM(conv), account->username, status, 0, time(NULL));//TODO: FIX TIME
-#else
-		twitter_chat_add_tweet(PURPLE_CONV_CHAT(conv), account->username, status, 0, time(NULL));//TODO: FIX TIME
-#endif
-		g_free(status);
-		return 0;
-	}
-	return -1;
-}
-
 static char *twitter_chat_name_from_search(const char *search)
 {
 #if _HAZE_
@@ -204,6 +156,12 @@ static gboolean twitter_search_timeout(TwitterEndpointChat *endpoint_chat)
 
 	return TRUE;
 }
+static gchar *twitter_endpoint_search_get_status_added_text(TwitterEndpointChat *endpoint_chat)
+{
+	TwitterSearchTimeoutContext *ctx = (TwitterSearchTimeoutContext *) endpoint_chat->endpoint_data;
+	return g_strdup(ctx->search_text);
+}
+
 
 static TwitterEndpointChatSettings TwitterEndpointSearchSettings =
 {
@@ -211,7 +169,7 @@ static TwitterEndpointChatSettings TwitterEndpointSearchSettings =
 #if _HAZE_
 	'#',
 #endif
-	twitter_chat_search_send, //send_message
+	twitter_endpoint_search_get_status_added_text,
 	twitter_search_timeout_context_free, //endpoint_data_free
 	twitter_option_search_timeout, //get_default_interval
 	twitter_search_chat_name_from_components, //get_name

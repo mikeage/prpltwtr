@@ -321,3 +321,50 @@ PurpleConvChat *twitter_endpoint_chat_get_conv(TwitterEndpointChat *endpoint_cha
 	return PURPLE_CONV_CHAT(conv);
 }
 #endif
+
+static void twitter_endpoint_chat_send_success_cb(PurpleAccount *account, xmlnode *node, gboolean last, gpointer _ctx)
+{
+	TwitterEndpointChat *ctx = _ctx;
+	TwitterTweet *tweet = twitter_status_node_parse(node);
+	PurpleConversation *conv;
+
+#if !_HAZE_
+	if (tweet && tweet->text && (conv = twitter_endpoint_chat_find_open_conv(ctx)))
+	{
+		twitter_chat_add_tweet(PURPLE_CONV_CHAT(conv), account->username, tweet->text, 0, tweet->created_at);
+	}
+#endif
+}
+static gboolean twitter_endpoint_chat_send_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error, gpointer _ctx)
+{
+	TwitterEndpointChat *ctx = _ctx;
+	PurpleConversation *conv = twitter_endpoint_chat_find_open_conv(ctx);
+
+	if (conv)
+	{
+		purple_conversation_write(conv, NULL, "Error sending tweet", PURPLE_MESSAGE_ERROR, time(NULL));
+	}
+
+	return FALSE; //give up trying
+}
+
+int twitter_endpoint_chat_send(TwitterEndpointChat *ctx, const gchar *message)
+{
+	PurpleAccount *account = ctx->account;
+	gchar *added_text = NULL;
+
+	if (ctx->settings->get_status_added_text)
+		added_text = ctx->settings->get_status_added_text(ctx);
+
+	GArray *statuses = twitter_utf8_get_segments(message, MAX_TWEET_LENGTH, added_text);
+	twitter_api_set_statuses(account,
+			statuses,
+			0,
+			twitter_endpoint_chat_send_success_cb,
+			twitter_endpoint_chat_send_error_cb,
+			ctx);
+
+	if (added_text)
+		g_free(added_text);
+	return 0;
+}

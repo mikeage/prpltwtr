@@ -43,35 +43,6 @@ static void twitter_timeline_timeout_context_free(gpointer _ctx)
 	g_slice_free (TwitterTimelineTimeoutContext, ctx);
 } 
 
-//TODO merge me
-static int twitter_chat_timeline_send(TwitterEndpointChat *ctx_base, const gchar *message)
-{
-	PurpleAccount *account = ctx_base->account;
-	PurpleConversation *conv = twitter_endpoint_chat_find_open_conv(ctx_base);
-
-	if (conv == NULL) return -1; //TODO: error?
-
-	if (strlen(message) > MAX_TWEET_LENGTH)
-	{
-		//TODO: SHOW ERROR
-		return -E2BIG;
-	}
-	else
-	{
-		twitter_api_set_status(account,
-				message, 0,
-				NULL, NULL,//TODO: verify & error
-				NULL);
-#if _HAZE_
-		//It's already in the message box in haze. Maybe we should edit it before hand?
-		//twitter_chat_add_tweet(PURPLE_CONV_IM(conv), account->username, message, 0, time(NULL));//TODO: FIX TIME
-#else
-		twitter_chat_add_tweet(PURPLE_CONV_CHAT(conv), account->username, message, 0, time(NULL));//TODO: FIX TIME
-#endif
-		return 0;
-	}
-}
-
 static char *twitter_chat_name_from_timeline_id(const gint timeline_id)
 {
 	return g_strdup("Timeline: Home");
@@ -235,7 +206,7 @@ static TwitterEndpointChatSettings TwitterEndpointTimelineSettings =
 #if _HAZE_
 	'!',
 #endif
-	twitter_chat_timeline_send, //send_message
+	NULL,
 	twitter_timeline_timeout_context_free, //endpoint_data_free
 	twitter_option_timeline_timeout, //get_default_interval
 	twitter_timeline_chat_name_from_components, //get_name

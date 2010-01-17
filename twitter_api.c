@@ -207,11 +207,99 @@ void twitter_api_set_status(PurpleAccount *account,
 		twitter_send_request(account, TRUE,
 				twitter_option_host_url(account),
 				"/statuses/update.xml", query,
-				success_func, NULL, data);
+				success_func, error_func, data);
 		g_free(query);
 	} else {
 		//SEND error?
 	}
+}
+
+typedef struct
+{
+	GArray *statuses;
+	TwitterApiMultiStatusSuccessFunc success_func;
+	TwitterApiMultiStatusErrorFunc error_func;
+	gpointer user_data;
+	int statuses_index;
+
+	//set status only
+	long long in_reply_to_status_id;
+
+	//dm only
+	gchar *dm_who;
+} TwitterMultiMessageContext;
+
+static void twitter_api_set_statuses_success_cb(PurpleAccount *account, xmlnode *node, gpointer _ctx);
+static void twitter_api_set_statuses_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error_data, gpointer _ctx)
+{
+	TwitterMultiMessageContext *ctx = _ctx;
+
+	if (ctx->error_func && !ctx->error_func(account, error_data, ctx->user_data))
+	{
+		//TODO: verify this doesn't leak
+		g_array_free(ctx->statuses, TRUE);
+		g_free(ctx);
+		return;
+	}
+	//Try again
+	twitter_api_set_status(account,
+			g_array_index(ctx->statuses, gchar*, ctx->statuses_index),
+			ctx->in_reply_to_status_id,
+			twitter_api_set_statuses_success_cb,
+			twitter_api_set_statuses_error_cb,
+			ctx);
+}
+
+static void twitter_api_set_statuses_success_cb(PurpleAccount *account, xmlnode *node, gpointer _ctx)
+{
+	TwitterMultiMessageContext *ctx = _ctx;
+	gboolean last = FALSE;
+
+	if (++ctx->statuses_index >= ctx->statuses->len)
+	{
+		last = TRUE;
+		//TODO: verify this doesn't leak
+		g_array_free(ctx->statuses, TRUE);
+		g_free(ctx);
+	}
+
+	if (ctx->success_func)
+		ctx->success_func(account, node, last, ctx->user_data);
+
+	if (last)
+		return;
+
+	twitter_api_set_status(account,
+			g_array_index(ctx->statuses, gchar*, ctx->statuses_index),
+			ctx->in_reply_to_status_id,
+			twitter_api_set_statuses_success_cb,
+			twitter_api_set_statuses_error_cb,
+			ctx);
+}
+
+void twitter_api_set_statuses(PurpleAccount *account,
+		GArray *statuses,
+		long long in_reply_to_status_id,
+		TwitterApiMultiStatusSuccessFunc success_func,
+		TwitterApiMultiStatusErrorFunc error_func,
+		gpointer data)
+{
+	TwitterMultiMessageContext *ctx;
+	g_return_if_fail(statuses && statuses->len);
+	ctx = g_new0(TwitterMultiMessageContext, 1);
+	ctx->statuses = statuses;
+	ctx->in_reply_to_status_id = in_reply_to_status_id;
+	ctx->success_func = success_func;
+	ctx->error_func = error_func;
+	ctx->user_data = data;
+	ctx->statuses_index = 0;
+
+	twitter_api_set_status(account,
+			g_array_index(statuses, gchar*, 0),
+			in_reply_to_status_id,
+			twitter_api_set_statuses_success_cb,
+			twitter_api_set_statuses_error_cb,
+			ctx);
 }
 
 void twitter_api_send_dm(PurpleAccount *account,
@@ -229,12 +317,94 @@ void twitter_api_send_dm(PurpleAccount *account,
 		twitter_send_request(account, TRUE,
 				twitter_option_host_url(account),
 				"/direct_messages/new.xml", query,
-				success_func, NULL, data);
+				success_func, error_func, data);
 		g_free(user_encoded);
 		g_free(query);
 	} else {
 		//SEND error?
 	}
+}
+
+static void twitter_api_send_dms_success_cb(PurpleAccount *account, xmlnode *node, gpointer _ctx);
+static void twitter_api_send_dms_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error_data, gpointer _ctx)
+{
+	TwitterMultiMessageContext *ctx = _ctx;
+
+	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+
+	if (ctx->error_func && !ctx->error_func(account, error_data, ctx->user_data))
+	{
+		//TODO: verify this doesn't leak
+		g_array_free(ctx->statuses, TRUE);
+		g_free(ctx->dm_who);
+		g_free(ctx);
+		return;
+	}
+	//Try again
+	twitter_api_send_dm(account,
+			ctx->dm_who,
+			g_array_index(ctx->statuses, gchar*, ctx->statuses_index),
+			twitter_api_send_dms_success_cb,
+			twitter_api_send_dms_error_cb,
+			ctx);
+}
+
+static void twitter_api_send_dms_success_cb(PurpleAccount *account, xmlnode *node, gpointer _ctx)
+{
+	TwitterMultiMessageContext *ctx = _ctx;
+	gboolean last = FALSE;
+
+	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+
+	if (++ctx->statuses_index >= ctx->statuses->len)
+	{
+		//TODO: verify this doesn't leak
+		g_array_free(ctx->statuses, TRUE);
+		g_free(ctx->dm_who);
+		g_free(ctx);
+		last = TRUE;
+	}
+
+	if (ctx->success_func)
+		ctx->success_func(account, node, last, ctx->user_data);
+
+	if (last)
+		return;
+
+	twitter_api_send_dm(account,
+			ctx->dm_who,
+			g_array_index(ctx->statuses, gchar*, ctx->statuses_index),
+			twitter_api_send_dms_success_cb,
+			twitter_api_send_dms_error_cb,
+			ctx);
+}
+
+void twitter_api_send_dms(PurpleAccount *account,
+		const gchar *who,
+		GArray *statuses,
+		TwitterApiMultiStatusSuccessFunc success_func,
+		TwitterApiMultiStatusErrorFunc error_func,
+		gpointer data)
+{
+	TwitterMultiMessageContext *ctx;
+
+	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+	g_return_if_fail(statuses && statuses->len);
+
+	ctx = g_new0(TwitterMultiMessageContext, 1);
+	ctx->statuses = statuses;
+	ctx->success_func = success_func;
+	ctx->error_func = error_func;
+	ctx->user_data = data;
+	ctx->statuses_index = 0;
+	ctx->dm_who = g_strdup(who);
+
+	twitter_api_send_dm(account,
+			ctx->dm_who,
+			g_array_index(ctx->statuses, gchar*, ctx->statuses_index),
+			twitter_api_send_dms_success_cb,
+			twitter_api_send_dms_error_cb,
+			ctx);
 }
 
 void twitter_api_get_saved_searches (PurpleAccount *account,

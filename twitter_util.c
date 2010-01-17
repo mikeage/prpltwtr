@@ -119,3 +119,109 @@ char *twitter_format_tweet(PurpleAccount *account, const char *src_user, const c
 }
 
 
+gchar *twitter_utf8_find_last_pos(const gchar *str, const gchar *needles, glong str_len)
+{
+	gchar *last;
+	const gchar *needle;
+	for (last = g_utf8_offset_to_pointer(str, str_len); last; last = g_utf8_find_prev_char(str, last))
+		for (needle = needles; *needle; needle++)
+			if (*last == *needle)
+			{
+				return last;
+			}
+	return NULL;
+}
+
+char *twitter_utf8_get_segment(const gchar *message, int max_len, const gchar *add_text, const gchar **new_start)
+{
+	int add_text_len = 0;
+	int index_add_text = -1;
+	char *status;
+	int len_left;
+	int len = 0;
+	static const gchar *spaces = " \r\n";
+
+	while (message[0] == ' ')
+		message++;
+
+	if (message[0] == '\0')
+		return NULL;
+
+	//TODO: proper case sensitivity
+	if (add_text)
+	{
+		char *pnt_add_text = strstr(message, add_text);
+		add_text_len = g_utf8_strlen(add_text, -1);
+		if (pnt_add_text)
+			index_add_text = g_utf8_pointer_to_offset(message, pnt_add_text) + add_text_len;
+	}
+
+	len_left = g_utf8_strlen(message, -1);
+	if (len_left <= max_len && (!add_text || index_add_text != -1))
+	{
+		status = g_strdup(message);
+		len = strlen(message);
+	} else if (len_left <= max_len && len_left + add_text_len + 1 <= max_len) {
+		status = g_strdup_printf("%s %s", add_text, message);
+		len = strlen(message);
+	} else {
+		gchar *space;
+		if (add_text 
+			&& index_add_text != -1
+			&& index_add_text <= max_len
+			&& (space = twitter_utf8_find_last_pos(message + index_add_text, spaces, max_len - g_utf8_pointer_to_offset(message, message + index_add_text)))
+			&& (g_utf8_pointer_to_offset(message, space) <= max_len))
+		{
+			//split already has our word in it
+			len = space - message;
+			status = g_strndup(message, len);
+			len++;
+		} else if ((space = twitter_utf8_find_last_pos(message, spaces, max_len - (add_text ? add_text_len + 1 : 0)))) {
+			len = space - message;
+			space[0] = '\0';
+			status = add_text ? g_strdup_printf("%s %s", add_text, message) : g_strdup(message);
+			space[0] = ' ';
+			len++;
+		} else if (index_add_text != -1 && index_add_text <= max_len) {
+			//one long word, which contains our add_text
+			char prev_char;
+			gchar *end_pos;
+			end_pos = g_utf8_offset_to_pointer(message, max_len);
+			len = end_pos - message;
+			prev_char = end_pos[0];
+			end_pos[0] = '\0';
+			status = g_strdup(message);
+			end_pos[0] = prev_char;
+		} else {
+			char prev_char;
+			gchar *end_pos;
+			end_pos = (index_add_text != -1 && index_add_text <= max_len ?
+					g_utf8_offset_to_pointer(message, max_len) :
+					g_utf8_offset_to_pointer(message, max_len - (add_text ? add_text_len + 1 : 0)));
+			end_pos = g_utf8_offset_to_pointer(message, max_len - (add_text ? add_text_len + 1 : 0));
+			len = end_pos - message;
+			prev_char = end_pos[0];
+			end_pos[0] = '\0';
+			status = add_text ? g_strdup_printf("%s %s", add_text, message) : g_strdup(message);
+			end_pos[0] = prev_char;
+		}
+	}
+	if (new_start)
+		*new_start = message + len;
+	return g_strstrip(status);
+}
+GArray *twitter_utf8_get_segments(const gchar *message, int segment_length, const gchar *add_text)
+{
+	GArray *segments;
+	const gchar *new_start = NULL;
+	const gchar *pos;
+	gchar *segment = twitter_utf8_get_segment(message, segment_length, add_text, &new_start);
+	segments = g_array_new(FALSE, FALSE, sizeof(char *));
+	while (segment)
+	{
+		g_array_append_val(segments, segment);
+		pos = new_start;
+		segment = twitter_utf8_get_segment(pos, segment_length, add_text, &new_start);
+	};
+	return segments;
+}

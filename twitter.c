@@ -501,12 +501,16 @@ static int twitter_chat_send(PurpleConnection *gc, int id, const char *message,
 	PurpleConversation *conv = purple_find_chat(gc, id);
 	TwitterConnectionData *twitter = gc->proto_data;
 	TwitterEndpointChat *ctx = (TwitterEndpointChat *) g_hash_table_lookup(twitter->chat_contexts, purple_conversation_get_name(conv));
+	char *stripped_message;
+	int rv;
 
 	g_return_val_if_fail(ctx != NULL, -1);
 
-	if (ctx->settings && ctx->settings->send_message)
-		return ctx->settings->send_message(ctx, message);
-	return -1;
+	stripped_message = purple_markup_strip_html(message);
+
+	rv = twitter_endpoint_chat_send(ctx, stripped_message);
+	g_free(stripped_message);
+	return rv;
 }
 
 
@@ -1093,22 +1097,22 @@ static void twitter_set_status_error_cb(PurpleAccount *acct, const TwitterReques
 			(message));
 }
 
-static void twitter_send_dm_error_cb(PurpleAccount *acct, const TwitterRequestErrorData *error_data, gpointer user_data)
-{
-	const char *message;
-	if (error_data->type == TWITTER_REQUEST_ERROR_SERVER || error_data->type == TWITTER_REQUEST_ERROR_TWITTER_GENERAL)
-	{
-		message = error_data->message;
-	} else if (error_data->type == TWITTER_REQUEST_ERROR_INVALID_XML) {
-		message = "Unknown reply by twitter server";
-	} else {
-		message = "Unknown error";
-	}
-	purple_notify_error(NULL,  /* plugin handle or PurpleConnection */
-			("Twitter Send Direct Message"),
-			("Error sending Direct Message"),
-			(message));
-}
+//static void twitter_send_dm_error_cb(PurpleAccount *acct, const TwitterRequestErrorData *error_data, gpointer user_data)
+//{
+//	const char *message;
+//	if (error_data->type == TWITTER_REQUEST_ERROR_SERVER || error_data->type == TWITTER_REQUEST_ERROR_TWITTER_GENERAL)
+//	{
+//		message = error_data->message;
+//	} else if (error_data->type == TWITTER_REQUEST_ERROR_INVALID_XML) {
+//		message = "Unknown reply by twitter server";
+//	} else {
+//		message = "Unknown error";
+//	}
+//	purple_notify_error(NULL,  /* plugin handle or PurpleConnection */
+//			("Twitter Send Direct Message"),
+//			("Error sending Direct Message"),
+//			(message));
+//}
 
 static TwitterImType twitter_conv_name_to_type(PurpleAccount *account, const char *name)
 {
@@ -1134,80 +1138,85 @@ static const char *twitter_conv_name_to_buddy_name(PurpleAccount *account, const
 }
 
 
-static void twitter_send_dm_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)
+static void twitter_send_dm_success_cb(PurpleAccount *account, xmlnode *node, gboolean last, gpointer _who)
 {
-	//TODO: verify dm was sent
-	return;
+	if (last && _who)
+		g_free(_who);
 }
-static void twitter_send_im_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)
+static gboolean twitter_send_dm_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error, gpointer _who)
 {
-	//TODO: verify status was sent
-	return;
-	/*
-	   TwitterTweet *s = twitter_status_node_parse(node);
-	   xmlnode *user_node = xmlnode_get_child(node, "user");
-	   TwitterUserData *u = twitter_user_node_parse(user_node);
+	gchar *who = _who;
+	if (who)
+	{
+		gchar *conv_name = twitter_buddy_name_to_conv_name(account, _who, TWITTER_IM_TYPE_DM);
+		purple_conv_present_error(conv_name, account, "Error sending tweet");
+		g_free(who);
+		g_free(conv_name);
+	}
 
-	   if (!s)
-	   return;
-
-	   if (!u)
-	   {
-	   twitter_status_data_free(s);
-	   return;
-	   }
-
-	   twitter_buddy_set_status_data(account, u->screen_name, s, FALSE);
-	   twitter_user_data_free(u);
-	 */
+	return FALSE; //give up trying
 }
 
 static int twitter_send_dm_do(PurpleConnection *gc, const char *who,
 		const char *message, PurpleMessageFlags flags)
 {
-	if (strlen(message) > MAX_TWEET_LENGTH)
+	GArray *statuses = twitter_utf8_get_segments(message, MAX_TWEET_LENGTH, NULL);
+
+	twitter_api_send_dms(purple_connection_get_account(gc),
+			who,
+			statuses,
+			twitter_send_dm_success_cb,
+			twitter_send_dm_error_cb,
+			g_strdup(who)); //TODO
+
+	return 1;
+}
+
+static void twitter_send_im_success_cb(PurpleAccount *account, xmlnode *node, gboolean last, gpointer _who)
+{
+	if (last && _who)
+		g_free(_who);
+}
+
+static gboolean twitter_send_im_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error, gpointer _who)
+{
+	//TODO: this doesn't work yet
+	gchar *who = _who;
+	if (who)
 	{
-		purple_conv_present_error(who, purple_connection_get_account(gc), "Message is too long");
-		return -E2BIG;
+		gchar *conv_name = twitter_buddy_name_to_conv_name(account, _who, TWITTER_IM_TYPE_AT_MSG);
+		purple_conv_present_error(conv_name, account, "Error sending tweet");
+		g_free(who);
+		g_free(conv_name);
 	}
-	else
-	{
-		//TODO handle errors
-		twitter_api_send_dm(purple_connection_get_account(gc),
-				who, message, 
-				twitter_send_dm_cb, twitter_send_dm_error_cb,
-				NULL);
-		return 1;
-	}
+
+	return FALSE; //give up trying
 }
 
 static int twitter_send_im_do(PurpleConnection *gc, const char *who,
 		const char *message, PurpleMessageFlags flags)
 {
-	if (strlen(who) + strlen(message) + 2 > MAX_TWEET_LENGTH)
-	{
-		return -E2BIG;
-	}
-	else
-	{
-		TwitterConnectionData *twitter = gc->proto_data;
-		long long in_reply_to_status_id = 0;
-		const gchar *reply_id;
-		char *status;
+	TwitterConnectionData *twitter = gc->proto_data;
+	gchar *added_text = g_strdup_printf("@%s", who);
+	GArray *statuses = twitter_utf8_get_segments(message, MAX_TWEET_LENGTH, added_text);
+	long long in_reply_to_status_id = 0;
+	const gchar *reply_id;
 
-		status = g_strdup_printf("@%s %s", who, message);
-		reply_id = (const gchar *)g_hash_table_lookup (
-				twitter->user_reply_id_table, who);
-		if (reply_id)
-			in_reply_to_status_id = strtoll (reply_id, NULL, 10);
+	reply_id = (const gchar *)g_hash_table_lookup (
+			twitter->user_reply_id_table, who);
+	if (reply_id)
+		in_reply_to_status_id = strtoll (reply_id, NULL, 10);
 
-		//TODO handle errors
-		twitter_api_set_status(purple_connection_get_account(gc),
-				status, in_reply_to_status_id, twitter_send_im_cb,
-				twitter_set_status_error_cb, NULL);
-		g_free(status);
-		return 1;
-	}
+	twitter_api_set_statuses(purple_connection_get_account(gc),
+			statuses,
+			in_reply_to_status_id,
+			twitter_send_im_success_cb,
+			twitter_send_im_error_cb,
+			g_strdup(who)); //TODO
+
+	g_free(added_text);
+
+	return 1;
 }
 
 /* A few options here
@@ -1223,31 +1232,43 @@ static int twitter_send_im(PurpleConnection *gc, const char *conv_name,
 	TwitterImType im_type;
 	const char *buddy_name;
 	PurpleAccount *account = purple_connection_get_account(gc);
-	/* TODO should truncate it rather than drop it????? */
+	char *stripped_message;
+	int rv = 0;
+
 	g_return_val_if_fail(message != NULL && message[0] != '\0' && conv_name != NULL && conv_name[0] != '\0', 0);
+
+	stripped_message = purple_markup_strip_html(message);
+
 #if _HAZE_
 	if (conv_name[0] == '#')
 	{
 		purple_debug_info(TWITTER_PROTOCOL_ID, "%s of search %s\n", G_STRFUNC, conv_name);
 		TwitterEndpointChat *endpoint = twitter_endpoint_chat_find(account, conv_name);
 		TwitterEndpointChatSettings *settings = twitter_get_endpoint_chat_settings(TWITTER_CHAT_SEARCH);
-		return settings->send_message(endpoint, message);
+		rv = settings->send_message(endpoint, stripped_message);
+		g_free(stripped_message);
+		return rv;
 	} else if (!strcmp(conv_name, "Timeline: Home")) {
 		purple_debug_info(TWITTER_PROTOCOL_ID, "%s of home timeline\n", G_STRFUNC);
 		TwitterEndpointChat *endpoint = twitter_endpoint_chat_find(account, conv_name);
 		TwitterEndpointChatSettings *settings = twitter_get_endpoint_chat_settings(TWITTER_CHAT_TIMELINE);
-		return settings->send_message(endpoint, message);
+		rv = settings->send_message(endpoint, stripped_message);
+		g_free(stripped_message);
+		return rv;
 	}
 #endif
 
+	//TODO, this should be part of im settings
 	im_type = twitter_conv_name_to_type(account, conv_name);
 	buddy_name = twitter_conv_name_to_buddy_name(account, conv_name);
 	if (im_type == TWITTER_IM_TYPE_DM)
 	{
-		return twitter_send_dm_do(gc, buddy_name, message, flags);
+		rv = twitter_send_dm_do(gc, buddy_name, stripped_message, flags);
 	} else {
-		return twitter_send_im_do(gc, buddy_name, message, flags);
+		rv = twitter_send_im_do(gc, buddy_name, stripped_message, flags);
 	}
+	g_free(stripped_message);
+	return rv;
 }
 
 static void twitter_set_info(PurpleConnection *gc, const char *info) {
