@@ -47,15 +47,6 @@
 #define TWITTER_PREF_HOME_TIMELINE_MAX_TWEETS "home_timeline_max_tweets"
 #define TWITTER_PREF_HOME_TIMELINE_MAX_TWEETS_DEFAULT 100
 
-#define TWITTER_PREF_HOST_URL "host_url"
-#define TWITTER_PREF_HOST_URL_DEFAULT "twitter.com"
-
-#define TWITTER_PREF_HOST_API_URL "api_host_url"
-#define TWITTER_PREF_HOST_API_URL_DEFAULT "api.twitter.com"
-
-#define TWITTER_PREF_SEARCH_HOST_URL "search_host_url"
-#define TWITTER_PREF_SEARCH_HOST_URL_DEFAULT "search.twitter.com"
-
 #define TWITTER_PREF_REPLIES_TIMEOUT "refresh_replies_minutes"
 #define	TWITTER_PREF_REPLIES_TIMEOUT_DEFAULT 30
 
@@ -74,6 +65,27 @@
 #define TWITTER_PREF_DEFAULT_DM "default_message_is_dm"
 #define TWITTER_PREF_DEFAULT_DM_DEFAULT FALSE
 
+/***** START URLS *****/
+#define TWITTER_PREF_URL_GET_RATE_LIMIT_STATUS "get_rate_limit_status_url"
+#define TWITTER_PREF_URL_GET_RATE_LIMIT_STATUS_DEFAULT "twitter.com/account/rate_limit_status.xml"
+#define TWITTER_PREF_URL_GET_FRIENDS "get_friends_url"
+#define TWITTER_PREF_URL_GET_FRIENDS_DEFAULT "twitter.com/statuses/friends.xml"
+#define TWITTER_PREF_URL_GET_HOME_TIMELINE "get_hime_timeline_url"
+#define TWITTER_PREF_URL_GET_HOME_TIMELINE_DEFAULT "api.twitter.com/1/statuses/home_timeline.xml"
+#define TWITTER_PREF_URL_GET_MENTIONS "get_mentions_url"
+#define TWITTER_PREF_URL_GET_MENTIONS_DEFAULT "twitter.com/statuses/mentions.xml"
+#define TWITTER_PREF_URL_GET_DMS "get_dms_url"
+#define TWITTER_PREF_URL_GET_DMS_DEFAULT "twitter.com/direct_messages.xml"
+#define TWITTER_PREF_URL_UPDATE_STATUS "update_status_url"
+#define TWITTER_PREF_URL_UPDATE_STATUS_DEFAULT "twitter.com/statuses/update.xml"
+#define TWITTER_PREF_URL_NEW_DM "new_dm_url"
+#define TWITTER_PREF_URL_NEW_DM_DEFAULT "twitter.com/direct_messages/new.xml"
+#define TWITTER_PREF_URL_GET_SAVED_SEARCHES "get_saved_searches_url"
+#define TWITTER_PREF_URL_GET_SAVED_SEARCHES_DEFAULT "twitter.com/saved_searches.xml"
+#define TWITTER_PREF_URL_GET_SEARCH_RESULTS "get_search_results_url"
+#define TWITTER_PREF_URL_GET_SEARCH_RESULTS_DEFAULT "search.twitter.com/search.atom"
+/***** END URLS *****/
+
 GList *twitter_get_protocol_options();
 
 gboolean twitter_option_add_link_to_tweet(PurpleAccount *account);
@@ -88,10 +100,18 @@ gint twitter_option_user_status_timeout(PurpleAccount *account);
 gboolean twitter_option_get_history(PurpleAccount *account);
 gboolean twitter_option_sync_status(PurpleAccount *account);
 gboolean twitter_option_use_https(PurpleAccount *account);
-const gchar *twitter_option_host_url(PurpleAccount *account);
-const gchar *twitter_option_host_api_url(PurpleAccount *account);
-const gchar *twitter_option_host_search_url(PurpleAccount *account);
 gint twitter_option_home_timeline_max_tweets(PurpleAccount *account);
 gboolean twitter_option_default_dm(PurpleAccount *account);
 
+/***** START URLS *****/
+const gchar *twitter_option_url_get_rate_limit_status(PurpleAccount *account);
+const gchar *twitter_option_url_get_friends(PurpleAccount *account);
+const gchar *twitter_option_url_get_home_timeline(PurpleAccount *account);
+const gchar *twitter_option_url_get_mentions(PurpleAccount *account);
+const gchar *twitter_option_url_get_dms(PurpleAccount *account);
+const gchar *twitter_option_url_update_status(PurpleAccount *account);
+const gchar *twitter_option_url_new_dm(PurpleAccount *account);
+const gchar *twitter_option_url_get_saved_searches(PurpleAccount *account);
+const gchar *twitter_option_url_get_search_results(PurpleAccount *account);
+/***** END URLS *****/
 #endif
