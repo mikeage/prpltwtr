@@ -322,28 +322,43 @@ PurpleConvChat *twitter_endpoint_chat_get_conv(TwitterEndpointChat *endpoint_cha
 }
 #endif
 
-static void twitter_endpoint_chat_send_success_cb(PurpleAccount *account, xmlnode *node, gboolean last, gpointer _ctx)
+static void twitter_endpoint_chat_send_success_cb(PurpleAccount *account, xmlnode *node, gboolean last, gpointer _ctx_id)
 {
-	TwitterEndpointChat *ctx = _ctx;
+	TwitterEndpointChatId *id = _ctx_id;
+#if !_HAZE_
+	TwitterEndpointChat *ctx = twitter_endpoint_chat_find_by_id(id);
 	TwitterTweet *tweet = twitter_status_node_parse(node);
 	PurpleConversation *conv;
 
-#if !_HAZE_
-	if (tweet && tweet->text && (conv = twitter_endpoint_chat_find_open_conv(ctx)))
+	if (ctx && tweet && tweet->text && (conv = twitter_endpoint_chat_find_open_conv(ctx)))
 	{
 		twitter_chat_add_tweet(PURPLE_CONV_CHAT(conv), account->username, tweet->text, 0, tweet->created_at);
 	}
-#endif
-}
-static gboolean twitter_endpoint_chat_send_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error, gpointer _ctx)
-{
-	TwitterEndpointChat *ctx = _ctx;
-	PurpleConversation *conv = twitter_endpoint_chat_find_open_conv(ctx);
 
-	if (conv)
+	if (tweet)
+		twitter_status_data_free(tweet);
+#endif
+
+	if (last)
+		twitter_endpoint_chat_id_free(id);
+}
+
+static gboolean twitter_endpoint_chat_send_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error, gpointer _ctx_id)
+{
+	TwitterEndpointChatId *id = _ctx_id;
+	TwitterEndpointChat *ctx = twitter_endpoint_chat_find_by_id(id);
+	PurpleConversation *conv;
+	if (ctx)
 	{
-		purple_conversation_write(conv, NULL, "Error sending tweet", PURPLE_MESSAGE_ERROR, time(NULL));
+		conv = twitter_endpoint_chat_find_open_conv(ctx);
+
+		if (conv)
+		{
+			purple_conversation_write(conv, NULL, "Error sending tweet", PURPLE_MESSAGE_ERROR, time(NULL));
+		}
 	}
+
+	twitter_endpoint_chat_id_free(id);
 
 	return FALSE; //give up trying
 }
@@ -351,18 +366,20 @@ static gboolean twitter_endpoint_chat_send_error_cb(PurpleAccount *account, cons
 int twitter_endpoint_chat_send(TwitterEndpointChat *ctx, const gchar *message)
 {
 	PurpleAccount *account = ctx->account;
+	TwitterEndpointChatId *id;
 	gchar *added_text = NULL;
 
 	if (ctx->settings->get_status_added_text)
 		added_text = ctx->settings->get_status_added_text(ctx);
 
 	GArray *statuses = twitter_utf8_get_segments(message, MAX_TWEET_LENGTH, added_text);
+	id = twitter_endpoint_chat_id_new(ctx);
 	twitter_api_set_statuses(account,
 			statuses,
 			0,
 			twitter_endpoint_chat_send_success_cb,
 			twitter_endpoint_chat_send_error_cb,
-			ctx);
+			id);
 
 	if (added_text)
 		g_free(added_text);
