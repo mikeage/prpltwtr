@@ -90,7 +90,7 @@ static gint _twitter_search_results_sort(gconstpointer _a, gconstpointer _b)
 		return 0;
 }
 
-static void twitter_send_search_success_cb(PurpleAccount *acct, xmlnode *response_node, gpointer user_data)
+static void twitter_send_search_success_cb(PurpleAccount *account, xmlnode *response_node, gpointer user_data)
 {
 	TwitterSearchContext *ctx = user_data;
 	GArray *search_results = NULL;
@@ -139,7 +139,7 @@ static void twitter_send_search_success_cb(PurpleAccount *acct, xmlnode *respons
 	g_slice_free (TwitterSearchContext, ctx);
 }
 
-void twitter_search (PurpleAccount *account, const char *query,
+void twitter_search(PurpleAccount *account, TwitterRequestParams *params,
 		TwitterSearchSuccessFunc success_cb, TwitterSearchErrorFunc error_cb,
 		gpointer data)
 {
@@ -153,7 +153,7 @@ void twitter_search (PurpleAccount *account, const char *query,
 		ctx->success_func = success_cb;
 		ctx->error_func = error_cb;
 		twitter_send_request(account, FALSE,
-				search_url, query,
+				search_url, params,
 				twitter_send_search_success_cb, NULL, //TODO error
 				ctx);
 

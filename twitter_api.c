@@ -55,6 +55,30 @@ void twitter_api_get_friends(PurpleAccount *account,
 			success_func, error_func, data);
 }
 
+static void twitter_api_send_request_single(PurpleAccount *account,
+	const gchar *url,
+	long long since_id,
+	int count,
+	int page,
+	TwitterSendRequestSuccessFunc success_func,
+	TwitterSendRequestErrorFunc error_func,
+	gpointer data)
+{
+	TwitterRequestParams *params = twitter_request_params_new();
+	twitter_request_params_add(params, twitter_request_param_new_int("count", count));
+	twitter_request_params_add(params, twitter_request_param_new_int("page", page));
+	if (since_id > 0)
+		twitter_request_params_add(params, twitter_request_param_new_int("since_id", since_id));
+
+	purple_debug_info (TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+
+	twitter_send_request(account, FALSE,
+			url, params,
+			success_func, error_func, data);
+
+	twitter_request_params_free(params);
+}
+
 void twitter_api_get_home_timeline(PurpleAccount *account,
 		long long since_id,
 		int count,
@@ -63,17 +87,36 @@ void twitter_api_get_home_timeline(PurpleAccount *account,
 		TwitterSendRequestErrorFunc error_func,
 		gpointer data)
 {
-	char *query = since_id > 0 ?
-		g_strdup_printf("count=%d&page=%d&since_id=%lld", count, page, since_id) :
-		g_strdup_printf("count=%d&page=%d", count, page);
+	twitter_api_send_request_single(account,
+		twitter_option_url_get_home_timeline(account),
+		since_id,
+		count,
+		page,
+		success_func,
+		error_func,
+		data);
+}
+
+static void twitter_api_get_all_since(PurpleAccount *account,
+		const gchar *url,
+		long long since_id,
+		TwitterSendRequestMultiPageAllSuccessFunc success_func,
+		TwitterSendRequestMultiPageAllErrorFunc error_func,
+		gint count_per_page,
+		gint max_count,
+		gpointer data)
+{
+	TwitterRequestParams *params = twitter_request_params_new();
+	if (since_id > 0)
+		twitter_request_params_add(params, twitter_request_param_new_ll("since_id", since_id));
 
 	purple_debug_info (TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
 
-	twitter_send_request(account, FALSE,
-			twitter_option_url_get_home_timeline(account), query,
-			success_func, error_func, data);
-
-	g_free(query);
+	twitter_send_request_multipage_all(account,
+			url, params,
+			success_func, error_func,
+			count_per_page, max_count, data);
+	twitter_request_params_free(params);
 }
 
 void twitter_api_get_home_timeline_all(PurpleAccount *account,
@@ -83,19 +126,14 @@ void twitter_api_get_home_timeline_all(PurpleAccount *account,
 		gint max_count,
 		gpointer data)
 {
-	int count_per_page = TWITTER_HOME_TIMELINE_PAGE_COUNT;
-	char *query = since_id > 0 ?
-		g_strdup_printf ("since_id=%lld", since_id) :
-		NULL;
-
-	purple_debug_info (TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
-
-	twitter_send_request_multipage_all_max_count(account,
-			twitter_option_url_get_home_timeline(account), query,
-			success_func, error_func,
-			count_per_page, max_count, data);
-	if (query)
-		g_free(query);
+	twitter_api_get_all_since(account,
+			twitter_option_url_get_home_timeline(account),
+			since_id,
+			success_func,
+			error_func,
+			TWITTER_HOME_TIMELINE_PAGE_COUNT,
+			max_count,
+			data);
 }
 void twitter_api_get_replies(PurpleAccount *account,
 		long long since_id,
@@ -105,17 +143,14 @@ void twitter_api_get_replies(PurpleAccount *account,
 		TwitterSendRequestErrorFunc error_func,
 		gpointer data)
 {
-	char *query = since_id > 0 ?
-		g_strdup_printf("count=%d&page=%d&since_id=%lld", count, page, since_id) :
-		g_strdup_printf("count=%d&page=%d", count, page);
-
-	purple_debug_info (TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
-
-	twitter_send_request(account, FALSE,
-			twitter_option_url_get_mentions(account), query,
-			success_func, error_func, data);
-
-	g_free(query);
+	twitter_api_send_request_single(account,
+		twitter_option_url_get_mentions(account),
+		since_id,
+		count,
+		page,
+		success_func,
+		error_func,
+		data);
 }
 
 void twitter_api_get_replies_all(PurpleAccount *account,
@@ -125,19 +160,14 @@ void twitter_api_get_replies_all(PurpleAccount *account,
 		gint max_count,
 		gpointer data)
 {
-	int count = TWITTER_EVERY_REPLIES_COUNT;
-	char *query = since_id > 0 ?
-		g_strdup_printf ("since_id=%lld", since_id) :
-		NULL;
-
-	purple_debug_info (TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
-
-	twitter_send_request_multipage_all_max_count(account,
-			twitter_option_url_get_mentions(account), query,
-			success_func, error_func,
-			count, max_count, data);
-	if (query)
-		g_free(query);
+	twitter_api_get_all_since(account,
+			twitter_option_url_get_mentions(account),
+			since_id,
+			success_func,
+			error_func,
+			TWITTER_EVERY_REPLIES_COUNT,
+			max_count,
+			data);
 }
 
 void twitter_api_get_dms(PurpleAccount *account,
@@ -148,17 +178,14 @@ void twitter_api_get_dms(PurpleAccount *account,
 		TwitterSendRequestErrorFunc error_func,
 		gpointer data)
 {
-	char *query = since_id > 0 ?
-		g_strdup_printf("count=%d&page=%d&since_id=%lld", count, page, since_id) :
-		g_strdup_printf("count=%d&page=%d", count, page);
-
-	purple_debug_info (TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
-
-	twitter_send_request(account, FALSE,
-			twitter_option_url_get_dms(account), query,
-			success_func, error_func, data);
-
-	g_free(query);
+	twitter_api_send_request_single(account,
+			twitter_option_url_get_dms(account),
+			since_id,
+			count,
+			page,
+			success_func,
+			error_func,
+			data);
 }
 
 void twitter_api_get_dms_all(PurpleAccount *account,
@@ -168,19 +195,14 @@ void twitter_api_get_dms_all(PurpleAccount *account,
 		gint max_count,
 		gpointer data)
 {
-	int count = TWITTER_EVERY_DMS_COUNT;
-	char *query = since_id > 0 ?
-		g_strdup_printf ("since_id=%lld", since_id) :
-		NULL;
-
-	purple_debug_info (TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
-
-	twitter_send_request_multipage_all_max_count(account,
-			twitter_option_url_get_dms(account), query,
-			success_func, error_func,
-			count, max_count, data);
-	if (query)
-		g_free(query);
+	twitter_api_get_all_since(account,
+			twitter_option_url_get_dms(account),
+			since_id,
+			success_func,
+			error_func,
+			TWITTER_EVERY_DMS_COUNT,
+			max_count,
+			data);
 }
 
 void twitter_api_set_status(PurpleAccount *account,
@@ -190,19 +212,17 @@ void twitter_api_set_status(PurpleAccount *account,
 		TwitterSendRequestErrorFunc error_func,
 		gpointer data)
 {
-	if (msg != NULL && strcmp("", msg))
-	{
-		char *query = in_reply_to_status_id ?
-			g_strdup_printf ("status=%s&in_reply_to_status_id=%lld",
-					purple_url_encode(msg), in_reply_to_status_id) :
-			g_strdup_printf("status=%s", purple_url_encode(msg));
-		twitter_send_request(account, TRUE,
-				twitter_option_url_update_status(account), query,
-				success_func, error_func, data);
-		g_free(query);
-	} else {
-		//SEND error?
-	}
+	TwitterRequestParams *params;
+	g_return_if_fail(msg != NULL && msg[0] != '\0');
+
+	params = twitter_request_params_new();
+	twitter_request_params_add(params, twitter_request_param_new("status", msg));
+	if (in_reply_to_status_id)
+		twitter_request_params_add(params, twitter_request_param_new_ll("in_reply_to_status_id", in_reply_to_status_id));
+	twitter_send_request(account, TRUE,
+			twitter_option_url_update_status(account), params,
+			success_func, error_func, data);
+	twitter_request_params_free(params);
 }
 
 typedef struct
@@ -300,19 +320,17 @@ void twitter_api_send_dm(PurpleAccount *account,
 		TwitterSendRequestErrorFunc error_func,
 		gpointer data)
 {
-	if (msg != NULL && strcmp("", msg) && user != NULL && strcmp("", user))
-	{
-		char *user_encoded = g_strdup(purple_url_encode(user));
-		char *query = g_strdup_printf ("text=%s&user=%s",
-				purple_url_encode(msg), user_encoded);
-		twitter_send_request(account, TRUE,
-				twitter_option_url_new_dm(account), query,
-				success_func, error_func, data);
-		g_free(user_encoded);
-		g_free(query);
-	} else {
-		//SEND error?
-	}
+	TwitterRequestParams *params;
+	g_return_if_fail(msg != NULL && user != NULL && msg[0] != '\0' && user[0] != '\0');
+
+	params = twitter_request_params_new();
+	twitter_request_params_add(params, twitter_request_param_new("text", msg));
+	twitter_request_params_add(params, twitter_request_param_new("user", user));
+	twitter_send_request(account, TRUE,
+			twitter_option_url_new_dm(account), params,
+			success_func, error_func, data);
+	twitter_request_params_free(params);
+
 }
 
 static void twitter_api_send_dms_success_cb(PurpleAccount *account, xmlnode *node, gpointer _ctx);
@@ -407,7 +425,7 @@ void twitter_api_get_saved_searches (PurpleAccount *account,
 
 	if (url && url[0] != '\0')
 	{
-		twitter_send_request (account, FALSE,
+		twitter_send_request(account, FALSE,
 				url, NULL,
 				success_func, error_func, data);
 	}
@@ -422,19 +440,36 @@ void twitter_api_search (PurpleAccount *account,
 		gpointer data)
 {
 	/* http://search.twitter.com/search.atom + query (e.g. ?q=n900) */
-	char *query = since_id > 0 ?
-		g_strdup_printf ("q=%s&rpp=%u&since_id=%lld", purple_url_encode(keyword), rpp, since_id) :
-		g_strdup_printf ("q=%s&rpp=%u", purple_url_encode(keyword), rpp);
+	TwitterRequestParams *params = twitter_request_params_new();
+	twitter_request_params_add(params, twitter_request_param_new("q", keyword));
+	twitter_request_params_add(params, twitter_request_param_new_int("rpp", rpp));
+	if (since_id > 0)
+		twitter_request_params_add(params, twitter_request_param_new_ll("since_id", since_id));
 
-	twitter_search (account, query, success_func, error_func, data);
-	g_free (query);
+	twitter_search(account, params, success_func, error_func, data);
+	twitter_request_params_free(params);
 }
 
-void twitter_api_search_refresh (PurpleAccount *account,
-		const char *refresh_url,
+void twitter_api_search_refresh(PurpleAccount *account,
+		const char *refresh_url, //this is already encoded
 		TwitterSearchSuccessFunc success_func,
 		TwitterSearchErrorFunc error_func,
 		gpointer data)
 {
-	twitter_search (account, refresh_url, success_func, error_func, data);
+	//Convert the refresh url to a params object
+	TwitterRequestParams *params = twitter_request_params_new();
+	gchar **pieces = g_strsplit(refresh_url+1, "&", 0);
+	gchar **p;
+	for (p = pieces; *p; p++)
+	{
+		gchar *equal = index(*p, '=');
+		if (equal)
+		{
+			equal[0] = '\0';
+			twitter_request_params_add(params, twitter_request_param_new(*p, purple_url_decode(equal+1)));
+		}
+	}
+	g_strfreev(pieces);
+	twitter_search(account, params, success_func, error_func, data);
+	twitter_request_params_free(params);
 }

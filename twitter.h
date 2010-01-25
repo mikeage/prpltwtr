@@ -59,6 +59,8 @@
 #include "twitter_api.h"
 #include "twitter_util.h"
 #include "twitter_endpoint_im.h"
+#include "twitter_endpoint_dm.h"
+#include "twitter_endpoint_reply.h"
 #include "twitter_endpoint_search.h"
 #include "twitter_endpoint_timeline.h"
 #include "twitter_buddy.h"

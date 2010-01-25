@@ -1,7 +1,66 @@
 #include "twitter_endpoint_im.h"
 #include "twitter_util.h"
+#include "twitter_conn.h"
+
 static void twitter_endpoint_im_get_last_since_id_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error_data, gpointer user_data);
 static void twitter_endpoint_im_start_timer(TwitterEndpointIm *ctx);
+
+static TwitterImType twitter_account_get_default_im_type(PurpleAccount *account)
+{
+	return twitter_option_default_dm(account) ? TWITTER_IM_TYPE_DM : TWITTER_IM_TYPE_AT_MSG;
+}
+
+TwitterEndpointIm *twitter_endpoint_im_find(PurpleAccount *account, TwitterImType type)
+{
+	PurpleConnection *gc;
+	TwitterConnectionData *twitter;
+
+	g_return_val_if_fail(type >= 0 && type < TWITTER_IM_TYPE_UNKNOWN, NULL);
+
+	gc = purple_account_get_connection(account);
+	twitter = gc->proto_data;
+
+	return twitter->endpoint_ims[type];
+}
+
+char *twitter_endpoint_im_buddy_name_to_conv_name(TwitterEndpointIm *im, const char *name)
+{
+	g_return_val_if_fail(name != NULL && name[0] != '\0' && im != NULL, NULL);
+	return twitter_account_get_default_im_type(im->account) == im->settings->type ?
+		g_strdup(name) :
+		g_strdup_printf("%s%s", im->settings->conv_id, name);
+}
+
+const char *twitter_conv_name_to_buddy_name(PurpleAccount *account, const char *name)
+{
+	g_return_val_if_fail(name != NULL && name[0] != '\0', NULL);
+	if (name[0] == '@')
+		return name + 1;
+	if (name[0] == 'd' && name[1] == ' ' && name[2] != '\0')
+		return name + 2;
+	return name;
+}
+
+
+static TwitterImType twitter_conv_name_to_type(PurpleAccount *account, const char *name)
+{
+	g_return_val_if_fail(name != NULL && name[0] != '\0', TWITTER_IM_TYPE_UNKNOWN);
+	if (name[0] == '@')
+		return TWITTER_IM_TYPE_AT_MSG;
+	if (name[0] == 'd' && name[1] == ' ' && name[2] != '\0')
+		return TWITTER_IM_TYPE_DM;
+	if (twitter_option_default_dm(account))
+		return TWITTER_IM_TYPE_DM;
+	else
+		return TWITTER_IM_TYPE_AT_MSG;
+}
+
+TwitterEndpointIm *twitter_conv_name_to_endpoint_im(PurpleAccount *account, const char *name)
+{
+	TwitterImType type = twitter_conv_name_to_type(account, name);
+	return twitter_endpoint_im_find(account, type);
+}
+
 
 TwitterEndpointIm *twitter_endpoint_im_new(PurpleAccount *account, TwitterEndpointImSettings *settings, gboolean retrieve_history, gint initial_max_retrieve)
 {
@@ -130,5 +189,43 @@ long long twitter_endpoint_im_settings_load_since_id(PurpleAccount *account, Twi
 void twitter_endpoint_im_settings_save_since_id(PurpleAccount *account, TwitterEndpointImSettings *settings, long long since_id)
 {
 	purple_account_set_long_long(account, settings->since_id_setting_id, since_id);
+}
+
+//TODO IM: rename
+void twitter_status_data_update_conv(TwitterEndpointIm *ctx,
+		char *buddy_name,
+		TwitterTweet *s)
+{
+	PurpleAccount *account = ctx->account;
+	PurpleConnection *gc = purple_account_get_connection(account);
+	gchar *conv_name;
+	gchar *tweet;
+
+	if (!s || !s->text)
+		return;
+
+	if (s->id && s->id > twitter_endpoint_im_get_since_id(ctx))
+	{
+		purple_debug_info (TWITTER_PROTOCOL_ID, "saving %s\n", G_STRFUNC);
+		twitter_endpoint_im_set_since_id(ctx, s->id);
+	}
+	tweet = twitter_format_tweet(account,
+			buddy_name,
+			s->text,
+			s->id,
+			ctx->settings->type == TWITTER_IM_TYPE_AT_MSG);
+
+	conv_name = twitter_endpoint_im_buddy_name_to_conv_name(ctx, buddy_name);
+
+	//Account received an im
+	/* TODO get in_reply_to_status? s->in_reply_to_screen_name
+	 * s->in_reply_to_status_id */
+
+	serv_got_im(gc, conv_name,
+			tweet,
+			PURPLE_MESSAGE_RECV,
+			s->created_at);
+
+	g_free(tweet);
 }
 

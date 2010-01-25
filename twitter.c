@@ -36,47 +36,6 @@ static PurplePlugin *_twitter_protocol = NULL;
 
 static TwitterEndpointChatSettings *TwitterEndpointChatSettingsLookup[TWITTER_CHAT_UNKNOWN];
 
-static void twitter_get_replies_all_cb (PurpleAccount *account, GList *nodes, gpointer user_data);
-static gboolean twitter_get_replies_all_timeout_error_cb (PurpleAccount *account,
-		const TwitterRequestErrorData *error_data,
-		gpointer user_data);
-
-static void twitter_get_dms_all_cb(PurpleAccount *account, GList *nodes, gpointer user_data);
-static gboolean twitter_get_dms_all_timeout_error_cb(PurpleAccount *account,
-		const TwitterRequestErrorData *error_data,
-		gpointer user_data);
-static void twitter_get_replies_last_since_id(PurpleAccount *account,
-		void (*success_cb)(PurpleAccount *account, long long id, gpointer user_data),
-		void (*error_cb)(PurpleAccount *acct, const TwitterRequestErrorData *error_data, gpointer user_data),
-		gpointer user_data);
-static void twitter_get_dms_last_since_id(PurpleAccount *account,
-	void (*success_cb)(PurpleAccount *account, long long id, gpointer user_data),
-	void (*error_cb)(PurpleAccount *acct, const TwitterRequestErrorData *error_data, gpointer user_data),
-	gpointer user_data);
-
-static TwitterEndpointImSettings TwitterEndpointReplySettings =
-{
-	TWITTER_IM_TYPE_AT_MSG,
-	"twitter_last_reply_id",
-	twitter_option_replies_timeout,
-	twitter_api_get_replies_all,
-	twitter_get_replies_all_cb,
-	twitter_get_replies_all_timeout_error_cb,
-	twitter_get_replies_last_since_id,
-};
-
-static TwitterEndpointImSettings TwitterEndpointDmSettings =
-{
-	TWITTER_IM_TYPE_DM,
-	"twitter_last_dm_id",
-	twitter_option_dms_timeout,
-	twitter_api_get_dms_all,
-	twitter_get_dms_all_cb,
-	twitter_get_dms_all_timeout_error_cb,
-	twitter_get_dms_last_since_id,
-};
-
-
 /******************************************************
  *  Chat
  ******************************************************/
@@ -184,55 +143,6 @@ static PurpleChat *twitter_blist_chat_new(PurpleAccount *account, const char *se
 	return c;
 }
 
-static char *twitter_buddy_name_to_conv_name(PurpleAccount *account, const char *name, TwitterImType type)
-{
-	g_return_val_if_fail(name != NULL && name[0] != '\0', NULL);
-	gboolean default_dm = twitter_option_default_dm(account);
-	if (default_dm && type != TWITTER_IM_TYPE_DM)
-		return g_strdup_printf("@%s", name);
-	else if (!default_dm && type == TWITTER_IM_TYPE_DM)
-		return g_strdup_printf("d %s", name);
-	else
-		return g_strdup(name);
-}
-
-static void twitter_status_data_update_conv(TwitterEndpointIm *ctx,
-		char *buddy_name,
-		TwitterTweet *s)
-{
-	PurpleAccount *account = ctx->account;
-	PurpleConnection *gc = purple_account_get_connection(account);
-	gchar *conv_name;
-	gchar *tweet;
-
-	if (!s || !s->text)
-		return;
-
-	if (s->id && s->id > twitter_endpoint_im_get_since_id(ctx))
-	{
-		purple_debug_info (TWITTER_PROTOCOL_ID, "saving %s\n", G_STRFUNC);
-		twitter_endpoint_im_set_since_id(ctx, s->id);
-	}
-	tweet = twitter_format_tweet(account,
-			buddy_name,
-			s->text,
-			s->id,
-			ctx->settings->type == TWITTER_IM_TYPE_AT_MSG);
-
-	conv_name = twitter_buddy_name_to_conv_name(account, buddy_name, ctx->settings->type);
-
-	//Account received an im
-	/* TODO get in_reply_to_status? s->in_reply_to_screen_name
-	 * s->in_reply_to_status_id */
-
-	serv_got_im(gc, conv_name,
-			tweet,
-			PURPLE_MESSAGE_RECV,
-			s->created_at);
-
-	g_free(tweet);
-}
-
 static void twitter_verify_connection_error_handler(PurpleAccount *account, const TwitterRequestErrorData *error_data)
 {
 	const gchar *error_message;
@@ -315,121 +225,6 @@ static gboolean twitter_get_friends_timeout(gpointer data)
  *  Twitter relies/mentions
  ******************************************************/
 
-
-static void _process_replies (PurpleAccount *account,
-		GList *statuses,
-		TwitterConnectionData *twitter)
-{
-	GList *l;
-	TwitterEndpointIm *ctx = twitter_connection_get_endpoint_im(twitter, TWITTER_IM_TYPE_AT_MSG);
-
-	for (l = statuses; l; l = l->next)
-	{
-		TwitterUserTweet *data = l->data;
-		TwitterTweet *status = twitter_user_tweet_take_tweet(data);
-		TwitterUserData *user_data = twitter_user_tweet_take_user_data(data);
-
-		if (!user_data)
-		{
-			twitter_status_data_free(status);
-		} else {
-			twitter_buddy_set_user_data(account, user_data, FALSE);
-			twitter_status_data_update_conv(ctx, data->screen_name, status);
-			twitter_buddy_set_status_data(account, data->screen_name, status);
-
-			/* update user_reply_id_table table */
-			gchar *reply_id = g_strdup_printf ("%lld", status->id);
-			g_hash_table_insert (twitter->user_reply_id_table,
-					g_strdup (data->screen_name), reply_id);
-		}
-		twitter_user_tweet_free(data);
-	}
-
-	twitter->failed_get_replies_count = 0;
-}
-
-static void _process_dms(PurpleAccount *account,
-		GList *statuses,
-		TwitterConnectionData *twitter)
-{
-	GList *l;
-	TwitterEndpointIm *ctx = twitter_connection_get_endpoint_im(twitter, TWITTER_IM_TYPE_DM);
-
-	for (l = statuses; l; l = l->next)
-	{
-		TwitterUserTweet *data = l->data;
-		TwitterTweet *status = twitter_user_tweet_take_tweet(data);
-		TwitterUserData *user_data = twitter_user_tweet_take_user_data(data);
-
-		if (!user_data)
-		{
-			twitter_status_data_free(status);
-		} else {
-			twitter_buddy_set_user_data(account, user_data, FALSE);
-			twitter_status_data_update_conv(ctx, data->screen_name, status);
-			twitter_status_data_free(status);
-		}
-		twitter_user_tweet_free(data);
-	}
-}
-
-static void twitter_get_replies_timeout_error_cb (PurpleAccount *account,
-		const TwitterRequestErrorData *error_data,
-		gpointer user_data)
-{
-	PurpleConnection *gc = purple_account_get_connection(account);
-	TwitterConnectionData *twitter = gc->proto_data;
-	twitter->failed_get_replies_count++;
-
-	if (twitter->failed_get_replies_count >= 3)
-	{
-		purple_connection_error_reason(gc, PURPLE_CONNECTION_ERROR_NETWORK_ERROR, "Could not retrieve replies, giving up trying");
-	}
-
-}
-
-static gboolean twitter_get_dms_all_timeout_error_cb (PurpleAccount *account,
-		const TwitterRequestErrorData *error_data,
-		gpointer user_data)
-{
-	return TRUE; //restart timer and try again
-}
-
-
-static void twitter_get_dms_all_cb (PurpleAccount *account,
-		GList *nodes,
-		gpointer user_data)
-{
-	PurpleConnection *gc = purple_account_get_connection(account);
-	TwitterConnectionData *twitter = gc->proto_data;
-
-	GList *dms = twitter_dms_nodes_parse(nodes);
-	_process_dms(account, dms, twitter);
-
-	g_list_free(dms);
-}
-
-static gboolean twitter_get_replies_all_timeout_error_cb (PurpleAccount *account,
-		const TwitterRequestErrorData *error_data,
-		gpointer user_data)
-{
-	twitter_get_replies_timeout_error_cb (account, error_data, user_data);
-	return TRUE; //restart timer and try again
-}
-
-
-static void twitter_get_replies_all_cb (PurpleAccount *account,
-		GList *nodes,
-		gpointer user_data)
-{
-	PurpleConnection *gc = purple_account_get_connection(account);
-	TwitterConnectionData *twitter = gc->proto_data;
-
-	GList *statuses = twitter_statuses_nodes_parse(nodes);
-	_process_replies (account, statuses, twitter);
-
-	g_list_free(statuses);
-}
 
 /******************************************************
  *  Twitter search
@@ -631,15 +426,15 @@ static void twitter_connected(PurpleAccount *account)
 	twitter_connection_set_endpoint_im(twitter,
 			TWITTER_IM_TYPE_AT_MSG,
 			twitter_endpoint_im_new(account,
-				&TwitterEndpointReplySettings,
+				twitter_endpoint_reply_get_settings(),
 				twitter_option_get_history(account),
 				TWITTER_INITIAL_REPLIES_COUNT));
 	twitter_connection_set_endpoint_im(twitter,
 			TWITTER_IM_TYPE_DM,
 			twitter_endpoint_im_new(account,
-				&TwitterEndpointDmSettings,
+				twitter_endpoint_dm_get_settings(),
 				twitter_option_get_history(account),
-				TWITTER_INITIAL_REPLIES_COUNT));
+				TWITTER_INITIAL_DMS_COUNT));
 
 #if _HAZE_
 	purple_signal_connect(purple_conversations_get_handle(), "conversation-created",
@@ -748,7 +543,7 @@ static void twitter_get_rate_limit_status_cb(PurpleAccount *account, xmlnode *no
 /*
  * prpl functions
  */
-static const char *twitter_list_icon(PurpleAccount *acct, PurpleBuddy *buddy)
+static const char *twitter_list_icon(PurpleAccount *account, PurpleBuddy *buddy)
 {
 	/* shamelessly steal (er, borrow) the meanwhile protocol icon. it's cute! */
 	return "meanwhile";
@@ -797,7 +592,7 @@ static void twitter_tooltip_text(PurpleBuddy *buddy,
 /* everyone will be online
  * Future: possibly have offline mode for people who haven't updated in a while
  */
-static GList *twitter_status_types(PurpleAccount *acct)
+static GList *twitter_status_types(PurpleAccount *account)
 {
 	GList *types = NULL;
 	PurpleStatusType *type;
@@ -841,15 +636,15 @@ static GList *twitter_status_types(PurpleAccount *acct)
 static void twitter_action_get_user_info(PurplePluginAction *action)
 {
 	PurpleConnection *gc = (PurpleConnection *)action->context;
-	PurpleAccount *acct = purple_connection_get_account(gc);
-	twitter_api_get_friends(acct, twitter_get_friends_cb, NULL, NULL);
+	PurpleAccount *account = purple_connection_get_account(gc);
+	twitter_api_get_friends(account, twitter_get_friends_cb, NULL, NULL);
 }
 
 static void twitter_action_set_status_ok(PurpleConnection *gc, PurpleRequestFields *fields)
 {
-	PurpleAccount *acct = purple_connection_get_account(gc);
+	PurpleAccount *account = purple_connection_get_account(gc);
 	const char* status = purple_request_fields_get_string(fields, "status");
-	purple_account_set_status(acct, TWITTER_STATUS_ONLINE, TRUE, "message", status, NULL);
+	purple_account_set_status(account, TWITTER_STATUS_ONLINE, TRUE, "message", status, NULL);
 }
 static void twitter_action_set_status(PurplePluginAction *action)
 {
@@ -879,8 +674,8 @@ static void twitter_action_set_status(PurplePluginAction *action)
 static void twitter_action_get_rate_limit_status(PurplePluginAction *action)
 {
 	PurpleConnection *gc = (PurpleConnection *)action->context;
-	PurpleAccount *acct = purple_connection_get_account(gc);
-	twitter_api_get_rate_limit_status(acct, twitter_get_rate_limit_status_cb, NULL, NULL);
+	PurpleAccount *account = purple_connection_get_account(gc);
+	twitter_api_get_rate_limit_status(account, twitter_get_rate_limit_status_cb, NULL, NULL);
 }
 
 /* this is set to the actions member of the PurplePluginInfo struct at the
@@ -913,88 +708,7 @@ typedef struct
 	gpointer user_data;
 } TwitterLastSinceIdRequest;
 
-static void twitter_get_replies_get_last_since_id_success_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)
-{
-	TwitterLastSinceIdRequest *r = user_data;
-	long long id = 0;
-	xmlnode *status_node = xmlnode_get_child(node, "status");
-	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
-	if (status_node != NULL)
-	{
-		TwitterTweet *status_data = twitter_status_node_parse(status_node);
-		if (status_data != NULL)
-		{
-			id = status_data->id;
-
-			twitter_status_data_free(status_data);
-		}
-	}
-	r->success_cb(account, id, r->user_data);
-	g_free(r);
-}
-
-static void twitter_get_last_since_id_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error_data, gpointer user_data)
-{
-	TwitterLastSinceIdRequest *r = user_data;
-	r->error_cb(account, error_data, r->user_data);
-	g_free(r);
-}
-
-static void twitter_get_replies_last_since_id(PurpleAccount *account,
-	void (*success_cb)(PurpleAccount *account, long long id, gpointer user_data),
-	void (*error_cb)(PurpleAccount *acct, const TwitterRequestErrorData *error_data, gpointer user_data),
-	gpointer user_data)
-{
-	TwitterLastSinceIdRequest *request = g_new0(TwitterLastSinceIdRequest, 1);
-	request->success_cb = success_cb;
-	request->error_cb = error_cb;
-	request->user_data = user_data;
-	/* Simply get the last reply */
-	twitter_api_get_replies(account,
-			0, 1, 1,
-			twitter_get_replies_get_last_since_id_success_cb,
-			twitter_get_last_since_id_error_cb,
-			request);
-}
-
-static void twitter_get_dms_get_last_since_id_success_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)
-{
-	TwitterLastSinceIdRequest *r = user_data;
-	long long id = 0;
-	xmlnode *status_node = xmlnode_get_child(node, "direct_message");
-	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
-	if (status_node != NULL)
-	{
-		TwitterTweet *status_data = twitter_dm_node_parse(status_node);
-		if (status_data != NULL)
-		{
-			id = status_data->id;
-
-			twitter_status_data_free(status_data);
-		}
-	}
-	r->success_cb(account, id, r->user_data);
-	g_free(r);
-}
-
-static void twitter_get_dms_last_since_id(PurpleAccount *account,
-	void (*success_cb)(PurpleAccount *account, long long id, gpointer user_data),
-	void (*error_cb)(PurpleAccount *acct, const TwitterRequestErrorData *error_data, gpointer user_data),
-	gpointer user_data)
-{
-	TwitterLastSinceIdRequest *request = g_new0(TwitterLastSinceIdRequest, 1);
-	request->success_cb = success_cb;
-	request->error_cb = error_cb;
-	request->user_data = user_data;
-	/* Simply get the last reply */
-	twitter_api_get_dms(account,
-			0, 1, 1,
-			twitter_get_dms_get_last_since_id_success_cb,
-			twitter_get_last_since_id_error_cb,
-			request);
-}
-
-static void twitter_verify_connection(PurpleAccount *acct)
+static void twitter_verify_connection(PurpleAccount *account)
 {
 	gboolean retrieve_history;
 
@@ -1003,10 +717,10 @@ static void twitter_verify_connection(PurpleAccount *acct)
 
 	/* If history retrieval enabled, read last reply id from config file.
 	 * There's no config file, just set last reply id to 0 */
-	retrieve_history = twitter_option_get_history(acct);
+	retrieve_history = twitter_option_get_history(account);
 
 	//If we don't have a stored last reply id, we don't want to get the entire history (EVERY reply)
-	PurpleConnection *gc = purple_account_get_connection(acct);
+	PurpleConnection *gc = purple_account_get_connection(account);
 
 	if (purple_connection_get_state(gc) == PURPLE_CONNECTING) {
 
@@ -1015,25 +729,25 @@ static void twitter_verify_connection(PurpleAccount *acct)
 				3);  /* total number of steps */
 	}
 
-	if (twitter_option_get_following(acct))
+	if (twitter_option_get_following(account))
 	{
-		twitter_api_get_friends(acct,
+		twitter_api_get_friends(account,
 				twitter_get_friends_verify_connection_cb,
 				twitter_get_friends_verify_error_cb,
 				NULL);
 	} else {
-		twitter_connected(acct);
-		twitter_set_all_buddies_online(acct);
+		twitter_connected(account);
+		twitter_set_all_buddies_online(account);
 	}
 }
 
-static void twitter_login(PurpleAccount *acct)
+static void twitter_login(PurpleAccount *account)
 {
-	PurpleConnection *gc = purple_account_get_connection(acct);
+	PurpleConnection *gc = purple_account_get_connection(account);
 	TwitterConnectionData *twitter = g_new0(TwitterConnectionData, 1);
 	gc->proto_data = twitter;
 
-	purple_debug_info(TWITTER_PROTOCOL_ID, "logging in %s\n", acct->username);
+	purple_debug_info(TWITTER_PROTOCOL_ID, "logging in %s\n", account->username);
 
 	/* key: gchar *, value: TwitterEndpointChat */
 	twitter->chat_contexts = g_hash_table_new_full(
@@ -1050,7 +764,7 @@ static void twitter_login(PurpleAccount *acct)
 			2);  /* total number of steps */
 
 
-	twitter_verify_connection(acct);
+	twitter_verify_connection(account);
 }
 
 static void twitter_endpoint_im_free_foreach(TwitterConnectionData *conn, TwitterEndpointIm *im, gpointer data)
@@ -1080,7 +794,7 @@ static void twitter_close(PurpleConnection *gc)
 	g_free(twitter);
 }
 
-static void twitter_set_status_error_cb(PurpleAccount *acct, const TwitterRequestErrorData *error_data, gpointer user_data)
+static void twitter_set_status_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error_data, gpointer user_data)
 {
 	const char *message;
 	if (error_data->type == TWITTER_REQUEST_ERROR_SERVER || error_data->type == TWITTER_REQUEST_ERROR_TWITTER_GENERAL)
@@ -1097,128 +811,6 @@ static void twitter_set_status_error_cb(PurpleAccount *acct, const TwitterReques
 			(message));
 }
 
-//static void twitter_send_dm_error_cb(PurpleAccount *acct, const TwitterRequestErrorData *error_data, gpointer user_data)
-//{
-//	const char *message;
-//	if (error_data->type == TWITTER_REQUEST_ERROR_SERVER || error_data->type == TWITTER_REQUEST_ERROR_TWITTER_GENERAL)
-//	{
-//		message = error_data->message;
-//	} else if (error_data->type == TWITTER_REQUEST_ERROR_INVALID_XML) {
-//		message = "Unknown reply by twitter server";
-//	} else {
-//		message = "Unknown error";
-//	}
-//	purple_notify_error(NULL,  /* plugin handle or PurpleConnection */
-//			("Twitter Send Direct Message"),
-//			("Error sending Direct Message"),
-//			(message));
-//}
-
-static TwitterImType twitter_conv_name_to_type(PurpleAccount *account, const char *name)
-{
-	g_return_val_if_fail(name != NULL && name[0] != '\0', TWITTER_IM_TYPE_UNKNOWN);
-	if (name[0] == '@')
-		return TWITTER_IM_TYPE_AT_MSG;
-	if (name[0] == 'd' && name[1] == ' ' && name[2] != '\0')
-		return TWITTER_IM_TYPE_DM;
-	if (twitter_option_default_dm(account))
-		return TWITTER_IM_TYPE_DM;
-	else
-		return TWITTER_IM_TYPE_AT_MSG;
-}
-
-static const char *twitter_conv_name_to_buddy_name(PurpleAccount *account, const char *name)
-{
-	g_return_val_if_fail(name != NULL && name[0] != '\0', NULL);
-	if (name[0] == '@')
-		return name + 1;
-	if (name[0] == 'd' && name[1] == ' ' && name[2] != '\0')
-		return name + 2;
-	return name;
-}
-
-
-static void twitter_send_dm_success_cb(PurpleAccount *account, xmlnode *node, gboolean last, gpointer _who)
-{
-	if (last && _who)
-		g_free(_who);
-}
-static gboolean twitter_send_dm_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error, gpointer _who)
-{
-	gchar *who = _who;
-	if (who)
-	{
-		gchar *conv_name = twitter_buddy_name_to_conv_name(account, _who, TWITTER_IM_TYPE_DM);
-		purple_conv_present_error(conv_name, account, "Error sending tweet");
-		g_free(who);
-		g_free(conv_name);
-	}
-
-	return FALSE; //give up trying
-}
-
-static int twitter_send_dm_do(PurpleConnection *gc, const char *who,
-		const char *message, PurpleMessageFlags flags)
-{
-	GArray *statuses = twitter_utf8_get_segments(message, MAX_TWEET_LENGTH, NULL);
-
-	twitter_api_send_dms(purple_connection_get_account(gc),
-			who,
-			statuses,
-			twitter_send_dm_success_cb,
-			twitter_send_dm_error_cb,
-			g_strdup(who)); //TODO
-
-	return 1;
-}
-
-static void twitter_send_im_success_cb(PurpleAccount *account, xmlnode *node, gboolean last, gpointer _who)
-{
-	if (last && _who)
-		g_free(_who);
-}
-
-static gboolean twitter_send_im_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error, gpointer _who)
-{
-	//TODO: this doesn't work yet
-	gchar *who = _who;
-	if (who)
-	{
-		gchar *conv_name = twitter_buddy_name_to_conv_name(account, _who, TWITTER_IM_TYPE_AT_MSG);
-		purple_conv_present_error(conv_name, account, "Error sending tweet");
-		g_free(who);
-		g_free(conv_name);
-	}
-
-	return FALSE; //give up trying
-}
-
-static int twitter_send_im_do(PurpleConnection *gc, const char *who,
-		const char *message, PurpleMessageFlags flags)
-{
-	TwitterConnectionData *twitter = gc->proto_data;
-	gchar *added_text = g_strdup_printf("@%s", who);
-	GArray *statuses = twitter_utf8_get_segments(message, MAX_TWEET_LENGTH, added_text);
-	long long in_reply_to_status_id = 0;
-	const gchar *reply_id;
-
-	reply_id = (const gchar *)g_hash_table_lookup (
-			twitter->user_reply_id_table, who);
-	if (reply_id)
-		in_reply_to_status_id = strtoll (reply_id, NULL, 10);
-
-	twitter_api_set_statuses(purple_connection_get_account(gc),
-			statuses,
-			in_reply_to_status_id,
-			twitter_send_im_success_cb,
-			twitter_send_im_error_cb,
-			g_strdup(who)); //TODO
-
-	g_free(added_text);
-
-	return 1;
-}
-
 /* A few options here
  * Send message to "d buddy" will send a direct message to buddy
  * Send message to "@buddy" will send a @buddy message
@@ -1229,7 +821,7 @@ static int twitter_send_im_do(PurpleConnection *gc, const char *who,
 static int twitter_send_im(PurpleConnection *gc, const char *conv_name,
 		const char *message, PurpleMessageFlags flags)
 {
-	TwitterImType im_type;
+	TwitterEndpointIm *im;
 	const char *buddy_name;
 	PurpleAccount *account = purple_connection_get_account(gc);
 	char *stripped_message;
@@ -1259,14 +851,9 @@ static int twitter_send_im(PurpleConnection *gc, const char *conv_name,
 #endif
 
 	//TODO, this should be part of im settings
-	im_type = twitter_conv_name_to_type(account, conv_name);
+	im = twitter_conv_name_to_endpoint_im(account, conv_name);
 	buddy_name = twitter_conv_name_to_buddy_name(account, conv_name);
-	if (im_type == TWITTER_IM_TYPE_DM)
-	{
-		rv = twitter_send_dm_do(gc, buddy_name, stripped_message, flags);
-	} else {
-		rv = twitter_send_im_do(gc, buddy_name, stripped_message, flags);
-	}
+	rv = im->settings->send_im(account, buddy_name, stripped_message, flags);
 	g_free(stripped_message);
 	return rv;
 }
@@ -1317,20 +904,20 @@ static void twitter_get_info(PurpleConnection *gc, const char *username) {
 }
 
 
-static void twitter_set_status(PurpleAccount *acct, PurpleStatus *status) {
-	gboolean sync_status = twitter_option_sync_status(acct);
+static void twitter_set_status(PurpleAccount *account, PurpleStatus *status) {
+	gboolean sync_status = twitter_option_sync_status(account);
 	if (!sync_status)
 		return ;
 
 	//TODO: I'm pretty sure this is broken
 	const char *msg = purple_status_get_attr_string(status, "message");
 	purple_debug_info(TWITTER_PROTOCOL_ID, "setting %s's status to %s: %s\n",
-			acct->username, purple_status_get_name(status), msg);
+			account->username, purple_status_get_name(status), msg);
 
 	if (msg && strcmp("", msg))
 	{
 		//TODO, sucecss && fail
-		twitter_api_set_status(acct, msg, 0,
+		twitter_api_set_status(account, msg, 0,
 				NULL, twitter_set_status_error_cb, NULL);
 	}
 }
@@ -1492,7 +1079,7 @@ static GList *twitter_blist_node_menu(PurpleBlistNode *node) {
 /* normalize a username (e.g. remove whitespace, add default domain, etc.)
  * for twitter, this is a noop.
  */
-static const char *twitter_normalize(const PurpleAccount *acct,
+static const char *twitter_normalize(const PurpleAccount *account,
 		const char *input) {
 	return NULL;
 }
