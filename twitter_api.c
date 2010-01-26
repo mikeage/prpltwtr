@@ -462,7 +462,7 @@ void twitter_api_search_refresh(PurpleAccount *account,
 	gchar **p;
 	for (p = pieces; *p; p++)
 	{
-		gchar *equal = index(*p, '=');
+		gchar *equal = strchr(*p, '=');
 		if (equal)
 		{
 			equal[0] = '\0';

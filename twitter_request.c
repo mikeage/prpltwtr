@@ -274,16 +274,16 @@ static gchar *twitter_request_params_to_string(const TwitterRequestParams *param
 		return NULL;
 	p = g_array_index(params, TwitterRequestParam *, 0);
 	rv = g_string_new(NULL);
-	rv = g_string_append_uri_escaped(rv, p->name, NULL, TRUE);
+	rv = g_string_append(rv, purple_url_encode(p->name));
 	rv = g_string_append_c(rv, '=');
-	rv = g_string_append_uri_escaped(rv, p->value, NULL, TRUE);
+	rv = g_string_append(rv, purple_url_encode(p->value));
 	for (i = 1; i < params->len; i++)
 	{
 		p = g_array_index(params, TwitterRequestParam *, i);
 		rv = g_string_append_c(rv, '&');
-		rv = g_string_append_uri_escaped(rv, p->name, NULL, TRUE);
+		rv = g_string_append(rv, purple_url_encode(p->name));
 		rv = g_string_append_c(rv, '=');
-		rv = g_string_append_uri_escaped(rv, p->value, NULL, TRUE);
+		rv = g_string_append(rv, purple_url_encode(p->value));
 	}
 	return g_string_free(rv, FALSE);
 
