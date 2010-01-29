@@ -144,6 +144,19 @@ TwitterTweet *twitter_status_node_parse(xmlnode *status_node)
 
 }
 
+TwitterUserTweet *twitter_verify_credentials_parse(xmlnode *node)
+{
+	TwitterUserData *user = twitter_user_node_parse(node);
+	TwitterTweet *tweet;
+	TwitterUserTweet *data;
+	if (!user)
+		return NULL;
+
+	tweet = twitter_status_node_parse(xmlnode_get_child(node, "status"));
+	data = twitter_user_tweet_new(user->screen_name, user, tweet);
+
+	return data;
+}
 
 TwitterTweet *twitter_dm_node_parse(xmlnode *dm_node)
 {

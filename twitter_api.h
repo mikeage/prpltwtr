@@ -43,7 +43,7 @@ void twitter_api_get_home_timeline(PurpleAccount *account,
 		long long since_id,
 		int count,
 		int page,
-		TwitterSendRequestSuccessFunc success_func,
+		TwitterSendXmlRequestSuccessFunc success_func,
 		TwitterSendRequestErrorFunc error_func,
 		gpointer data);
 
@@ -51,7 +51,7 @@ void twitter_api_get_dms(PurpleAccount *account,
 		long long since_id,
 		int count,
 		int page,
-		TwitterSendRequestSuccessFunc success_func,
+		TwitterSendXmlRequestSuccessFunc success_func,
 		TwitterSendRequestErrorFunc error_func,
 		gpointer data);
 
@@ -73,19 +73,19 @@ void twitter_api_get_replies(PurpleAccount *account,
 		long long since_id,
 		int count,
 		int page,
-		TwitterSendRequestSuccessFunc success_func,
+		TwitterSendXmlRequestSuccessFunc success_func,
 		TwitterSendRequestErrorFunc error_func,
 		gpointer data);
 
 void twitter_api_get_rate_limit_status(PurpleAccount *account,
-		TwitterSendRequestSuccessFunc success_func,
+		TwitterSendXmlRequestSuccessFunc success_func,
 		TwitterSendRequestErrorFunc error_func,
 		gpointer data);
 
 void twitter_api_send_dm(PurpleAccount *account,
 		const char *user,
 		const char *msg,
-		TwitterSendRequestSuccessFunc success_func,
+		TwitterSendXmlRequestSuccessFunc success_func,
 		TwitterSendRequestErrorFunc error_func,
 		gpointer data);
 
@@ -106,12 +106,12 @@ void twitter_api_send_dms(PurpleAccount *account,
 void twitter_api_set_status(PurpleAccount *account,
 		const char *msg,
 		long long in_reply_to_status_id,
-		TwitterSendRequestSuccessFunc success_func,
+		TwitterSendXmlRequestSuccessFunc success_func,
 		TwitterSendRequestErrorFunc error_func,
 		gpointer data);
 
 void twitter_api_get_saved_searches (PurpleAccount *account,
-        TwitterSendRequestSuccessFunc success_func,
+        TwitterSendXmlRequestSuccessFunc success_func,
         TwitterSendRequestErrorFunc error_func,
         gpointer data);
 
@@ -131,5 +131,21 @@ void twitter_api_search_refresh (PurpleAccount *account,
         TwitterSearchSuccessFunc success_func,
         TwitterSearchErrorFunc error_func,
         gpointer data);
+
+void twitter_api_verify_credentials(PurpleAccount *account,
+		TwitterSendXmlRequestSuccessFunc success_cb,
+		TwitterSendRequestErrorFunc error_cb,
+		gpointer user_data);
+
+void twitter_api_oauth_request_token(PurpleAccount *account,
+		TwitterSendRequestSuccessFunc success_cb,
+		TwitterSendRequestErrorFunc error_cb,
+		gpointer user_data);
+
+void twitter_api_oauth_access_token(PurpleAccount *account,
+		const gchar *oauth_verifier,
+		TwitterSendRequestSuccessFunc success_cb,
+		TwitterSendRequestErrorFunc error_cb,
+		gpointer user_data);
 
 #endif

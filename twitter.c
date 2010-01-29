@@ -36,6 +36,34 @@ static PurplePlugin *_twitter_protocol = NULL;
 
 static TwitterEndpointChatSettings *TwitterEndpointChatSettingsLookup[TWITTER_CHAT_UNKNOWN];
 
+static const gchar *twitter_account_get_oauth_access_token(PurpleAccount *account)
+{
+	return purple_account_get_string(account, "oauth_token", NULL);
+}
+static void twitter_account_set_oauth_access_token(PurpleAccount *account, const gchar *oauth_token)
+{
+	purple_account_set_string(account, "oauth_token", oauth_token);
+}
+static const gchar *twitter_account_get_oauth_access_token_secret(PurpleAccount *account)
+{
+	return purple_account_get_string(account, "oauth_token_secret", NULL);
+}
+static void twitter_account_set_oauth_access_token_secret(PurpleAccount *account, const gchar *oauth_token)
+{
+	purple_account_set_string(account, "oauth_token_secret", oauth_token);
+}
+
+static gboolean twitter_usernames_match(PurpleAccount *account, const gchar *u1, const gchar *u2)
+{
+	gboolean match;
+	gchar *u1n = g_strdup(purple_normalize(account, u1));
+	const gchar *u2n = purple_normalize(account, u2);
+	match = !strcmp(u1n, u2n);
+
+	g_free(u1n);
+	return match;
+}
+
 /******************************************************
  *  Chat
  ******************************************************/
@@ -708,6 +736,7 @@ typedef struct
 	gpointer user_data;
 } TwitterLastSinceIdRequest;
 
+//TODO: rename
 static void twitter_verify_connection(PurpleAccount *account)
 {
 	gboolean retrieve_history;
@@ -741,8 +770,213 @@ static void twitter_verify_connection(PurpleAccount *account)
 	}
 }
 
+static GHashTable *twitter_oauth_result_to_hashtable(const gchar *txt)
+{
+	gchar **pieces = g_strsplit(txt, "&", 0);
+	GHashTable *results = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
+	gchar **p;
+	
+	for (p = pieces; *p; p++)
+	{
+		gchar *equalpos = strchr(*p, '=');
+		if (equalpos)
+		{
+			equalpos[0] = '\0';
+			g_hash_table_replace(results, g_strdup(*p), g_strdup(equalpos+1));
+		}
+	}
+	g_strfreev(pieces);
+	return results;
+}
+
+static void twitter_oauth_disconnect(PurpleAccount *account, const char *message)
+{
+	PurpleConnection *gc = purple_account_get_connection(account);
+	purple_connection_error_reason(gc,
+			PURPLE_CONNECTION_ERROR_AUTHENTICATION_FAILED,
+			(message));
+}
+
+typedef struct
+{
+	PurpleAccount *account;
+	gchar *username;
+} TwitterAccountUserNameChange;
+
+static void twitter_account_mismatch_screenname_change_cancel_cb(TwitterAccountUserNameChange *change, gint action_id)
+{
+	PurpleAccount *account = change->account;
+	twitter_account_set_oauth_access_token(account, NULL);
+	twitter_account_set_oauth_access_token_secret(account, NULL);
+	g_free(change->username);
+	g_free(change);
+	twitter_oauth_disconnect(account, "Username mismatch");
+}
+static void twitter_account_mismatch_screenname_change_ok_cb(TwitterAccountUserNameChange *change, gint action_id)
+{
+	PurpleAccount *account = change->account;
+	purple_account_set_username(account, change->username);
+	g_free(change->username);
+	g_free(change);
+	twitter_verify_connection(account);
+}
+
+static void twitter_account_username_change_verify(PurpleAccount *account, const gchar *username)
+{
+	PurpleConnection *gc = purple_account_get_connection(account);
+	gchar *secondary = g_strdup_printf("Do you wish to change the name on this account to %s?",
+			username);
+	TwitterAccountUserNameChange *change_data = (TwitterAccountUserNameChange *) g_new0(TwitterAccountUserNameChange *, 1);
+
+	change_data->account = account;
+	change_data->username = g_strdup(username);
+
+	purple_request_action(gc,
+			"Mismatched Screen Names",
+			"Authorized screen name does not match with account screen name",
+			secondary,
+			0,
+			account,
+			NULL,
+			NULL,
+			change_data,
+			2, 
+			"Cancel", twitter_account_mismatch_screenname_change_cancel_cb,
+			"Yes", twitter_account_mismatch_screenname_change_ok_cb,
+			NULL);
+	
+	g_free(secondary);
+}
+
+static void twitter_oauth_access_token_success_cb(PurpleAccount *account,
+		const gchar *response,
+		gpointer user_data)
+{
+	PurpleConnection *gc = purple_account_get_connection(account);
+	TwitterConnectionData *twitter = gc->proto_data;
+
+	GHashTable *results = twitter_oauth_result_to_hashtable(response);
+	const gchar *oauth_token = g_hash_table_lookup(results, "oauth_token");
+	const gchar *oauth_token_secret = g_hash_table_lookup(results, "oauth_token_secret");
+	const gchar *response_screen_name = g_hash_table_lookup(results, "screen_name");
+	if (oauth_token && oauth_token_secret)
+	{
+		if (twitter->oauth_token)
+			g_free(twitter->oauth_token);
+		if (twitter->oauth_token_secret)
+			g_free(twitter->oauth_token_secret);
+
+		twitter->oauth_token = g_strdup(oauth_token);
+		twitter->oauth_token_secret = g_strdup(oauth_token_secret);
+
+		twitter_account_set_oauth_access_token(account, oauth_token);
+		twitter_account_set_oauth_access_token_secret(account, oauth_token_secret);
+
+		//FIXME: set this to be case insensitive
+		
+		if (response_screen_name 
+			&& !twitter_usernames_match(account, response_screen_name, purple_account_get_username(account)))
+		{
+			twitter_account_username_change_verify(account, response_screen_name);
+		} else {
+			twitter_verify_connection(account);
+		}
+	} else {
+		twitter_oauth_disconnect(account, "Unknown response getting access token");
+		purple_debug_info(TWITTER_PROTOCOL_ID, "Unknown error receiving access token: %s\n",
+				response);
+	}
+}
+
+static void twitter_oauth_access_token_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error_data, gpointer user_data)
+{
+	twitter_oauth_disconnect(account, "Error verifying PIN");
+}
+
+static void twitter_oauth_request_pin_ok(PurpleAccount *account, const gchar *pin)
+{
+	twitter_api_oauth_access_token(account,
+			pin,
+			twitter_oauth_access_token_success_cb,
+			twitter_oauth_access_token_error_cb,
+			NULL);
+}
+
+static void twitter_oauth_request_pin_cancel(PurpleAccount *account, const gchar *pin)
+{
+	twitter_oauth_disconnect(account, "Canceled PIN entry");
+}
+
+static void twitter_oauth_request_token_success_cb(PurpleAccount *account,
+		const gchar *response,
+		gpointer user_data)
+{
+	PurpleConnection *gc = purple_account_get_connection(account);
+	TwitterConnectionData *twitter = gc->proto_data;
+
+	GHashTable *results = twitter_oauth_result_to_hashtable(response);
+	const gchar *oauth_token = g_hash_table_lookup(results, "oauth_token");
+	const gchar *oauth_token_secret = g_hash_table_lookup(results, "oauth_token_secret");
+	if (oauth_token && oauth_token_secret)
+	{
+		gchar *msg = g_strdup_printf("http://twitter.com/oauth/authorize?oauth_token=%s",
+			purple_url_encode(oauth_token));
+
+		twitter->oauth_token = g_strdup(oauth_token);
+		twitter->oauth_token_secret = g_strdup(oauth_token_secret);
+		purple_notify_uri(twitter, msg);
+
+		purple_request_input(twitter,
+				"OAuth Authentication", //title
+				"Please enter pin", //primary
+				msg, //secondary
+				NULL, //default
+				FALSE, //multiline,
+				FALSE, //password
+				NULL, //hint
+				"Submit", //ok text
+				G_CALLBACK(twitter_oauth_request_pin_ok),
+				"Cancel",
+				G_CALLBACK(twitter_oauth_request_pin_cancel),
+				account,
+				NULL,
+				NULL,
+				account);
+		g_free(msg);
+	} else {
+		twitter_oauth_disconnect(account, "Invalid response receiving request token");
+		purple_debug_info(TWITTER_PROTOCOL_ID, "Unknown error receiving request token: %s\n",
+				response);
+	}
+	g_hash_table_destroy(results);
+}
+
+static void twitter_oauth_request_token_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error_data, gpointer user_data)
+{
+	twitter_oauth_disconnect(account, "Error receiving request token");
+}
+
+void twitter_verify_credentials_success_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)
+{
+	//TODO: case sensitivity
+	TwitterUserTweet *user_tweet = twitter_verify_credentials_parse(node);
+	if (!user_tweet || !user_tweet->screen_name)
+	{
+		twitter_oauth_disconnect(account, "Could not verify credentials");
+	} else if (!twitter_usernames_match(account,user_tweet->screen_name, purple_account_get_username(account))) 
+	{
+		twitter_account_username_change_verify(account, user_tweet->screen_name);
+	} else 
+	{
+		twitter_verify_connection(account);
+	}
+	twitter_user_tweet_free(user_tweet);
+}
+
 static void twitter_login(PurpleAccount *account)
 {
+	const gchar *oauth_token;
+	const gchar *oauth_token_secret;
 	PurpleConnection *gc = purple_account_get_connection(account);
 	TwitterConnectionData *twitter = g_new0(TwitterConnectionData, 1);
 	gc->proto_data = twitter;
@@ -764,7 +998,29 @@ static void twitter_login(PurpleAccount *account)
 			2);  /* total number of steps */
 
 
-	twitter_verify_connection(account);
+	if (twitter_option_use_oauth(account))
+	{
+		//If we want to use oauth, go through the oauth steps 
+		oauth_token = twitter_account_get_oauth_access_token(account);
+		oauth_token_secret = twitter_account_get_oauth_access_token_secret(account);
+		if (oauth_token && oauth_token_secret)
+		{
+			twitter->oauth_token = g_strdup(oauth_token);
+			twitter->oauth_token_secret = g_strdup(oauth_token_secret);
+			twitter_api_verify_credentials(account,
+					twitter_verify_credentials_success_cb,
+					NULL,
+					NULL);
+		} else {
+			twitter_api_oauth_request_token(account,
+					twitter_oauth_request_token_success_cb,
+					twitter_oauth_request_token_error_cb,
+					NULL);
+		}
+	} else {
+		//No oauth, just do the verification step, skipping previous oauth steps
+		twitter_verify_connection(account);
+	}
 }
 
 static void twitter_endpoint_im_free_foreach(TwitterConnectionData *conn, TwitterEndpointIm *im, gpointer data)
@@ -789,6 +1045,12 @@ static void twitter_close(PurpleConnection *gc)
 	if (twitter->user_reply_id_table)
 		g_hash_table_destroy (twitter->user_reply_id_table);
 	twitter->user_reply_id_table = NULL;
+
+	if (twitter->oauth_token)
+		g_free(twitter->oauth_token);
+
+	if (twitter->oauth_token_secret)
+		g_free(twitter->oauth_token_secret);
 
 
 	g_free(twitter);

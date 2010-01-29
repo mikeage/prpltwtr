@@ -152,7 +152,7 @@ void twitter_search(PurpleAccount *account, TwitterRequestParams *params,
 		ctx->user_data = data;
 		ctx->success_func = success_cb;
 		ctx->error_func = error_cb;
-		twitter_send_request(account, FALSE,
+		twitter_send_xml_request(account, FALSE,
 				search_url, params,
 				twitter_send_search_success_cb, NULL, //TODO error
 				ctx);

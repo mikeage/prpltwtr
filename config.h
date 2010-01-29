@@ -26,8 +26,11 @@
 
 #define TWITTER_PROTOCOL_ID "prpl-twitter"
 
+#define TWITTER_OAUTH_KEY "hrL4RlfT8MVOWbDdeY0EQ"
+#define TWITTER_OAUTH_SECRET "QXromX9owFx7Gx0ma8LK0fApX0kVqYf1CXWuGRyuP4"
+
 /* We'll handle TWITTER_URI://foo as an internal action */
-#define TWITTER_URI "putter"
+#define TWITTER_URI "prpltwtr"
 
 #define MAX_TWEET_LENGTH 140
 

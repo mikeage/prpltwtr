@@ -35,6 +35,12 @@ GList *twitter_get_protocol_options()
 			TWITTER_PREF_USE_HTTPS_DEFAULT);                        /* default value */
 	options = g_list_append(NULL, option);
 
+	option = purple_account_option_bool_new(
+			("Enable OAuth (more secure)"),
+			TWITTER_PREF_USE_OAUTH,
+			TWITTER_PREF_USE_OAUTH_DEFAULT);
+	options = g_list_append(options, option);
+
 	/* Default sending im to buddy is to dm */
 	option = purple_account_option_bool_new(
 			("Default im to buddy is a DM"),
@@ -161,6 +167,12 @@ GList *twitter_get_protocol_options()
 			TWITTER_PREF_URL_GET_SEARCH_RESULTS_DEFAULT);
 	options = g_list_append(options, option);
 
+	option = purple_account_option_string_new(
+			("Verify Credentials"),
+			TWITTER_PREF_URL_VERIFY_CREDENTIALS,
+			TWITTER_PREF_URL_VERIFY_CREDENTIALS_DEFAULT);
+	options = g_list_append(options, option);
+
 	return options;
 }
 gboolean twitter_option_add_link_to_tweet(PurpleAccount *account)
@@ -243,6 +255,14 @@ gboolean twitter_option_use_https(PurpleAccount *account)
 			TWITTER_PREF_USE_HTTPS_DEFAULT);
 }
 
+gboolean twitter_option_use_oauth(PurpleAccount *account)
+{
+	return purple_account_get_bool(
+			account,
+			TWITTER_PREF_USE_OAUTH,
+			TWITTER_PREF_USE_OAUTH_DEFAULT);
+}
+
 gint twitter_option_home_timeline_max_tweets(PurpleAccount *account)
 {
 	return purple_account_get_int(account,
@@ -309,5 +329,11 @@ const gchar *twitter_option_url_get_search_results(PurpleAccount *account)
 	return purple_account_get_string(account,
 			TWITTER_PREF_URL_GET_SEARCH_RESULTS,
 			TWITTER_PREF_URL_GET_SEARCH_RESULTS_DEFAULT);
+}
+const gchar *twitter_option_url_verify_credentials(PurpleAccount *account)
+{
+	return purple_account_get_string(account,
+			TWITTER_PREF_URL_VERIFY_CREDENTIALS,
+			TWITTER_PREF_URL_VERIFY_CREDENTIALS_DEFAULT);
 }
 /***** END URLS *****/

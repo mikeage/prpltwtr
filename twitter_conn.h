@@ -29,6 +29,9 @@ typedef struct
 
 	gboolean requesting;
 	TwitterEndpointIm *endpoint_ims[TWITTER_IM_TYPE_UNKNOWN];
+
+	gchar *oauth_token;
+	gchar *oauth_token_secret;
 } TwitterConnectionData;
 
 void twitter_connection_foreach_endpoint_im(TwitterConnectionData *twitter,

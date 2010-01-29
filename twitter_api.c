@@ -35,11 +35,11 @@
 #include "twitter_api.h"
 
 void twitter_api_get_rate_limit_status(PurpleAccount *account,
-		TwitterSendRequestSuccessFunc success_func,
+		TwitterSendXmlRequestSuccessFunc success_func,
 		TwitterSendRequestErrorFunc error_func,
 		gpointer data)
 {
-	twitter_send_request(account, FALSE,
+	twitter_send_xml_request(account, FALSE,
 			twitter_option_url_get_rate_limit_status(account), NULL,
 			success_func, error_func, data);
 }
@@ -50,7 +50,7 @@ void twitter_api_get_friends(PurpleAccount *account,
 {
 	purple_debug_info (TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
 
-	twitter_send_request_with_cursor (account,
+	twitter_send_xml_request_with_cursor (account,
 			twitter_option_url_get_friends(account), NULL, -1,
 			success_func, error_func, data);
 }
@@ -60,7 +60,7 @@ static void twitter_api_send_request_single(PurpleAccount *account,
 	long long since_id,
 	int count,
 	int page,
-	TwitterSendRequestSuccessFunc success_func,
+	TwitterSendXmlRequestSuccessFunc success_func,
 	TwitterSendRequestErrorFunc error_func,
 	gpointer data)
 {
@@ -72,7 +72,7 @@ static void twitter_api_send_request_single(PurpleAccount *account,
 
 	purple_debug_info (TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
 
-	twitter_send_request(account, FALSE,
+	twitter_send_xml_request(account, FALSE,
 			url, params,
 			success_func, error_func, data);
 
@@ -83,7 +83,7 @@ void twitter_api_get_home_timeline(PurpleAccount *account,
 		long long since_id,
 		int count,
 		int page,
-		TwitterSendRequestSuccessFunc success_func,
+		TwitterSendXmlRequestSuccessFunc success_func,
 		TwitterSendRequestErrorFunc error_func,
 		gpointer data)
 {
@@ -112,7 +112,7 @@ static void twitter_api_get_all_since(PurpleAccount *account,
 
 	purple_debug_info (TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
 
-	twitter_send_request_multipage_all(account,
+	twitter_send_xml_request_multipage_all(account,
 			url, params,
 			success_func, error_func,
 			count_per_page, max_count, data);
@@ -139,7 +139,7 @@ void twitter_api_get_replies(PurpleAccount *account,
 		long long since_id,
 		int count,
 		int page,
-		TwitterSendRequestSuccessFunc success_func,
+		TwitterSendXmlRequestSuccessFunc success_func,
 		TwitterSendRequestErrorFunc error_func,
 		gpointer data)
 {
@@ -174,7 +174,7 @@ void twitter_api_get_dms(PurpleAccount *account,
 		long long since_id,
 		int count,
 		int page,
-		TwitterSendRequestSuccessFunc success_func,
+		TwitterSendXmlRequestSuccessFunc success_func,
 		TwitterSendRequestErrorFunc error_func,
 		gpointer data)
 {
@@ -208,7 +208,7 @@ void twitter_api_get_dms_all(PurpleAccount *account,
 void twitter_api_set_status(PurpleAccount *account,
 		const char *msg,
 		long long in_reply_to_status_id,
-		TwitterSendRequestSuccessFunc success_func,
+		TwitterSendXmlRequestSuccessFunc success_func,
 		TwitterSendRequestErrorFunc error_func,
 		gpointer data)
 {
@@ -219,7 +219,7 @@ void twitter_api_set_status(PurpleAccount *account,
 	twitter_request_params_add(params, twitter_request_param_new("status", msg));
 	if (in_reply_to_status_id)
 		twitter_request_params_add(params, twitter_request_param_new_ll("in_reply_to_status_id", in_reply_to_status_id));
-	twitter_send_request(account, TRUE,
+	twitter_send_xml_request(account, TRUE,
 			twitter_option_url_update_status(account), params,
 			success_func, error_func, data);
 	twitter_request_params_free(params);
@@ -316,7 +316,7 @@ void twitter_api_set_statuses(PurpleAccount *account,
 void twitter_api_send_dm(PurpleAccount *account,
 		const char *user,
 		const char *msg,
-		TwitterSendRequestSuccessFunc success_func,
+		TwitterSendXmlRequestSuccessFunc success_func,
 		TwitterSendRequestErrorFunc error_func,
 		gpointer data)
 {
@@ -326,7 +326,7 @@ void twitter_api_send_dm(PurpleAccount *account,
 	params = twitter_request_params_new();
 	twitter_request_params_add(params, twitter_request_param_new("text", msg));
 	twitter_request_params_add(params, twitter_request_param_new("user", user));
-	twitter_send_request(account, TRUE,
+	twitter_send_xml_request(account, TRUE,
 			twitter_option_url_new_dm(account), params,
 			success_func, error_func, data);
 	twitter_request_params_free(params);
@@ -416,7 +416,7 @@ void twitter_api_send_dms(PurpleAccount *account,
 }
 
 void twitter_api_get_saved_searches (PurpleAccount *account,
-		TwitterSendRequestSuccessFunc success_func,
+		TwitterSendXmlRequestSuccessFunc success_func,
 		TwitterSendRequestErrorFunc error_func,
 		gpointer data)
 {
@@ -425,7 +425,7 @@ void twitter_api_get_saved_searches (PurpleAccount *account,
 
 	if (url && url[0] != '\0')
 	{
-		twitter_send_request(account, FALSE,
+		twitter_send_xml_request(account, FALSE,
 				url, NULL,
 				success_func, error_func, data);
 	}
@@ -472,4 +472,52 @@ void twitter_api_search_refresh(PurpleAccount *account,
 	g_strfreev(pieces);
 	twitter_search(account, params, success_func, error_func, data);
 	twitter_request_params_free(params);
+}
+
+void twitter_api_oauth_request_token(PurpleAccount *account,
+		TwitterSendRequestSuccessFunc success_cb,
+		TwitterSendRequestErrorFunc error_cb,
+		gpointer user_data)
+{
+	twitter_send_request(account,
+			FALSE,
+			"twitter.com/oauth/request_token",
+			NULL,
+			FALSE,
+			success_cb,
+			error_cb,
+			user_data);
+}
+
+void twitter_api_oauth_access_token(PurpleAccount *account,
+		const gchar *oauth_verifier,
+		TwitterSendRequestSuccessFunc success_cb,
+		TwitterSendRequestErrorFunc error_cb,
+		gpointer user_data)
+{
+	TwitterRequestParams *params = twitter_request_params_new();
+	twitter_request_params_add(params, twitter_request_param_new("oauth_verifier", oauth_verifier));
+	twitter_send_request(account,
+			FALSE,
+			"twitter.com/oauth/access_token",
+			params,
+			FALSE,
+			success_cb,
+			error_cb,
+			user_data);
+	twitter_request_params_free(params);
+}
+
+void twitter_api_verify_credentials(PurpleAccount *account,
+		TwitterSendXmlRequestSuccessFunc success_cb,
+		TwitterSendRequestErrorFunc error_cb,
+		gpointer user_data)
+{
+	twitter_send_xml_request(account,
+			FALSE,
+			twitter_option_url_verify_credentials(account),
+			NULL,
+			success_cb,
+			error_cb,
+			user_data);
 }

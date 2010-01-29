@@ -35,6 +35,9 @@
 #define TWITTER_PREF_USE_HTTPS "use_https"
 #define TWITTER_PREF_USE_HTTPS_DEFAULT FALSE
 
+#define TWITTER_PREF_USE_OAUTH "use_oauth"
+#define TWITTER_PREF_USE_OAUTH_DEFAULT FALSE
+
 #define TWITTER_PREF_RETRIEVE_HISTORY "retrieve_tweets_history_after_login"
 #define TWITTER_PREF_RETRIEVE_HISTORY_DEFAULT TRUE
 
@@ -84,6 +87,8 @@
 #define TWITTER_PREF_URL_GET_SAVED_SEARCHES_DEFAULT "twitter.com/saved_searches.xml"
 #define TWITTER_PREF_URL_GET_SEARCH_RESULTS "get_search_results_url"
 #define TWITTER_PREF_URL_GET_SEARCH_RESULTS_DEFAULT "search.twitter.com/search.atom"
+#define TWITTER_PREF_URL_VERIFY_CREDENTIALS "verify_credentials_url"
+#define TWITTER_PREF_URL_VERIFY_CREDENTIALS_DEFAULT "twitter.com/account/verify_credentials.xml"
 /***** END URLS *****/
 
 GList *twitter_get_protocol_options();
@@ -100,6 +105,7 @@ gint twitter_option_user_status_timeout(PurpleAccount *account);
 gboolean twitter_option_get_history(PurpleAccount *account);
 gboolean twitter_option_sync_status(PurpleAccount *account);
 gboolean twitter_option_use_https(PurpleAccount *account);
+gboolean twitter_option_use_oauth(PurpleAccount *account);
 gint twitter_option_home_timeline_max_tweets(PurpleAccount *account);
 gboolean twitter_option_default_dm(PurpleAccount *account);
 
@@ -113,5 +119,6 @@ const gchar *twitter_option_url_update_status(PurpleAccount *account);
 const gchar *twitter_option_url_new_dm(PurpleAccount *account);
 const gchar *twitter_option_url_get_saved_searches(PurpleAccount *account);
 const gchar *twitter_option_url_get_search_results(PurpleAccount *account);
+const gchar *twitter_option_url_verify_credentials(PurpleAccount *account);
 /***** END URLS *****/
 #endif
