@@ -25,7 +25,7 @@ static int twitter_send_dm_do(PurpleAccount *account, const char *who,
 {
 	GArray *statuses = twitter_utf8_get_segments(message, MAX_TWEET_LENGTH, NULL);
 
-	twitter_api_send_dms(account,
+	twitter_api_send_dms(purple_account_get_requestor(account),
 			who,
 			statuses,
 			twitter_send_dm_success_cb,
@@ -67,28 +67,28 @@ static void _process_dms(PurpleAccount *account,
 	}
 }
 
-static void twitter_get_dms_all_cb (PurpleAccount *account,
+static void twitter_get_dms_all_cb(TwitterRequestor *r,
 		GList *nodes,
 		gpointer user_data)
 {
-	PurpleConnection *gc = purple_account_get_connection(account);
+	PurpleConnection *gc = purple_account_get_connection(r->account);
 	TwitterConnectionData *twitter = gc->proto_data;
 
 	GList *dms = twitter_dms_nodes_parse(nodes);
-	_process_dms(account, dms, twitter);
+	_process_dms(r->account, dms, twitter);
 
 	g_list_free(dms);
 }
 
 
-static gboolean twitter_get_dms_all_timeout_error_cb (PurpleAccount *account,
+static gboolean twitter_get_dms_all_timeout_error_cb(TwitterRequestor *r,
 		const TwitterRequestErrorData *error_data,
 		gpointer user_data)
 {
 	return TRUE; //restart timer and try again
 }
 
-static void twitter_get_dms_get_last_since_id_success_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)
+static void twitter_get_dms_get_last_since_id_success_cb(TwitterRequestor *requestor, xmlnode *node, gpointer user_data)
 {
 	TwitterLastSinceIdRequest *r = user_data;
 	long long id = 0;
@@ -104,14 +104,14 @@ static void twitter_get_dms_get_last_since_id_success_cb(PurpleAccount *account,
 			twitter_status_data_free(status_data);
 		}
 	}
-	r->success_cb(account, id, r->user_data);
+	r->success_cb(requestor->account, id, r->user_data);
 	g_free(r);
 }
 
-static void twitter_get_last_since_id_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error_data, gpointer user_data)
+static void twitter_get_last_since_id_error_cb(TwitterRequestor *requestor, const TwitterRequestErrorData *error_data, gpointer user_data)
 {
 	TwitterLastSinceIdRequest *r = user_data;
-	r->error_cb(account, error_data, r->user_data);
+	r->error_cb(requestor->account, error_data, r->user_data);
 	g_free(r);
 }
 
@@ -126,7 +126,7 @@ static void twitter_get_dms_last_since_id(PurpleAccount *account,
 	request->error_cb = error_cb;
 	request->user_data = user_data;
 	/* Simply get the last reply */
-	twitter_api_get_dms(account,
+	twitter_api_get_dms(purple_account_get_requestor(account),
 			0, 1, 1,
 			twitter_get_dms_get_last_since_id_success_cb,
 			twitter_get_last_since_id_error_cb,

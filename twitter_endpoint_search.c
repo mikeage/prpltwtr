@@ -120,7 +120,7 @@ static gboolean twitter_endpoint_search_interval_start(TwitterEndpointChat *endp
 {
 	TwitterSearchTimeoutContext *ctx = endpoint->endpoint_data;
 	TwitterEndpointChatId *id = twitter_endpoint_chat_id_new(endpoint);
-	twitter_api_search(endpoint->account,
+	twitter_api_search(purple_account_get_requestor(endpoint->account),
 			ctx->search_text, ctx->last_tweet_id,
 			TWITTER_SEARCH_RPP_DEFAULT,
 			twitter_search_cb, NULL, id);
@@ -136,7 +136,7 @@ static gboolean twitter_search_timeout(TwitterEndpointChat *endpoint_chat)
 		purple_debug_info(TWITTER_PROTOCOL_ID, "%s, refresh_url exists: %s\n",
 				G_STRFUNC, ctx->refresh_url);
 
-		twitter_api_search_refresh(endpoint_chat->account, ctx->refresh_url,
+		twitter_api_search_refresh(purple_account_get_requestor(endpoint_chat->account), ctx->refresh_url,
 				twitter_search_cb, NULL, id);
 	}
 	else {
@@ -148,7 +148,7 @@ static gboolean twitter_search_timeout(TwitterEndpointChat *endpoint_chat)
 		purple_debug_info(TWITTER_PROTOCOL_ID, "%s, create refresh_url: %s\n",
 				G_STRFUNC, refresh_url);
 
-		twitter_api_search_refresh (endpoint_chat->account, refresh_url,
+		twitter_api_search_refresh (purple_account_get_requestor(endpoint_chat->account), refresh_url,
 				twitter_search_cb, NULL, id);
 
 		g_free (refresh_url);

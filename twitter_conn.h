@@ -2,10 +2,13 @@
 #define _TWITTER_CONN_H_
 
 #include <glib.h>
-#include <twitter_endpoint_im.h>
+#include "twitter_endpoint_im.h"
+#include "twitter_request.h"
 
 typedef struct
 {
+	TwitterRequestor *requestor;
+
 	long long failed_get_replies_count;
 
 	guint get_friends_timer;
@@ -39,5 +42,7 @@ void twitter_connection_foreach_endpoint_im(TwitterConnectionData *twitter,
 		gpointer data);
 TwitterEndpointIm *twitter_connection_get_endpoint_im(TwitterConnectionData *twitter, TwitterImType type);
 void twitter_connection_set_endpoint_im(TwitterConnectionData *twitter, TwitterImType type, TwitterEndpointIm *endpoint);
+
+TwitterRequestor *purple_account_get_requestor(PurpleAccount *account);
 
 #endif

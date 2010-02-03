@@ -23,6 +23,7 @@
  */
 
 #include "twitter_prefs.h"
+#include <string.h>
 
 GList *twitter_get_protocol_options()
 {
@@ -111,67 +112,18 @@ GList *twitter_get_protocol_options()
 			TWITTER_PREF_SEARCH_TIMEOUT_DEFAULT);                        /* default value */
 	options = g_list_append(options, option);
 
-
-/***** START URLS *****/
 	option = purple_account_option_string_new(
-			("Get rate limit status url"),
-			TWITTER_PREF_URL_GET_RATE_LIMIT_STATUS,
-			TWITTER_PREF_URL_GET_RATE_LIMIT_STATUS_DEFAULT);
+			("API Base URL"),      /* text shown to user */
+			TWITTER_PREF_API_BASE,                         /* pref name */
+			TWITTER_PREF_API_BASE_DEFAULT);                        /* default value */
 	options = g_list_append(options, option);
 
 	option = purple_account_option_string_new(
-			("Get friends url"),
-			TWITTER_PREF_URL_GET_FRIENDS,
-			TWITTER_PREF_URL_GET_FRIENDS_DEFAULT);
+			("Search API Base URL"),      /* text shown to user */
+			TWITTER_PREF_SEARCH_API_BASE,                         /* pref name */
+			TWITTER_PREF_SEARCH_API_BASE_DEFAULT);                        /* default value */
 	options = g_list_append(options, option);
 
-	option = purple_account_option_string_new(
-			("Get home timeline url"),
-			TWITTER_PREF_URL_GET_HOME_TIMELINE,
-			TWITTER_PREF_URL_GET_HOME_TIMELINE_DEFAULT);
-	options = g_list_append(options, option);
-
-	option = purple_account_option_string_new(
-			("Get mentions url"),
-			TWITTER_PREF_URL_GET_MENTIONS,
-			TWITTER_PREF_URL_GET_MENTIONS_DEFAULT);
-	options = g_list_append(options, option);
-
-	option = purple_account_option_string_new(
-			("Get dms url"),
-			TWITTER_PREF_URL_GET_DMS,
-			TWITTER_PREF_URL_GET_DMS_DEFAULT);
-	options = g_list_append(options, option);
-
-	option = purple_account_option_string_new(
-			("Update status url"),
-			TWITTER_PREF_URL_UPDATE_STATUS,
-			TWITTER_PREF_URL_UPDATE_STATUS_DEFAULT);
-	options = g_list_append(options, option);
-
-	option = purple_account_option_string_new(
-			("New dm url"),
-			TWITTER_PREF_URL_NEW_DM,
-			TWITTER_PREF_URL_NEW_DM_DEFAULT);
-	options = g_list_append(options, option);
-
-	option = purple_account_option_string_new(
-			("Get saved search url"),
-			TWITTER_PREF_URL_GET_SAVED_SEARCHES,
-			TWITTER_PREF_URL_GET_SAVED_SEARCHES_DEFAULT);
-	options = g_list_append(options, option);
-
-	option = purple_account_option_string_new(
-			("Get search results url"),
-			TWITTER_PREF_URL_GET_SEARCH_RESULTS,
-			TWITTER_PREF_URL_GET_SEARCH_RESULTS_DEFAULT);
-	options = g_list_append(options, option);
-
-	option = purple_account_option_string_new(
-			("Verify Credentials"),
-			TWITTER_PREF_URL_VERIFY_CREDENTIALS,
-			TWITTER_PREF_URL_VERIFY_CREDENTIALS_DEFAULT);
-	options = g_list_append(options, option);
 
 	return options;
 }
@@ -275,65 +227,51 @@ gboolean twitter_option_default_dm(PurpleAccount *account)
 			TWITTER_PREF_DEFAULT_DM,
 			TWITTER_PREF_DEFAULT_DM_DEFAULT);
 }
-/***** START URLS *****/
-const gchar *twitter_option_url_get_rate_limit_status(PurpleAccount *account)
+
+static const gchar *twitter_get_host_from_base(const gchar *base)
 {
-	return purple_account_get_string(account,
-			TWITTER_PREF_URL_GET_RATE_LIMIT_STATUS,
-			TWITTER_PREF_URL_GET_RATE_LIMIT_STATUS_DEFAULT);
+	static gchar host[256];
+	gchar *slash = strchr(base, '/');
+	int len = slash ? slash - base : strlen(base);
+	if (len > 255)
+		return NULL;
+	strncpy(host, base, len);
+	host[len] = '\0';
+	return host;
 }
-const gchar *twitter_option_url_get_friends(PurpleAccount *account)
+static const gchar *twitter_get_subdir_from_base(const gchar *base)
 {
-	return purple_account_get_string(account,
-			TWITTER_PREF_URL_GET_FRIENDS,
-			TWITTER_PREF_URL_GET_FRIENDS_DEFAULT);
+	if (!base)
+		return NULL;
+	return strchr(base, '/');
 }
-const gchar *twitter_option_url_get_home_timeline(PurpleAccount *account)
+
+const gchar *twitter_option_api_host(PurpleAccount *account)
 {
-	return purple_account_get_string(account,
-			TWITTER_PREF_URL_GET_HOME_TIMELINE,
-			TWITTER_PREF_URL_GET_HOME_TIMELINE_DEFAULT);
+	return twitter_get_host_from_base(
+			purple_account_get_string(account,
+				TWITTER_PREF_API_BASE,
+				TWITTER_PREF_API_BASE_DEFAULT));
 }
-const gchar *twitter_option_url_get_mentions(PurpleAccount *account)
+const gchar *twitter_option_api_subdir(PurpleAccount *account)
 {
-	return purple_account_get_string(account,
-			TWITTER_PREF_URL_GET_MENTIONS,
-			TWITTER_PREF_URL_GET_MENTIONS_DEFAULT);
+	return twitter_get_subdir_from_base(
+			purple_account_get_string(account,
+				TWITTER_PREF_API_BASE,
+				TWITTER_PREF_API_BASE_DEFAULT));
 }
-const gchar *twitter_option_url_get_dms(PurpleAccount *account)
+
+const gchar *twitter_option_search_api_host(PurpleAccount *account)
 {
-	return purple_account_get_string(account,
-			TWITTER_PREF_URL_GET_DMS,
-			TWITTER_PREF_URL_GET_DMS_DEFAULT);
+	return twitter_get_host_from_base(
+			purple_account_get_string(account,
+				TWITTER_PREF_SEARCH_API_BASE,
+				TWITTER_PREF_SEARCH_API_BASE_DEFAULT));
 }
-const gchar *twitter_option_url_update_status(PurpleAccount *account)
+const gchar *twitter_option_search_api_subdir(PurpleAccount *account)
 {
-	return purple_account_get_string(account,
-			TWITTER_PREF_URL_UPDATE_STATUS,
-			TWITTER_PREF_URL_UPDATE_STATUS_DEFAULT);
+	return twitter_get_subdir_from_base(
+			purple_account_get_string(account,
+				TWITTER_PREF_SEARCH_API_BASE,
+				TWITTER_PREF_SEARCH_API_BASE_DEFAULT));
 }
-const gchar *twitter_option_url_new_dm(PurpleAccount *account)
-{
-	return purple_account_get_string(account,
-			TWITTER_PREF_URL_NEW_DM,
-			TWITTER_PREF_URL_NEW_DM_DEFAULT);
-}
-const gchar *twitter_option_url_get_saved_searches(PurpleAccount *account)
-{
-	return purple_account_get_string(account,
-			TWITTER_PREF_URL_GET_SAVED_SEARCHES,
-			TWITTER_PREF_URL_GET_SAVED_SEARCHES_DEFAULT);
-}
-const gchar *twitter_option_url_get_search_results(PurpleAccount *account)
-{
-	return purple_account_get_string(account,
-			TWITTER_PREF_URL_GET_SEARCH_RESULTS,
-			TWITTER_PREF_URL_GET_SEARCH_RESULTS_DEFAULT);
-}
-const gchar *twitter_option_url_verify_credentials(PurpleAccount *account)
-{
-	return purple_account_get_string(account,
-			TWITTER_PREF_URL_VERIFY_CREDENTIALS,
-			TWITTER_PREF_URL_VERIFY_CREDENTIALS_DEFAULT);
-}
-/***** END URLS *****/

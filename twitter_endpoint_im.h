@@ -12,7 +12,7 @@ typedef enum
 	TWITTER_IM_TYPE_UNKNOWN = 2,
 } TwitterImType;
 
-typedef void (*TwitterApiImAllFunc) (PurpleAccount *account,
+typedef void (*TwitterApiImAllFunc) (TwitterRequestor *r,
 		long long since_id,
 		TwitterSendRequestMultiPageAllSuccessFunc success_func,
 		TwitterSendRequestMultiPageAllErrorFunc error_func,

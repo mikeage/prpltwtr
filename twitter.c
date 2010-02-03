@@ -52,6 +52,11 @@ static void twitter_account_set_oauth_access_token_secret(PurpleAccount *account
 {
 	purple_account_set_string(account, "oauth_token_secret", oauth_token);
 }
+static void twitter_account_invalidate_token(PurpleAccount *account)
+{
+	twitter_account_set_oauth_access_token(account, NULL);
+	twitter_account_set_oauth_access_token_secret(account, NULL);
+}
 
 static gboolean twitter_usernames_match(PurpleAccount *account, const gchar *u1, const gchar *u2)
 {
@@ -204,11 +209,11 @@ static void twitter_verify_connection_error_handler(PurpleAccount *account, cons
 	}
 	purple_connection_error_reason(purple_account_get_connection(account), reason, error_message);
 }
-static gboolean twitter_get_friends_verify_error_cb(PurpleAccount *account,
+static gboolean twitter_get_friends_verify_error_cb(TwitterRequestor *r,
 		const TwitterRequestErrorData *error_data,
 		gpointer user_data)
 {
-	twitter_verify_connection_error_handler(account, error_data);
+	twitter_verify_connection_error_handler(r->account, error_data);
 	return FALSE;
 }
 
@@ -235,17 +240,18 @@ static void twitter_buddy_datas_set_all(PurpleAccount *account, GList *buddy_dat
 	g_list_free(buddy_datas);
 }
 
-static void twitter_get_friends_cb(PurpleAccount *account, GList *nodes, gpointer user_data)
+static void twitter_get_friends_cb(TwitterRequestor *r, GList *nodes, gpointer user_data)
 {
 	GList *buddy_datas = twitter_users_nodes_parse(nodes);
-	twitter_buddy_datas_set_all(account, buddy_datas);
+	twitter_buddy_datas_set_all(r->account, buddy_datas);
 }
 
 static gboolean twitter_get_friends_timeout(gpointer data)
 {
 	PurpleAccount *account = data;
 	//TODO handle errors
-	twitter_api_get_friends(account, twitter_get_friends_cb, NULL, NULL);
+	twitter_api_get_friends(purple_account_get_requestor(account),
+			twitter_get_friends_cb, NULL, NULL);
 	return TRUE;
 }
 
@@ -278,7 +284,7 @@ static char *twitter_chat_get_name(GHashTable *components) {
 }
 
 
-static void get_saved_searches_cb (PurpleAccount *account,
+static void get_saved_searches_cb(TwitterRequestor *r,
 		xmlnode *node,
 		gpointer user_data)
 {
@@ -292,11 +298,11 @@ static void get_saved_searches_cb (PurpleAccount *account,
 #if _HAZE_
 			char *buddy_name = g_strdup_printf("#%s", query);
 
-			twitter_buddy_new(account, buddy_name, NULL);
-			purple_prpl_got_user_status(account, buddy_name, TWITTER_STATUS_ONLINE, NULL);
+			twitter_buddy_new(r->account, buddy_name, NULL);
+			purple_prpl_got_user_status(r->account, buddy_name, TWITTER_STATUS_ONLINE, NULL);
 			g_free(buddy_name);
 #else
-			twitter_blist_chat_new(account, query);
+			twitter_blist_chat_new(r->account, query);
 #endif
 			g_free (query);
 		}
@@ -485,7 +491,7 @@ static void twitter_connected(PurpleAccount *account)
 
 
 	/* Retrieve user's saved search queries */
-	twitter_api_get_saved_searches (account,
+	twitter_api_get_saved_searches(purple_account_get_requestor(account),
 			get_saved_searches_cb, NULL, NULL);
 
 	/* Install periodic timers to retrieve replies and dms */
@@ -508,26 +514,26 @@ static void twitter_connected(PurpleAccount *account)
 	}
 	twitter_init_auto_open_contexts(account);
 }
-static void twitter_get_friends_verify_connection_cb(PurpleAccount *account,
+static void twitter_get_friends_verify_connection_cb(TwitterRequestor *r,
 		GList *nodes,
 		gpointer user_data)
 {
-	PurpleConnection *gc = purple_account_get_connection(account);
+	PurpleConnection *gc = purple_account_get_connection(r->account);
 	GList *l_users_data = NULL;
 
 	if (purple_connection_get_state(gc) == PURPLE_CONNECTING)
 	{
-		twitter_connected(account);
+		twitter_connected(r->account);
 
 		l_users_data = twitter_users_nodes_parse(nodes);
 
 		/* setup buddy list */
-		twitter_buddy_datas_set_all(account, l_users_data);
+		twitter_buddy_datas_set_all(r->account, l_users_data);
 
 	}
 }
 
-static void twitter_get_rate_limit_status_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)
+static void twitter_get_rate_limit_status_cb(TwitterRequestor *r, xmlnode *node, gpointer user_data)
 {
 	/*
 	 * <hash>
@@ -665,7 +671,8 @@ static void twitter_action_get_user_info(PurplePluginAction *action)
 {
 	PurpleConnection *gc = (PurpleConnection *)action->context;
 	PurpleAccount *account = purple_connection_get_account(gc);
-	twitter_api_get_friends(account, twitter_get_friends_cb, NULL, NULL);
+	twitter_api_get_friends(purple_account_get_requestor(account),
+			twitter_get_friends_cb, NULL, NULL);
 }
 
 static void twitter_action_set_status_ok(PurpleConnection *gc, PurpleRequestFields *fields)
@@ -702,8 +709,8 @@ static void twitter_action_set_status(PurplePluginAction *action)
 static void twitter_action_get_rate_limit_status(PurplePluginAction *action)
 {
 	PurpleConnection *gc = (PurpleConnection *)action->context;
-	PurpleAccount *account = purple_connection_get_account(gc);
-	twitter_api_get_rate_limit_status(account, twitter_get_rate_limit_status_cb, NULL, NULL);
+	TwitterConnectionData *twitter = gc->proto_data;
+	twitter_api_get_rate_limit_status(twitter->requestor, twitter_get_rate_limit_status_cb, NULL, NULL);
 }
 
 /* this is set to the actions member of the PurplePluginInfo struct at the
@@ -760,7 +767,7 @@ static void twitter_verify_connection(PurpleAccount *account)
 
 	if (twitter_option_get_following(account))
 	{
-		twitter_api_get_friends(account,
+		twitter_api_get_friends(purple_account_get_requestor(account),
 				twitter_get_friends_verify_connection_cb,
 				twitter_get_friends_verify_error_cb,
 				NULL);
@@ -806,8 +813,7 @@ typedef struct
 static void twitter_account_mismatch_screenname_change_cancel_cb(TwitterAccountUserNameChange *change, gint action_id)
 {
 	PurpleAccount *account = change->account;
-	twitter_account_set_oauth_access_token(account, NULL);
-	twitter_account_set_oauth_access_token_secret(account, NULL);
+	twitter_account_invalidate_token(account);
 	g_free(change->username);
 	g_free(change);
 	twitter_oauth_disconnect(account, "Username mismatch");
@@ -848,10 +854,11 @@ static void twitter_account_username_change_verify(PurpleAccount *account, const
 	g_free(secondary);
 }
 
-static void twitter_oauth_access_token_success_cb(PurpleAccount *account,
+static void twitter_oauth_access_token_success_cb(TwitterRequestor *r,
 		const gchar *response,
 		gpointer user_data)
 {
+	PurpleAccount *account = r->account;
 	PurpleConnection *gc = purple_account_get_connection(account);
 	TwitterConnectionData *twitter = gc->proto_data;
 
@@ -888,14 +895,14 @@ static void twitter_oauth_access_token_success_cb(PurpleAccount *account,
 	}
 }
 
-static void twitter_oauth_access_token_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error_data, gpointer user_data)
+static void twitter_oauth_access_token_error_cb(TwitterRequestor *r, const TwitterRequestErrorData *error_data, gpointer user_data)
 {
-	twitter_oauth_disconnect(account, "Error verifying PIN");
+	twitter_oauth_disconnect(r->account, "Error verifying PIN");
 }
 
 static void twitter_oauth_request_pin_ok(PurpleAccount *account, const gchar *pin)
 {
-	twitter_api_oauth_access_token(account,
+	twitter_api_oauth_access_token(purple_account_get_requestor(account),
 			pin,
 			twitter_oauth_access_token_success_cb,
 			twitter_oauth_access_token_error_cb,
@@ -907,10 +914,11 @@ static void twitter_oauth_request_pin_cancel(PurpleAccount *account, const gchar
 	twitter_oauth_disconnect(account, "Canceled PIN entry");
 }
 
-static void twitter_oauth_request_token_success_cb(PurpleAccount *account,
+static void twitter_oauth_request_token_success_cb(TwitterRequestor *r,
 		const gchar *response,
 		gpointer user_data)
 {
+	PurpleAccount *account = r->account;
 	PurpleConnection *gc = purple_account_get_connection(account);
 	TwitterConnectionData *twitter = gc->proto_data;
 
@@ -951,14 +959,14 @@ static void twitter_oauth_request_token_success_cb(PurpleAccount *account,
 	g_hash_table_destroy(results);
 }
 
-static void twitter_oauth_request_token_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error_data, gpointer user_data)
+static void twitter_oauth_request_token_error_cb(TwitterRequestor *r, const TwitterRequestErrorData *error_data, gpointer user_data)
 {
-	twitter_oauth_disconnect(account, "Error receiving request token");
+	twitter_oauth_disconnect(r->account, "Error receiving request token");
 }
 
-void twitter_verify_credentials_success_cb(PurpleAccount *account, xmlnode *node, gpointer user_data)
+void twitter_verify_credentials_success_cb(TwitterRequestor *r, xmlnode *node, gpointer user_data)
 {
-	//TODO: case sensitivity
+	PurpleAccount *account = r->account;
 	TwitterUserTweet *user_tweet = twitter_verify_credentials_parse(node);
 	if (!user_tweet || !user_tweet->screen_name)
 	{
@@ -973,6 +981,77 @@ void twitter_verify_credentials_success_cb(PurpleAccount *account, xmlnode *node
 	twitter_user_tweet_free(user_tweet);
 }
 
+static void twitter_requestor_pre_send_auth_basic(TwitterRequestor *r, gboolean *post, const char **url, TwitterRequestParams **params, gchar ***header_fields, gpointer *requestor_data)
+{
+	const char *pass = purple_connection_get_password(purple_account_get_connection(r->account));
+	const char *sn = purple_account_get_username(r->account);
+	char *auth_text = g_strdup_printf("%s:%s", sn, pass);
+	char *auth_text_b64 = purple_base64_encode((guchar *) auth_text, strlen(auth_text));
+	*header_fields = g_new(gchar *, 2);
+
+	(*header_fields)[0] = g_strdup_printf("Authorization: Basic %s", auth_text_b64);
+	(*header_fields)[1] = NULL;
+
+	g_free(auth_text);
+	g_free(auth_text_b64);
+}
+static void twitter_requestor_post_send_auth_basic(TwitterRequestor *r, gboolean *post, const char **url, TwitterRequestParams **params, gchar ***header_fields, gpointer *requestor_data)
+{
+	g_strfreev(*header_fields);
+}
+
+static void twitter_requestor_pre_send_oauth(TwitterRequestor *r, gboolean *post, const char **url, TwitterRequestParams **params, gchar ***header_fields, gpointer *requestor_data)
+{
+	PurpleAccount *account = r->account;
+	PurpleConnection *gc = purple_account_get_connection(account);
+	TwitterConnectionData *twitter = gc->proto_data;
+	gchar *signing_key = g_strdup_printf("%s&%s",
+			TWITTER_OAUTH_SECRET,
+			twitter->oauth_token_secret ? twitter->oauth_token_secret : "");
+	TwitterRequestParams *oauth_params = twitter_request_params_add_oauth_params(
+			account, *post, *url,
+			*params, twitter->oauth_token, signing_key);
+
+	if (oauth_params == NULL)
+	{
+		TwitterRequestErrorData *error = g_new0(TwitterRequestErrorData, 1);
+		gchar *error_msg = g_strdup("Could not sign request");
+		error->type = TWITTER_REQUEST_ERROR_NO_OAUTH;
+		error->message = error_msg;
+		g_free(error_msg);
+		g_free(error);
+		g_free(signing_key);
+		//TODO: error if couldn't sign
+		return;
+	} 
+	*requestor_data = *params;
+	*params = oauth_params;
+}
+
+static void twitter_requestor_post_send_oauth(TwitterRequestor *r, gboolean *post, const char **url, TwitterRequestParams **params, gchar ***header_fields, gpointer *requestor_data)
+{
+	twitter_request_params_free(*params);
+	*params = (TwitterRequestParams *) *requestor_data;
+}
+
+static void twitter_requestor_post_failed(TwitterRequestor *r, const TwitterRequestErrorData **error_data)
+{
+	purple_debug_info(TWITTER_PROTOCOL_ID,
+			"post_failed called for account %s, error %d, message %s\n",
+			r->account->username,
+			(*error_data)->type,
+			(*error_data)->message);
+	switch ((*error_data)->type)
+	{
+		case TWITTER_REQUEST_ERROR_UNAUTHORIZED:
+			twitter_account_invalidate_token(r->account);
+			twitter_oauth_disconnect(r->account, "Unauthorized");
+			break;
+		default:
+			break;
+	}
+}
+
 static void twitter_login(PurpleAccount *account)
 {
 	const gchar *oauth_token;
@@ -982,6 +1061,19 @@ static void twitter_login(PurpleAccount *account)
 	gc->proto_data = twitter;
 
 	purple_debug_info(TWITTER_PROTOCOL_ID, "logging in %s\n", account->username);
+
+	twitter->requestor = g_new0(TwitterRequestor, 1);
+	twitter->requestor->account = account;
+	twitter->requestor->post_failed = twitter_requestor_post_failed;
+
+	if (!twitter_option_use_oauth(account))
+	{
+		twitter->requestor->pre_send = twitter_requestor_pre_send_auth_basic;
+		twitter->requestor->post_send = twitter_requestor_post_send_auth_basic;
+	} else {
+		twitter->requestor->pre_send = twitter_requestor_pre_send_oauth;
+		twitter->requestor->post_send = twitter_requestor_post_send_oauth;
+	}
 
 	/* key: gchar *, value: TwitterEndpointChat */
 	twitter->chat_contexts = g_hash_table_new_full(
@@ -1007,12 +1099,12 @@ static void twitter_login(PurpleAccount *account)
 		{
 			twitter->oauth_token = g_strdup(oauth_token);
 			twitter->oauth_token_secret = g_strdup(oauth_token_secret);
-			twitter_api_verify_credentials(account,
+			twitter_api_verify_credentials(purple_account_get_requestor(account),
 					twitter_verify_credentials_success_cb,
 					NULL,
 					NULL);
 		} else {
-			twitter_api_oauth_request_token(account,
+			twitter_api_oauth_request_token(purple_account_get_requestor(account),
 					twitter_oauth_request_token_success_cb,
 					twitter_oauth_request_token_error_cb,
 					NULL);
@@ -1052,11 +1144,12 @@ static void twitter_close(PurpleConnection *gc)
 	if (twitter->oauth_token_secret)
 		g_free(twitter->oauth_token_secret);
 
+	g_free(twitter->requestor);
 
 	g_free(twitter);
 }
 
-static void twitter_set_status_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error_data, gpointer user_data)
+static void twitter_set_status_error_cb(TwitterRequestor *r, const TwitterRequestErrorData *error_data, gpointer user_data)
 {
 	const char *message;
 	if (error_data->type == TWITTER_REQUEST_ERROR_SERVER || error_data->type == TWITTER_REQUEST_ERROR_TWITTER_GENERAL)
@@ -1179,7 +1272,7 @@ static void twitter_set_status(PurpleAccount *account, PurpleStatus *status) {
 	if (msg && strcmp("", msg))
 	{
 		//TODO, sucecss && fail
-		twitter_api_set_status(account, msg, 0,
+		twitter_api_set_status(purple_account_get_requestor(account), msg, 0,
 				NULL, twitter_set_status_error_cb, NULL);
 	}
 }

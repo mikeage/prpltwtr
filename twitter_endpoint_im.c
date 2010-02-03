@@ -81,12 +81,12 @@ void twitter_endpoint_im_free(TwitterEndpointIm *ctx)
 	g_free(ctx);
 }
 
-static gboolean twitter_endpoint_im_error_cb(PurpleAccount *account,
+static gboolean twitter_endpoint_im_error_cb(TwitterRequestor *r,
 		const TwitterRequestErrorData *error_data,
 		gpointer user_data)
 {
 	TwitterEndpointIm *ctx = (TwitterEndpointIm *) user_data;
-	if (ctx->settings->error_cb(account, error_data, NULL))
+	if (ctx->settings->error_cb(r, error_data, NULL))
 	{
 		twitter_endpoint_im_start_timer(ctx);
 	}
@@ -94,12 +94,12 @@ static gboolean twitter_endpoint_im_error_cb(PurpleAccount *account,
 }
 
 
-static void twitter_endpoint_im_success_cb(PurpleAccount *account,
+static void twitter_endpoint_im_success_cb(TwitterRequestor *r,
 		GList *nodes,
 		gpointer user_data)
 {
 	TwitterEndpointIm *ctx = (TwitterEndpointIm *) user_data;
-	ctx->settings->success_cb(account, nodes, NULL);
+	ctx->settings->success_cb(r, nodes, NULL);
 	ctx->ran_once = TRUE;
 	twitter_endpoint_im_start_timer(ctx);
 }
@@ -107,7 +107,7 @@ static void twitter_endpoint_im_success_cb(PurpleAccount *account,
 static gboolean twitter_im_timer_timeout(gpointer _ctx)
 {
 	TwitterEndpointIm *ctx = (TwitterEndpointIm *) _ctx;
-	ctx->settings->get_im_func(ctx->account,
+	ctx->settings->get_im_func(purple_account_get_requestor(ctx->account),
 			twitter_endpoint_im_get_since_id(ctx),
 			twitter_endpoint_im_success_cb,
 			twitter_endpoint_im_error_cb,

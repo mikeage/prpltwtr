@@ -86,6 +86,130 @@ static time_t twitter_status_parse_timestamp(const char *timestamp)
 	purple_debug_info(TWITTER_PROTOCOL_ID, "Can't parse timestamp %s\n", timestamp);
 	return tval;
 }
+
+static gint _twitter_search_results_sort(gconstpointer _a, gconstpointer _b)
+{
+	long long a = (*((TwitterUserTweet **) _a))->status->id;
+	long long b = (*((TwitterUserTweet **) _b))->status->id;
+	if (a < b)
+		return 1;
+	else if (a > b)
+		return -1;
+	else
+		return 0;
+}
+
+TwitterUserTweet *twitter_search_entry_node_parse(xmlnode *entry_node)
+{
+	if (entry_node != NULL && entry_node->name && !strcmp(entry_node->name, "entry"))
+	{
+		TwitterUserTweet *entry;
+		TwitterTweet *tweet = g_new0(TwitterTweet, 1);
+		gchar *id_str = xmlnode_get_child_data(entry_node, "id"); //tag:search.twitter.com,2005:12345678
+		gchar *created_at_str = xmlnode_get_child_data(entry_node, "published"); //2009-12-24T19:29:24Z
+		gchar *screen_name_str = xmlnode_get_child_data(xmlnode_get_child(entry_node, "author"), "name"); //username (USER NAME)
+		gchar *ptr;
+
+
+		ptr = g_strrstr(id_str, ":");
+		if (ptr != NULL)
+		{
+			tweet->id = strtoll(ptr + 1, NULL, 10);
+		}
+		ptr = strstr(screen_name_str, " ");
+		if (ptr)
+			ptr[0] = 0;
+		entry = twitter_user_tweet_new(screen_name_str, NULL, NULL);
+		g_free(screen_name_str);
+
+		tweet->text = xmlnode_get_child_data(entry_node, "title");
+		tweet->created_at = purple_str_to_time(created_at_str, TRUE, NULL, NULL, NULL);
+		entry->status = tweet;
+
+		g_free(id_str);
+		g_free(created_at_str);
+
+		return entry;
+	}
+	return NULL;
+}
+static TwitterSearchResults *twitter_search_results_new(GArray *tweets, gchar *refresh_url, gint max_id)
+{
+	TwitterSearchResults *results = g_new(TwitterSearchResults, 1);
+	results->refresh_url = refresh_url;
+	results->tweets = tweets;
+	results->max_id = max_id;
+
+	return results;
+}
+void twitter_search_results_free(TwitterSearchResults *results)
+{
+	if (!results)
+		return;
+	if (results->refresh_url)
+		g_free(results->refresh_url);
+	if (results->tweets)
+	{
+		guint i, len;
+
+		len = results->tweets->len;
+
+		for (i = 0; i < len; i++) {
+			TwitterUserTweet *search_data;
+
+			search_data = g_array_index (results->tweets,
+					TwitterUserTweet *, i);
+			twitter_user_tweet_free(search_data);
+		}
+		g_array_free (results->tweets, TRUE);
+	}
+	g_free(results);
+}
+
+TwitterSearchResults *twitter_search_results_node_parse(xmlnode *response_node)
+{
+	GArray *search_results = NULL;
+	const gchar *refresh_url = NULL;
+	long long max_id = 0; /* id of last search result */
+	xmlnode *entry_node;
+	xmlnode *link_node;
+	const gchar *ptr;
+
+	search_results = g_array_new (FALSE, FALSE, sizeof (TwitterUserTweet *));
+
+	for (link_node = xmlnode_get_child(response_node, "link"); link_node; link_node = xmlnode_get_next_twin(link_node))
+	{
+		const char *rel = xmlnode_get_attrib(link_node, "rel");
+		if (rel != NULL && !strcmp(rel, "refresh"))
+		{
+			const char *refresh_url_full = xmlnode_get_attrib(link_node, "href");
+			ptr = strstr(refresh_url_full, "?");
+			if (ptr != NULL)
+			{
+				refresh_url = ptr;
+				break;
+			}
+		}
+	}
+	for (entry_node = xmlnode_get_child(response_node, "entry"); entry_node; entry_node = xmlnode_get_next_twin(entry_node))
+	{
+		TwitterUserTweet *entry = twitter_search_entry_node_parse(entry_node);
+		if (entry != NULL)
+		{
+			g_array_append_val(search_results, entry);
+			if (max_id < entry->status->id)
+				max_id = entry->status->id;
+		}
+	}
+
+	g_array_sort(search_results, _twitter_search_results_sort);
+
+	purple_debug_info(TWITTER_PROTOCOL_ID, "refresh_url: %s, max_id: %lld\n",
+			refresh_url, max_id);
+
+	return twitter_search_results_new(search_results, g_strdup(refresh_url), max_id);
+}
+
 TwitterUserData *twitter_user_node_parse(xmlnode *user_node)
 {
 	TwitterUserData *user;

@@ -39,6 +39,13 @@ typedef struct
 	TwitterUserData *user;
 } TwitterUserTweet;
 
+typedef struct
+{
+	char *refresh_url;
+	GArray *tweets;
+	gint max_id;
+} TwitterSearchResults;
+
 gchar *xmlnode_get_child_data(const xmlnode *node, const char *name);
 TwitterUserData *twitter_user_node_parse(xmlnode *user_node);
 TwitterTweet *twitter_status_node_parse(xmlnode *status_node);
@@ -52,6 +59,9 @@ GList *twitter_dms_nodes_parse(GList *nodes);
 void twitter_user_data_free(TwitterUserData *user_data);
 void twitter_status_data_free(TwitterTweet *status);
 TwitterUserTweet *twitter_verify_credentials_parse(xmlnode *node);
+
+TwitterSearchResults *twitter_search_results_node_parse(xmlnode *response_node);
+void twitter_search_results_free(TwitterSearchResults *results);
 
 TwitterUserTweet *twitter_user_tweet_new(const char *screen_name, TwitterUserData *user, TwitterTweet *tweet);
 TwitterUserData *twitter_user_tweet_take_user_data(TwitterUserTweet *ut);

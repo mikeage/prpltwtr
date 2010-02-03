@@ -374,7 +374,7 @@ int twitter_endpoint_chat_send(TwitterEndpointChat *ctx, const gchar *message)
 
 	GArray *statuses = twitter_utf8_get_segments(message, MAX_TWEET_LENGTH, added_text);
 	id = twitter_endpoint_chat_id_new(ctx);
-	twitter_api_set_statuses(account,
+	twitter_api_set_statuses(purple_account_get_requestor(account),
 			statuses,
 			0,
 			twitter_endpoint_chat_send_success_cb,
