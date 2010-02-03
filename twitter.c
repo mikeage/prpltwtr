@@ -1430,15 +1430,6 @@ static GList *twitter_blist_node_menu(PurpleBlistNode *node) {
 	}
 }
 
-
-/* normalize a username (e.g. remove whitespace, add default domain, etc.)
- * for twitter, this is a noop.
- */
-static const char *twitter_normalize(const PurpleAccount *account,
-		const char *input) {
-	return NULL;
-}
-
 static void twitter_set_buddy_icon(PurpleConnection *gc,
 		PurpleStoredImage *img) {
 	purple_debug_info(TWITTER_PROTOCOL_ID, "setting %s's buddy icon to %s\n",
@@ -1506,7 +1497,7 @@ static PurplePluginProtocolInfo prpl_info =
 	NULL,	       /* rename_group */
 	NULL,				/* buddy_free */
 	NULL,	       /* convo_closed */
-	twitter_normalize,		  /* normalize */
+	purple_normalize_nocase,		  /* normalize */
 	twitter_set_buddy_icon,	     /* set_buddy_icon */
 	NULL,	       /* remove_group */
 	NULL,//TODO?				/* get_cb_real_name */
