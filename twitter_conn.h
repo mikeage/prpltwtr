@@ -12,6 +12,7 @@ typedef struct
 	long long failed_get_replies_count;
 
 	guint get_friends_timer;
+	guint update_presense_timer;
 
 	long long last_home_timeline_id;
 

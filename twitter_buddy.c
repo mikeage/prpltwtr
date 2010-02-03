@@ -11,11 +11,35 @@ TwitterUserTweet *twitter_buddy_get_buddy_data(PurpleBuddy *b)
 	return b->proto_data;
 }
 
+static time_t twitter_account_get_online_cutoff(PurpleAccount *account)
+{
+	if (TWITTER_ONLINE_CUTOFF_TIME == 0)
+		return 0;
+	else
+		return time(NULL) - 60 * TWITTER_ONLINE_CUTOFF_TIME;
+}
+
+
+void twitter_buddy_touch_state(PurpleBuddy *buddy)
+{
+	PurpleAccount *account = purple_buddy_get_account(buddy);
+	time_t cutoff = twitter_account_get_online_cutoff(account);
+	TwitterUserTweet *user_tweet = twitter_buddy_get_buddy_data(buddy);
+	if (!cutoff || !user_tweet || !user_tweet->status)
+		return; //FIXME
+	if (user_tweet->status->created_at < cutoff)
+	{
+		purple_prpl_got_user_status(account, buddy->name,
+				TWITTER_STATUS_OFFLINE, "message", user_tweet->status->text, NULL);
+	}
+}
+
 void twitter_buddy_set_status_data(PurpleAccount *account, const char *src_user, TwitterTweet *s)
 {
 	PurpleBuddy *b;
 	TwitterUserTweet *buddy_data;
 	gboolean status_text_same = FALSE;
+	time_t cutoff = twitter_account_get_online_cutoff(account);
 
 	if (!s)
 		return;
@@ -52,7 +76,8 @@ void twitter_buddy_set_status_data(PurpleAccount *account, const char *src_user,
 
 	if (!status_text_same)
 	{
-		purple_prpl_got_user_status(b->account, b->name, TWITTER_STATUS_ONLINE,
+		purple_prpl_got_user_status(b->account, b->name, 
+				cutoff && s && s->created_at < cutoff ? TWITTER_STATUS_OFFLINE : TWITTER_STATUS_ONLINE,
 				"message", s ? s->text : NULL, NULL);
 	}
 }

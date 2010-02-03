@@ -220,6 +220,36 @@ static gboolean twitter_get_friends_verify_error_cb(TwitterRequestor *r,
 /******************************************************
  *  Twitter friends
  ******************************************************/
+static gboolean twitter_update_presense_timeout(gpointer _account)
+{
+	/* If someone is bored and wants to do this the right way, 
+	 * they would have a list of buddies sorted by time
+	 * so we don't have to go through all buddies. 
+	 * Of course, then you'd have to have each PurpleBuddy point to 
+	 * the position in the list, so when a status gets updated
+	 * we push the buddy back to the end of the list
+	 */
+	PurpleAccount *account = _account;
+	GSList *buddies = purple_find_buddies(account, NULL);
+	GSList *b;
+
+	time_t current_time = time(NULL);
+	time_t cutoff = current_time - 60 * TWITTER_ONLINE_CUTOFF_TIME;
+
+	for (b = buddies; b; b = g_slist_next(b))
+	{
+		PurpleBuddy *buddy = b->data;
+		TwitterUserTweet *user_tweet = twitter_buddy_get_buddy_data(buddy);
+		if (!user_tweet || !user_tweet->status)
+			continue;
+		if (user_tweet->status->created_at < cutoff)
+		{
+			purple_prpl_got_user_status(account, buddy->name, TWITTER_STATUS_OFFLINE, NULL);
+		}
+	}
+	g_slist_free(buddies);
+	return TRUE;
+}
 
 static void twitter_buddy_datas_set_all(PurpleAccount *account, GList *buddy_datas)
 {
@@ -450,6 +480,7 @@ static void twitter_endpoint_im_start_foreach(TwitterConnectionData *twitter, Tw
 	twitter_endpoint_im_start(im);
 }
 
+
 static void twitter_connected(PurpleAccount *account)
 {
 	PurpleConnection *gc = purple_account_get_connection(account);
@@ -512,6 +543,9 @@ static void twitter_connected(PurpleAccount *account)
 	} else {
 		twitter->get_friends_timer = 0;
 	}
+	if (TWITTER_ONLINE_CUTOFF_TIME > 0)
+		twitter->update_presense_timer = purple_timeout_add_seconds(
+			5 * 60, twitter_update_presense_timeout, account);
 	twitter_init_auto_open_contexts(account);
 }
 static void twitter_get_friends_verify_connection_cb(TwitterRequestor *r,
@@ -658,6 +692,8 @@ static GList *twitter_status_types(PurpleAccount *account)
 
 	type = purple_status_type_new(PURPLE_STATUS_OFFLINE, TWITTER_STATUS_OFFLINE,
 			TWITTER_STATUS_OFFLINE, TRUE);
+	/*purple_status_type_add_attr(type, "message", ("Offline"),
+			purple_value_new(PURPLE_TYPE_STRING));*/
 	types = g_list_prepend(types, type);
 
 	return g_list_reverse(types);
@@ -1134,6 +1170,9 @@ static void twitter_close(PurpleConnection *gc)
 		g_hash_table_destroy(twitter->chat_contexts);
 	twitter->chat_contexts = NULL;
 
+	if (twitter->update_presense_timer)
+		purple_timeout_remove(twitter->update_presense_timer);
+
 	if (twitter->user_reply_id_table)
 		g_hash_table_destroy (twitter->user_reply_id_table);
 	twitter->user_reply_id_table = NULL;
@@ -1431,14 +1470,6 @@ static GList *twitter_blist_node_menu(PurpleBlistNode *node) {
 }
 
 
-/* normalize a username (e.g. remove whitespace, add default domain, etc.)
- * for twitter, this is a noop.
- */
-static const char *twitter_normalize(const PurpleAccount *account,
-		const char *input) {
-	return NULL;
-}
-
 static void twitter_set_buddy_icon(PurpleConnection *gc,
 		PurpleStoredImage *img) {
 	purple_debug_info(TWITTER_PROTOCOL_ID, "setting %s's buddy icon to %s\n",
@@ -1506,7 +1537,7 @@ static PurplePluginProtocolInfo prpl_info =
 	NULL,	       /* rename_group */
 	NULL,				/* buddy_free */
 	NULL,	       /* convo_closed */
-	twitter_normalize,		  /* normalize */
+	purple_normalize_nocase,		  /* normalize */
 	twitter_set_buddy_icon,	     /* set_buddy_icon */
 	NULL,	       /* remove_group */
 	NULL,//TODO?				/* get_cb_real_name */

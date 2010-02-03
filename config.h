@@ -37,3 +37,4 @@
 #define TWITTER_STATUS_ONLINE	"online"
 #define TWITTER_STATUS_OFFLINE	"offline"
 
+#define TWITTER_ONLINE_CUTOFF_TIME 1
