@@ -24,6 +24,9 @@
 #define TWITTER_HOME_TIMELINE_INITIAL_COUNT 20
 #define TWITTER_HOME_TIMELINE_PAGE_COUNT 100
 
+//timer (mins) to check to see who hasn't said anything in X hours
+#define TWITTER_UPDATE_PRESENCE_TIMEOUT 5
+
 #define TWITTER_PROTOCOL_ID "prpl-twitter"
 
 #define TWITTER_OAUTH_KEY "hrL4RlfT8MVOWbDdeY0EQ"
@@ -36,4 +39,3 @@
 
 #define TWITTER_STATUS_ONLINE	"online"
 #define TWITTER_STATUS_OFFLINE	"offline"
-

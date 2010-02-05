@@ -11,11 +11,89 @@ TwitterUserTweet *twitter_buddy_get_buddy_data(PurpleBuddy *b)
 	return b->proto_data;
 }
 
+static time_t twitter_account_get_online_cutoff(PurpleAccount *account)
+{
+	int cutoff_hours = twitter_option_cutoff_time(account);
+	if (cutoff_hours == 0)
+		return 0;
+	else
+		return time(NULL) - 60 * 60 * cutoff_hours;
+}
+
+static void twitter_buddy_change_state(PurpleBuddy *buddy, gboolean online, const gchar *message)
+{
+	if (online == PURPLE_BUDDY_IS_ONLINE(buddy))
+		return;
+	purple_prpl_got_user_status(purple_buddy_get_account(buddy), buddy->name,
+			online ? TWITTER_STATUS_ONLINE : TWITTER_STATUS_OFFLINE,
+			"message", message,
+			NULL);
+}
+
+void twitter_buddy_touch_state_with_cutoff(PurpleBuddy *buddy, time_t cutoff)
+{
+	PurpleAccount *account = purple_buddy_get_account(buddy);
+	TwitterUserTweet *user_tweet = twitter_buddy_get_buddy_data(buddy);
+	TwitterTweet *tweet = user_tweet ? user_tweet->status : NULL;
+	gchar *tweet_message = tweet ? tweet->text : NULL;
+
+	//Yes, I know this could be 'shorter'. But this is (somewhat) clearer
+	if (!cutoff) //Always set buddies to online
+	{
+		if (twitter_option_get_following(account) && !user_tweet)
+		{
+			//This user was added to the buddy list, but we aren't following them
+			//set the user offline
+			twitter_buddy_change_state(buddy, FALSE, tweet_message);
+		} else {
+			//Either get_following is true and the user_tweet has been seen, or
+			//get_following is false, so we just set them to online
+			twitter_buddy_change_state(buddy, TRUE, tweet_message);
+		}
+	} else {
+		if (!tweet || tweet->created_at < cutoff)
+		{
+			//No tweet or the tweet was created before the cutoff, set offline
+			twitter_buddy_change_state(buddy, FALSE, tweet_message);
+		} else {
+			//Tweet after the cutoff, set to online
+			twitter_buddy_change_state(buddy, TRUE, tweet_message);
+		}
+	}
+}
+
+void twitter_buddy_touch_state(PurpleBuddy *buddy)
+{
+	PurpleAccount *account = purple_buddy_get_account(buddy);
+	time_t cutoff = twitter_account_get_online_cutoff(account);
+	twitter_buddy_touch_state_with_cutoff(buddy, cutoff);
+}
+
+void twitter_buddy_touch_state_all(PurpleAccount *account)
+{
+	GSList *buddies;
+	GSList *b_node;
+	time_t cutoff = twitter_account_get_online_cutoff(account);
+
+	if (!cutoff)
+		return;
+
+	buddies = purple_find_buddies(account, NULL);
+
+	for (b_node = buddies; b_node; b_node = g_slist_next(b_node))
+	{
+		twitter_buddy_touch_state_with_cutoff((PurpleBuddy *) b_node->data, cutoff);
+	}
+
+	g_slist_free(buddies);
+}
+
 void twitter_buddy_set_status_data(PurpleAccount *account, const char *src_user, TwitterTweet *s)
 {
 	PurpleBuddy *b;
 	TwitterUserTweet *buddy_data;
 	gboolean status_text_same = FALSE;
+	time_t cutoff = twitter_account_get_online_cutoff(account);
 
 	if (!s)
 		return;
@@ -52,7 +130,8 @@ void twitter_buddy_set_status_data(PurpleAccount *account, const char *src_user,
 
 	if (!status_text_same)
 	{
-		purple_prpl_got_user_status(b->account, b->name, TWITTER_STATUS_ONLINE,
+		purple_prpl_got_user_status(b->account, b->name, 
+				cutoff && s && s->created_at < cutoff ? TWITTER_STATUS_OFFLINE : TWITTER_STATUS_ONLINE,
 				"message", s ? s->text : NULL, NULL);
 	}
 }

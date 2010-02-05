@@ -11,4 +11,7 @@ void twitter_buddy_set_user_data(PurpleAccount *account, TwitterUserData *u, gbo
 void twitter_buddy_update_icon_cb(PurpleUtilFetchUrlData *url_data, gpointer user_data, const gchar *url_text, gsize len, const gchar *error_message);
 void twitter_buddy_update_icon(PurpleBuddy *buddy);
 
+void twitter_buddy_touch_state(PurpleBuddy *buddy);
+void twitter_buddy_touch_state_all(PurpleAccount *account);
+
 #endif

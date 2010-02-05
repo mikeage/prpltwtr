@@ -74,6 +74,9 @@
 #define TWITTER_PREF_SEARCH_API_BASE "twitter_search_api_base_url"
 #define TWITTER_PREF_SEARCH_API_BASE_DEFAULT "search.twitter.com/"
 
+#define TWITTER_ONLINE_CUTOFF_TIME_HOURS "online_cutoff_time_hours"
+#define TWITTER_ONLINE_CUTOFF_TIME_HOURS_DEFAULT 24
+
 /***** START URLS *****/
 #define TWITTER_PREF_URL_GET_RATE_LIMIT_STATUS "/account/rate_limit_status.xml"
 #define TWITTER_PREF_URL_GET_FRIENDS "/statuses/friends.xml"
@@ -109,4 +112,5 @@ const gchar *twitter_option_api_host(PurpleAccount *account);
 const gchar *twitter_option_api_subdir(PurpleAccount *account);
 const gchar *twitter_option_search_api_host(PurpleAccount *account);
 const gchar *twitter_option_search_api_subdir(PurpleAccount *account);
+int twitter_option_cutoff_time(PurpleAccount *account);
 #endif

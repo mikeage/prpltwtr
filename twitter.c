@@ -220,6 +220,27 @@ static gboolean twitter_get_friends_verify_error_cb(TwitterRequestor *r,
 /******************************************************
  *  Twitter friends
  ******************************************************/
+static gboolean twitter_update_presence_timeout(gpointer _account)
+{
+	/* If someone is bored and wants to do this the right way, 
+	 * they would have a list of buddies sorted by time
+	 * so we don't have to go through all buddies. 
+	 * Of course, then you'd have to have each PurpleBuddy point to 
+	 * the position in the list, so when a status gets updated
+	 * we push the buddy back to the end of the list
+	 *
+	 * Additionally, we would want the timer to be reset to run
+	 * at the time when the next buddy should go offline 
+	 * (min(last_tweet_time) - current_time)
+	 *
+	 * However, this should be good enough. If we find that this
+	 * drains a lot of batteries on mobile phones (doubt it), then we can
+	 * look back into it.
+	 */
+	PurpleAccount *account = _account;
+	twitter_buddy_touch_state_all(account);
+	return TRUE;
+}
 
 static void twitter_buddy_datas_set_all(PurpleAccount *account, GList *buddy_datas)
 {
@@ -231,7 +252,7 @@ static void twitter_buddy_datas_set_all(PurpleAccount *account, GList *buddy_dat
 		TwitterTweet *status = twitter_user_tweet_take_tweet(data);
 
 		if (user)
-			twitter_buddy_set_user_data(account, user, TRUE);
+			twitter_buddy_set_user_data(account, user, twitter_option_get_following(account));
 		if (status)
 			twitter_buddy_set_status_data(account, data->screen_name, status);
 
@@ -450,6 +471,7 @@ static void twitter_endpoint_im_start_foreach(TwitterConnectionData *twitter, Tw
 	twitter_endpoint_im_start(im);
 }
 
+
 static void twitter_connected(PurpleAccount *account)
 {
 	PurpleConnection *gc = purple_account_get_connection(account);
@@ -500,18 +522,21 @@ static void twitter_connected(PurpleAccount *account)
 	/* Immediately retrieve replies */
 
 	int get_friends_timer_timeout = twitter_option_user_status_timeout(account);
-	gboolean get_following = twitter_option_get_following(account);
 
-	/* Only update the buddy list if the user set the timeout to a positive number
-	 * and the user wants to retrieve his following list */
-	if (get_friends_timer_timeout > 0 && get_following)
+	//We will try to get all our friends' statuses, whether they're in the buddylist or not
+	if (get_friends_timer_timeout > 0)
 	{
 		twitter->get_friends_timer = purple_timeout_add_seconds(
 				60 * get_friends_timer_timeout,
 				twitter_get_friends_timeout, account);
+		if (!twitter_option_get_following(account) && twitter_option_cutoff_time(account) > 0)
+			twitter_get_friends_timeout(account);
 	} else {
 		twitter->get_friends_timer = 0;
 	}
+	if (twitter_option_cutoff_time(account) > 0)
+		twitter->update_presence_timer = purple_timeout_add_seconds(
+			TWITTER_UPDATE_PRESENCE_TIMEOUT * 60, twitter_update_presence_timeout, account);
 	twitter_init_auto_open_contexts(account);
 }
 static void twitter_get_friends_verify_connection_cb(TwitterRequestor *r,
@@ -601,25 +626,27 @@ static char *twitter_status_text(PurpleBuddy *buddy) {
 
 static void twitter_tooltip_text(PurpleBuddy *buddy,
 		PurpleNotifyUserInfo *info,
-		gboolean full) {
+		gboolean full) 
+{
 
-	if (PURPLE_BUDDY_IS_ONLINE(buddy))
+	PurplePresence *presence = purple_buddy_get_presence(buddy);
+	PurpleStatus *status = purple_presence_get_active_status(presence);
+	char *msg;
+
+	purple_debug_info(TWITTER_PROTOCOL_ID, "showing %s tooltip for %s\n",
+			(full) ? "full" : "short", buddy->name);
+
+	if ((msg = twitter_status_text(buddy)))
 	{
-		PurplePresence *presence = purple_buddy_get_presence(buddy);
-		PurpleStatus *status = purple_presence_get_active_status(presence);
-		char *msg = twitter_status_text(buddy);
 		purple_notify_user_info_add_pair(info, purple_status_get_name(status),
 				msg);
 		g_free(msg);
+	}
 
-		if (full) {
-			/*const char *user_info = purple_account_get_user_info(gc->account);
-			  if (user_info)
-			  purple_notify_user_info_add_pair(info, _("User info"), user_info);*/
-		}
-
-		purple_debug_info(TWITTER_PROTOCOL_ID, "showing %s tooltip for %s\n",
-				(full) ? "full" : "short", buddy->name);
+	if (full) {
+		/*const char *user_info = purple_account_get_user_info(gc->account);
+		  if (user_info)
+		  purple_notify_user_info_add_pair(info, _("User info"), user_info);*/
 	}
 }
 
@@ -658,6 +685,8 @@ static GList *twitter_status_types(PurpleAccount *account)
 
 	type = purple_status_type_new(PURPLE_STATUS_OFFLINE, TWITTER_STATUS_OFFLINE,
 			TWITTER_STATUS_OFFLINE, TRUE);
+	purple_status_type_add_attr(type, "message", ("Offline"),
+			purple_value_new(PURPLE_TYPE_STRING));
 	types = g_list_prepend(types, type);
 
 	return g_list_reverse(types);
@@ -773,7 +802,8 @@ static void twitter_verify_connection(PurpleAccount *account)
 				NULL);
 	} else {
 		twitter_connected(account);
-		twitter_set_all_buddies_online(account);
+		if (twitter_option_cutoff_time(account) <= 0)
+			twitter_set_all_buddies_online(account);
 	}
 }
 
@@ -1134,6 +1164,9 @@ static void twitter_close(PurpleConnection *gc)
 		g_hash_table_destroy(twitter->chat_contexts);
 	twitter->chat_contexts = NULL;
 
+	if (twitter->update_presence_timer)
+		purple_timeout_remove(twitter->update_presence_timer);
+
 	if (twitter->user_reply_id_table)
 		g_hash_table_destroy (twitter->user_reply_id_table);
 	twitter->user_reply_id_table = NULL;
@@ -1280,17 +1313,8 @@ static void twitter_set_status(PurpleAccount *account, PurpleStatus *status) {
 static void twitter_add_buddy(PurpleConnection *gc, PurpleBuddy *buddy,
 		PurpleGroup *group)
 {
-	//TODO
-	//For the time being, if the user doesn't want to automatically download all their
-	//friends (people they follow), just assume the friend is valid and set them online
-	PurpleAccount *account = purple_connection_get_account(gc);
-	if (!twitter_option_get_following(account))
-	{
-		purple_prpl_got_user_status(account,
-				purple_buddy_get_name(buddy),
-				TWITTER_STATUS_ONLINE,
-				NULL);
-	}
+	//Perform the logic to decide whether this buddy will be online/offline
+	twitter_buddy_touch_state(buddy);
 }
 
 static void twitter_add_buddies(PurpleConnection *gc, GList *buddies,

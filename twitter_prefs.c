@@ -37,7 +37,7 @@ GList *twitter_get_protocol_options()
 	options = g_list_append(NULL, option);
 
 	option = purple_account_option_bool_new(
-			("Enable OAuth (more secure)"),
+			("Enable OAuth (more secure, higher rate limit)"),
 			TWITTER_PREF_USE_OAUTH,
 			TWITTER_PREF_USE_OAUTH_DEFAULT);
 	options = g_list_append(options, option);
@@ -65,7 +65,7 @@ GList *twitter_get_protocol_options()
 
 	/* Automatically generate a buddylist based on followers */
 	option = purple_account_option_bool_new (
-			("Add followers as friends (NOT recommended for large follower list)"),
+			("Add following as friends (NOT recommended for large follower list)"),
 			TWITTER_PREF_GET_FRIENDS,
 			TWITTER_PREF_GET_FRIENDS_DEFAULT);
 	options = g_list_append (options, option);
@@ -76,6 +76,14 @@ GList *twitter_get_protocol_options()
 			TWITTER_PREF_ADD_URL_TO_TWEET,
 			TWITTER_PREF_ADD_URL_TO_TWEET_DEFAULT);
 	options = g_list_append (options, option);
+
+	/* Idle cutoff time */
+	option = purple_account_option_int_new(
+			("Buddy last tweet hours before set offline (0: Always online)"),      /* text shown to user */
+			TWITTER_ONLINE_CUTOFF_TIME_HOURS,                         /* pref name */
+			TWITTER_ONLINE_CUTOFF_TIME_HOURS_DEFAULT);                        /* default value */
+	options = g_list_append(options, option);
+
 
 	/* Max tweets to retrieve when retrieving timeline data */
 	option = purple_account_option_int_new(
@@ -274,4 +282,10 @@ const gchar *twitter_option_search_api_subdir(PurpleAccount *account)
 			purple_account_get_string(account,
 				TWITTER_PREF_SEARCH_API_BASE,
 				TWITTER_PREF_SEARCH_API_BASE_DEFAULT));
+}
+int twitter_option_cutoff_time(PurpleAccount *account)
+{
+	return purple_account_get_int(account,
+			TWITTER_ONLINE_CUTOFF_TIME_HOURS,
+			TWITTER_ONLINE_CUTOFF_TIME_HOURS_DEFAULT);
 }
