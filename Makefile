@@ -61,6 +61,10 @@ install: $(TARGETS)
 	for dir in $(SUBDIRS); do \
 		make -C "$$dir" $@ || exit 1; \
 	done
+	for dir in 16 22 48; do \
+		(install -m 0755 -d $(PURPLE_PROTOCOL_PIXMAP_DIR)/$$dir && \
+		 install -m 0644 data/prpltwtr$$dir.png $(PURPLE_PROTOCOL_PIXMAP_DIR)/$$dir/prpltwtr.png ) \
+	done
 
 uninstall: 
 	rm -f $(PURPLE_PLUGIN_DIR)/libpurple-twitter-protocol$(PLUGIN_SUFFIX)

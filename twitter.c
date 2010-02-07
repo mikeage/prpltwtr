@@ -604,8 +604,7 @@ static void twitter_get_rate_limit_status_cb(TwitterRequestor *r, xmlnode *node,
  */
 static const char *twitter_list_icon(PurpleAccount *account, PurpleBuddy *buddy)
 {
-	/* shamelessly steal (er, borrow) the meanwhile protocol icon. it's cute! */
-	return "meanwhile";
+	return "prpltwtr";
 }
 
 static char *twitter_status_text(PurpleBuddy *buddy) {
