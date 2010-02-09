@@ -4,7 +4,7 @@ case "$1" in
     configure)
 
       managers_dir=/usr/share/telepathy/managers
-      twitter_manager=/usr/share/doc/libpurple-twitter-protocol/twitter.manager
+      twitter_manager=/usr/share/doc/prpltwtr/twitter.manager
 
       if [ -f $managers_dir/haze.manager ] ; then
             if cat $managers_dir/haze.manager | grep "Protocol twitter" ; then

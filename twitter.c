@@ -1656,7 +1656,7 @@ static PurplePluginInfo info =
 	"Twitter Protocol Plugin",				  /* summary */
 	"Twitter Protocol Plugin",				  /* description */
 	"neaveru <neaveru@gmail.com>",		     /* author */
-	"http://code.google.com/p/libpurple-twitter-protocol/",  /* homepage */
+	"http://code.google.com/p/prpltwtr/",  /* homepage */
 	NULL,						    /* load */
 	NULL,						    /* unload */
 	twitter_destroy,					/* destroy */

@@ -8,7 +8,7 @@ SetCompress off
 !define PRODUCT_NAME "prpltwtr"
 !define PRODUCT_VERSION "0.40"
 !define PRODUCT_PUBLISHER "Neaveru"
-!define PRODUCT_WEB_SITE "http://code.google.com/p/libpurple-twitter-protocol/"
+!define PRODUCT_WEB_SITE "http://code.google.com/p/prpltwtr/"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
 
@@ -64,13 +64,13 @@ Section "MainSection" SEC01
     SetOverwrite try
 	copy:
 		ClearErrors
-		Delete "$PidginDir\plugins\libpurple-twitter-protocol.dll"
+		Delete "$PidginDir\plugins\prpltwtr.dll"
 		IfErrors dllbusy
 		SetOutPath "$PidginDir\plugins"
-	    File "libpurple-twitter-protocol.dll"
+	    File "prpltwtr.dll"
 		Goto after_copy
 	dllbusy:
-		MessageBox MB_RETRYCANCEL "libpurple-twitter-protocol.dll is busy. Please close Pidgin (including tray icon) and try again" IDCANCEL cancel
+		MessageBox MB_RETRYCANCEL "prpltwtr.dll is busy. Please close Pidgin (including tray icon) and try again" IDCANCEL cancel
 		Goto copy
 	cancel:
 		Abort "Installation of prpltwtr aborted"

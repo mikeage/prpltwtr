@@ -9,7 +9,7 @@ include global.mak
 
 SUBDIRS = data
 
-TARGETS = libpurple-twitter-protocol$(PLUGIN_SUFFIX)
+TARGETS = prpltwtr$(PLUGIN_SUFFIX)
 
 LD = $(CC)
 
@@ -54,15 +54,15 @@ build: $(TARGETS)
 test: test.c
 
 install: $(TARGETS)
-	rm -f $(PURPLE_PLUGIN_DIR)/libpurple-twitter-protocol$(PLUGIN_SUFFIX)
+	rm -f $(PURPLE_PLUGIN_DIR)/prpltwtr$(PLUGIN_SUFFIX)
 	install -m 0755 -d $(PURPLE_PLUGIN_DIR)
-	cp libpurple-twitter-protocol$(PLUGIN_SUFFIX) $(PURPLE_PLUGIN_DIR)/libpurple-twitter-protocol$(PLUGIN_SUFFIX)
+	cp prpltwtr$(PLUGIN_SUFFIX) $(PURPLE_PLUGIN_DIR)/prpltwtr$(PLUGIN_SUFFIX)
 	for dir in $(SUBDIRS); do \
 		make -C "$$dir" $@ || exit 1; \
 	done
 
 uninstall: 
-	rm -f $(PURPLE_PLUGIN_DIR)/libpurple-twitter-protocol$(PLUGIN_SUFFIX)
+	rm -f $(PURPLE_PLUGIN_DIR)/prpltwtr$(PLUGIN_SUFFIX)
 	for dir in $(SUBDIRS); do \
 		make -C "$$dir" $@ || exit 1; \
 	done
@@ -70,6 +70,6 @@ uninstall:
 clean:
 	rm -f $(TARGETS) $(OBJECTS)
 
-libpurple-twitter-protocol$(PLUGIN_SUFFIX): $(TWITTER_OBJ)
-	$(LD) $(LDFLAGS) -shared $(TWITTER_OBJ) $(LIB_PATHS) $(LIBS) $(DLL_LD_FLAGS) -o libpurple-twitter-protocol$(PLUGIN_SUFFIX)
+prpltwtr$(PLUGIN_SUFFIX): $(TWITTER_OBJ)
+	$(LD) $(LDFLAGS) -shared $(TWITTER_OBJ) $(LIB_PATHS) $(LIBS) $(DLL_LD_FLAGS) -o prpltwtr$(PLUGIN_SUFFIX)
 

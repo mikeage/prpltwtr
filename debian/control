@@ -1,11 +1,11 @@
-Source: libpurple-twitter-protocol
+Source: prpltwtr
 Priority: optional
 Section: user/network
 Maintainer: Tan Miaoqing <rabbitrun84@gmail.com>
 Build-Depends: debhelper (>= 5), cdbs, pkg-config, libpurple-dev, pidgin-dev
 Standards-Version: 3.8.0
 
-Package: libpurple-twitter-protocol
+Package: prpltwtr
 Section: user/network
 Architecture: any
 Depends: libpurple0, account-plugin-haze, ${shlibs:Depends}, ${misc:Depends}
@@ -15,7 +15,7 @@ Description: This plugin tightly integrates Twitter to Maemo Contacts and Conver
  you can send replies or DMs to any Twitter friend straight from Contacts, simply by 
  tapping on their Twitter IDs.
  .
- This plugin is based on libpurple-twitter-protocol by neaveru (http://code.google.com/u/neaveru).
+ This plugin is based on prpltwtr by neaveru (http://code.google.com/u/neaveru).
  You can find more information at my Twitter @rabbitrun84
 XB-Maemo-Display-Name: Twitter plugin for Contacts and Conversations
 XB-Maemo-Icon-26: 
