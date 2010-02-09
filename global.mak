@@ -91,7 +91,3 @@ endif
 
 LDFLAGS := $(shell (echo $(PIDGIN_CFLAGS) $(PURPLE_CFLAGS)| tr ' ' '\n' | awk '!a[$$0]++' | tr '\n' ' '))
 endif
-
-dist: $(DISTFILES)
-	mkdir -p ../$(PACKAGE)-$(VERSION)
-	cp -f $(DISTFILES) ../$(PACKAGE)-$(VERSION)

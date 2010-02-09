@@ -44,7 +44,8 @@ endif
 TWITTER_H_SRC = $(TWITTER_C_SRC:%.c=%.h) config.h
 TWITTER_OBJ = $(TWITTER_C_SRC:%.c=%.o)
 
-DISTFILES = $(TWITTER_C_SRC) $(TWITTER_H_SRC) Makefile global.mak version.mak
+DISTFILES = $(TWITTER_C_SRC) $(TWITTER_H_SRC) Makefile Makefile.telepathy global.mak version.mak
+DISTDIRS = $(SUBDIRS)
 
 OBJECTS = $(TWITTER_OBJ)
 
@@ -75,6 +76,19 @@ uninstall:
 clean:
 	rm -f $(TARGETS) $(OBJECTS)
 
+dist: $(DISTFILES)
+	mkdir -p $(PACKAGE)-$(VERSION)
+	cp -f $(DISTFILES) $(PACKAGE)-$(VERSION)
+	for dir in $(DISTDIRS); do \
+		mkdir -p $(PACKAGE)-$(VERSION)/$$dir; \
+		find $$dir -maxdepth 1 -type f | xargs cp --target-directory $(PACKAGE)-$(VERSION)/$$dir; \
+	done
+
+prpltwtr.tar.gz: dist
+	tar cfz $(PACKAGE)-$(VERSION).tar.gz $(PACKAGE)-$(VERSION) 
+
 prpltwtr$(PLUGIN_SUFFIX): $(TWITTER_OBJ)
 	$(LD) $(LDFLAGS) -shared $(TWITTER_OBJ) $(LIB_PATHS) $(LIBS) $(DLL_LD_FLAGS) -o prpltwtr$(PLUGIN_SUFFIX)
 
+prpltwtr.exe: prpltwtr.dll
+	makensis twitter.nsi > /dev/null
