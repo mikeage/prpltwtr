@@ -58,17 +58,6 @@ static void twitter_account_invalidate_token(PurpleAccount *account)
 	twitter_account_set_oauth_access_token_secret(account, NULL);
 }
 
-static gboolean twitter_usernames_match(PurpleAccount *account, const gchar *u1, const gchar *u2)
-{
-	gboolean match;
-	gchar *u1n = g_strdup(purple_normalize(account, u1));
-	const gchar *u2n = purple_normalize(account, u2);
-	match = !strcmp(u1n, u2n);
-
-	g_free(u1n);
-	return match;
-}
-
 /******************************************************
  *  Chat
  ******************************************************/
@@ -333,24 +322,26 @@ static void get_saved_searches_cb(TwitterRequestor *r,
 static void twitter_chat_leave(PurpleConnection *gc, int id) {
 	PurpleConversation *conv = purple_find_chat(gc, id);
 	TwitterConnectionData *twitter = gc->proto_data;
-	TwitterEndpointChat *ctx = (TwitterEndpointChat *) g_hash_table_lookup(twitter->chat_contexts, purple_conversation_get_name(conv));
+	PurpleAccount *account = purple_connection_get_account(gc);
+	TwitterEndpointChat *ctx = twitter_endpoint_chat_find(account, purple_conversation_get_name(conv));
 
 	g_return_if_fail(ctx != NULL);
+	//TODO move me to twitter_endpoint_chat
 
-	PurpleChat *blist_chat = twitter_blist_chat_find(purple_connection_get_account(gc), ctx->chat_name);
+	PurpleChat *blist_chat = twitter_blist_chat_find(account, ctx->chat_name);
 	if (blist_chat != NULL && twitter_blist_chat_is_auto_open(blist_chat))
 	{
 		return;
 	}
 
-	g_hash_table_remove(twitter->chat_contexts, ctx->chat_name);
+	g_hash_table_remove(twitter->chat_contexts, purple_normalize(account, ctx->chat_name));
 }
 
 static int twitter_chat_send(PurpleConnection *gc, int id, const char *message,
 		PurpleMessageFlags flags) {
 	PurpleConversation *conv = purple_find_chat(gc, id);
-	TwitterConnectionData *twitter = gc->proto_data;
-	TwitterEndpointChat *ctx = (TwitterEndpointChat *) g_hash_table_lookup(twitter->chat_contexts, purple_conversation_get_name(conv));
+	PurpleAccount *account = purple_connection_get_account(gc);
+	TwitterEndpointChat *ctx = twitter_endpoint_chat_find(account, purple_conversation_get_name(conv));
 	char *stripped_message;
 	int rv;
 
@@ -434,7 +425,7 @@ static void conversation_created_cb(PurpleConversation *conv, PurpleAccount *acc
 				twitter_get_endpoint_chat_settings(TWITTER_CHAT_SEARCH),
 				components,
 				 TRUE) ;
-	} else if (!strcmp(name, "Timeline: Home")) {
+	} else if (twitter_usernames_match(account, name, "Timeline: Home")) {
 		GHashTable *components = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, g_free);
 		g_hash_table_insert(components, "timeline_id", g_strdup("0"));
 		g_hash_table_insert(components, "chat_type", g_strdup_printf("%d", TWITTER_CHAT_TIMELINE)); //i don't think this is needed
@@ -451,16 +442,18 @@ static void deleting_conversation_cb(PurpleConversation *conv, PurpleAccount *ac
 
 	g_return_if_fail(name != NULL && name[0] != '\0');
 
-	if (name[0] == '#' || !strcmp(name, "Timeline: Home"))
+	if (name[0] == '#' || twitter_usernames_match(account, name, "Timeline: Home"))
 	{
 		PurpleConnection *gc = purple_conversation_get_gc(conv);
+		PurpleAccount *account = purple_connection_get_account(gc);
 		TwitterConnectionData *twitter = gc->proto_data;
-		TwitterEndpointChat *ctx = (TwitterEndpointChat *) g_hash_table_lookup(twitter->chat_contexts, purple_conversation_get_name(conv));
+		TwitterEndpointChat *ctx = twitter_endpoint_chat_find(account, purple_conversation_get_name(conv));
 		if (ctx)
 		{
+			//TODO: move to endpoint_chat.c
 			purple_debug_info(TWITTER_PROTOCOL_ID, "destroying haze im chat %s\n",
 				ctx->chat_name);
-			g_hash_table_remove(twitter->chat_contexts, ctx->chat_name);
+			g_hash_table_remove(twitter->chat_contexts, purple_normalize(account, ctx->chat_name));
 		}
 	}
 }
@@ -1223,15 +1216,13 @@ static int twitter_send_im(PurpleConnection *gc, const char *conv_name,
 	{
 		purple_debug_info(TWITTER_PROTOCOL_ID, "%s of search %s\n", G_STRFUNC, conv_name);
 		TwitterEndpointChat *endpoint = twitter_endpoint_chat_find(account, conv_name);
-		TwitterEndpointChatSettings *settings = twitter_get_endpoint_chat_settings(TWITTER_CHAT_SEARCH);
-		rv = settings->send_message(endpoint, stripped_message);
+		rv = twitter_endpoint_chat_send(endpoint, stripped_message);
 		g_free(stripped_message);
 		return rv;
-	} else if (!strcmp(conv_name, "Timeline: Home")) {
+	} else if (twitter_usernames_match(account, conv_name, "Timeline: Home")) {
 		purple_debug_info(TWITTER_PROTOCOL_ID, "%s of home timeline\n", G_STRFUNC);
 		TwitterEndpointChat *endpoint = twitter_endpoint_chat_find(account, conv_name);
-		TwitterEndpointChatSettings *settings = twitter_get_endpoint_chat_settings(TWITTER_CHAT_TIMELINE);
-		rv = settings->send_message(endpoint, stripped_message);
+		rv = twitter_endpoint_chat_send(endpoint, stripped_message);
 		g_free(stripped_message);
 		return rv;
 	}
@@ -1386,7 +1377,7 @@ static void twitter_blist_chat_auto_open_toggle(PurpleBlistNode *node, gpointer 
 	{
 		TwitterConnectionData *twitter = purple_account_get_connection(account)->proto_data;
 		purple_debug_info(TWITTER_PROTOCOL_ID, "No more auto open, destroying context\n");
-		g_hash_table_remove(twitter->chat_contexts, ctx->chat_name);
+		g_hash_table_remove(twitter->chat_contexts, purple_normalize(account, ctx->chat_name));
 	} else if (new_state && !twitter_endpoint_chat_find(account, chat_name)) {
 		//Join the chat, but don't automatically open the conversation
 		twitter_chat_join_do(purple_account_get_connection(account), components, FALSE);

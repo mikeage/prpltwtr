@@ -5,6 +5,18 @@
 
 #include "twitter_util.h"
 
+gboolean twitter_usernames_match(PurpleAccount *account, const gchar *u1, const gchar *u2)
+{
+	gboolean match;
+	gchar *u1n = g_strdup(purple_normalize(account, u1));
+	const gchar *u2n = purple_normalize(account, u2);
+	match = !strcmp(u1n, u2n);
+
+	g_free(u1n);
+	return match;
+}
+
+
 long long purple_account_get_long_long(PurpleAccount *account, const gchar *key, long long default_value)
 {
 	const char* tmp_str;

@@ -277,7 +277,9 @@ void twitter_endpoint_chat_start(PurpleConnection *gc, TwitterEndpointChatSettin
 			TwitterConnectionData *twitter = gc->proto_data;
 			TwitterEndpointChat *endpoint_chat = twitter_endpoint_chat_new(
 					settings, settings->type, account, chat_name, components);
-			g_hash_table_insert(twitter->chat_contexts, g_strdup(chat_name), endpoint_chat);
+			g_hash_table_insert(twitter->chat_contexts,
+					g_strdup(purple_normalize(account, chat_name)),
+					endpoint_chat);
 			settings->on_start(endpoint_chat);
 
 			endpoint_chat->timer_handle = purple_timeout_add_seconds(
@@ -294,7 +296,7 @@ TwitterEndpointChat *twitter_endpoint_chat_find(PurpleAccount *account, const ch
 {
 	PurpleConnection *gc = purple_account_get_connection(account);
 	TwitterConnectionData *twitter = gc->proto_data;
-	return (TwitterEndpointChat *) g_hash_table_lookup(twitter->chat_contexts, chat_name);
+	return (TwitterEndpointChat *) g_hash_table_lookup(twitter->chat_contexts, purple_normalize(account, chat_name));
 }
 
 #if _HAZE_
