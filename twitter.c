@@ -508,6 +508,9 @@ static void twitter_connected(PurpleAccount *account)
 		purple_signal_connect(purple_conversations_get_handle(),
 				"conversation-created",
 				_twitter_protocol, PURPLE_CALLBACK(twitter_charcount_conv_created_cb), NULL);
+		purple_signal_connect(purple_conversations_get_handle(),
+				"deleting-conversation",
+				_twitter_protocol, PURPLE_CALLBACK(twitter_charcount_conv_destroyed_cb), NULL);
 #endif
 	}
 

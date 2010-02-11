@@ -238,4 +238,15 @@ void twitter_charcount_conv_created_cb(PurpleConversation *conv, gpointer null)
 	attach_to_gtkconv(gtkconv, NULL);
 }
 
+void twitter_charcount_conv_destroyed_cb(PurpleConversation *conv, gpointer null)
+{
+	PidginConversation *gtkconv;
+
+	gtkconv = PIDGIN_CONVERSATION(conv);
+
+	g_return_if_fail(gtkconv != NULL);
+
+	detach_from_gtkconv(gtkconv, NULL);
+}
+
 #endif
