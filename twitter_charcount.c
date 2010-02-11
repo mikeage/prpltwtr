@@ -73,12 +73,16 @@ static gchar *twitter_conv_get_append_text(PurpleConversation *conv)
 static ConvCharCount *conv_char_count_new(PidginConversation *gtkconv)
 {
 	ConvCharCount *ccc;
+	gchar *append_text;
 	g_return_val_if_fail(gtkconv != NULL, NULL);
 
 	ccc = g_new(ConvCharCount, 1);
 	ccc->gtkconv = gtkconv;
-	ccc->append_text = twitter_conv_get_append_text(gtkconv->active_conv);
+	append_text = twitter_conv_get_append_text(gtkconv->active_conv);
+	ccc->append_text = append_text ? g_utf8_strdown(append_text, -1) : NULL; 
 	ccc->append_text_len = ccc->append_text ? g_utf8_strlen(ccc->append_text, -1) + 1 : 0;
+	if (append_text)
+		g_free(append_text);
 	return ccc;
 }
 static void conv_char_count_free(ConvCharCount *ccc)
@@ -90,7 +94,48 @@ static void conv_char_count_free(ConvCharCount *ccc)
 	g_free(ccc);
 }
 
+static void changed_cb(GtkTextBuffer *textbuffer, gpointer user_data)
+{
+	ConvCharCount *ccc = (ConvCharCount *) user_data;
+	PidginConversation *gtkconv;
+	GtkWidget *box, *counter = NULL;
+	gchar count[20];
 
+	static GtkTextIter start_iter, end_iter;
+	gchar *text, *text_lower;
+	int append_text_len;
+
+	g_return_if_fail(ccc != NULL);
+
+	gtkconv = ccc->gtkconv;
+	append_text_len = ccc->append_text_len;
+
+	gtk_text_buffer_get_start_iter(textbuffer, &start_iter);
+	gtk_text_buffer_get_end_iter(textbuffer, &end_iter);
+
+	if (ccc->append_text)
+	{
+		text = gtk_text_buffer_get_text(textbuffer, &start_iter, &end_iter, TRUE);
+		text_lower = g_utf8_strdown(text, -1);
+		if (strstr(text_lower, ccc->append_text))
+		{
+			append_text_len = 0;
+		}
+		g_free(text);
+		g_free(text_lower);
+	}
+
+	g_snprintf(count, sizeof(count) - 1, "%u",
+			gtk_text_buffer_get_char_count(textbuffer) +
+			append_text_len);
+
+	box = gtkconv->toolbar;
+	counter = g_object_get_data(G_OBJECT(box), TWITTER_PROTOCOL_ID "-counter");
+	if (counter)
+		gtk_label_set_text(GTK_LABEL(counter), count);
+}
+
+/*
 static void insert_text_cb(GtkTextBuffer *textbuffer, GtkTextIter *position, gchar *new_text, gint new_text_length, gpointer user_data)
 {
 	ConvCharCount *ccc = (ConvCharCount *) user_data;
@@ -98,10 +143,17 @@ static void insert_text_cb(GtkTextBuffer *textbuffer, GtkTextIter *position, gch
 	GtkWidget *box, *counter = NULL;
 	gchar count[20];
 
+	static GtkTextIter start_iter, end_iter;
+
 	g_return_if_fail(ccc != NULL);
 
 	gtkconv = ccc->gtkconv;
 
+	gtk_text_buffer_get_start_iter(textbuffer, &start_iter);
+	gtk_text_buffer_get_end_iter(textbuffer, &end_iter);
+	gchar *text = gtk_text_buffer_get_text(textbuffer, &start_iter, &end_iter, TRUE);
+	printf("%s\n", text);
+	g_free(text);
 	g_snprintf(count, sizeof(count) - 1, "%u",
 			gtk_text_buffer_get_char_count(textbuffer) +
 			new_text_length + ccc->append_text_len);
@@ -111,7 +163,9 @@ static void insert_text_cb(GtkTextBuffer *textbuffer, GtkTextIter *position, gch
 	if (counter)
 		gtk_label_set_text(GTK_LABEL(counter), count);
 }
+*/
 
+/*
 static void delete_text_cb(GtkTextBuffer *textbuffer, GtkTextIter *start_pos, GtkTextIter *end_pos, gpointer user_data)
 {
 	ConvCharCount *ccc = (ConvCharCount *) user_data;
@@ -125,7 +179,6 @@ static void delete_text_cb(GtkTextBuffer *textbuffer, GtkTextIter *start_pos, Gt
 
 	g_snprintf(count, sizeof(count) - 1, "%u",
 			gtk_text_buffer_get_char_count(textbuffer) + ccc->append_text_len -
-			//FIXME: this is wrong for utf8
 			(gtk_text_iter_get_offset(end_pos) - gtk_text_iter_get_offset(start_pos)));
 
 	box = gtkconv->toolbar;
@@ -133,6 +186,7 @@ static void delete_text_cb(GtkTextBuffer *textbuffer, GtkTextIter *start_pos, Gt
 	if (counter)
 		gtk_label_set_text(GTK_LABEL(counter), count);
 }
+*/
 
 static void detach_from_gtkconv(PidginConversation *gtkconv, gpointer null)
 {
@@ -143,10 +197,12 @@ static void detach_from_gtkconv(PidginConversation *gtkconv, gpointer null)
 	if (strcmp(purple_account_get_protocol_id(account), TWITTER_PROTOCOL_ID))
 		return;
 
-	g_signal_handlers_disconnect_by_func(G_OBJECT(gtkconv->entry_buffer),
+	/*g_signal_handlers_disconnect_by_func(G_OBJECT(gtkconv->entry_buffer),
 			(GFunc)insert_text_cb, gtkconv);
 	g_signal_handlers_disconnect_by_func(G_OBJECT(gtkconv->entry_buffer),
-			(GFunc)delete_text_cb, gtkconv);
+			(GFunc)delete_text_cb, gtkconv);*/
+	g_signal_handlers_disconnect_by_func(G_OBJECT(gtkconv->entry_buffer),
+			(GFunc)changed_cb, gtkconv);
 
 	box = gtkconv->toolbar;
 	counter = g_object_get_data(G_OBJECT(box), TWITTER_PROTOCOL_ID "-counter");
@@ -199,10 +255,12 @@ static void attach_to_gtkconv(PidginConversation *gtkconv, gpointer null)
 	g_object_set_data(G_OBJECT(box), TWITTER_PROTOCOL_ID "-ccc", ccc);
 
 	/* connect signals, etc. */
-	g_signal_connect(G_OBJECT(gtkconv->entry_buffer), "insert_text",
+	/*g_signal_connect(G_OBJECT(gtkconv->entry_buffer), "insert_text",
 			G_CALLBACK(insert_text_cb), ccc);
 	g_signal_connect(G_OBJECT(gtkconv->entry_buffer), "delete_range",
-			G_CALLBACK(delete_text_cb), ccc);
+			G_CALLBACK(delete_text_cb), ccc);*/
+	g_signal_connect(G_OBJECT(gtkconv->entry_buffer), "changed",
+			G_CALLBACK(changed_cb), ccc);
 
 	gtk_widget_queue_draw(pidgin_conv_get_window(gtkconv)->window);
 }

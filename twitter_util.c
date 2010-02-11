@@ -159,13 +159,14 @@ char *twitter_utf8_get_segment(const gchar *message, int max_len, const gchar *a
 	if (message[0] == '\0')
 		return NULL;
 
-	//TODO: proper case sensitivity
 	if (add_text)
 	{
-		char *pnt_add_text = strstr(message, add_text);
+		gchar *message_lower = g_utf8_strdown(message, -1);
+		char *pnt_add_text = strstr(message_lower, add_text);
 		add_text_len = g_utf8_strlen(add_text, -1);
 		if (pnt_add_text)
 			index_add_text = g_utf8_pointer_to_offset(message, pnt_add_text) + add_text_len;
+		g_free(message_lower);
 	}
 
 	len_left = g_utf8_strlen(message, -1);
