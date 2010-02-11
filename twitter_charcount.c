@@ -37,6 +37,7 @@
 #include <version.h>
 
 #include "twitter_endpoint_chat.h"
+#include "twitter_endpoint_im.h"
 
 /* data to get passed each time a character is typed
  * this should be faster than having multiple hash
@@ -58,6 +59,13 @@ static gchar *twitter_conv_get_append_text(PurpleConversation *conv)
 		{
 			return ctx->settings->get_status_added_text(ctx);
 		}
+	} else if (conv->type == PURPLE_CONV_TYPE_IM) {
+		PurpleAccount *account = purple_conversation_get_account(conv);
+		const gchar *conv_name = purple_conversation_get_name(conv);
+		if (twitter_conv_name_to_type(account, conv_name) == TWITTER_IM_TYPE_AT_MSG)
+		{
+			return g_strdup_printf("@%s", twitter_conv_name_to_buddy_name(account, conv_name));
+		}
 	}
 	return NULL;
 }
@@ -70,7 +78,7 @@ static ConvCharCount *conv_char_count_new(PidginConversation *gtkconv)
 	ccc = g_new(ConvCharCount, 1);
 	ccc->gtkconv = gtkconv;
 	ccc->append_text = twitter_conv_get_append_text(gtkconv->active_conv);
-	ccc->append_text_len = ccc->append_text ? g_utf8_strlen(ccc->append_text, -1) : 0;
+	ccc->append_text_len = ccc->append_text ? g_utf8_strlen(ccc->append_text, -1) + 1 : 0;
 	return ccc;
 }
 static void conv_char_count_free(ConvCharCount *ccc)
