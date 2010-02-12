@@ -25,7 +25,6 @@
 
 #if _HAVE_PIDGIN_
 
-#include "config.h"
 #include "string.h"
 #include <gdk/gdk.h>
 #include <glib.h>

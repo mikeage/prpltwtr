@@ -3,6 +3,7 @@
 
 #if _HAVE_PIDGIN_
 
+#include "config.h"
 #include <glib.h>
 #include <conversation.h>
 
