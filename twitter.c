@@ -31,6 +31,8 @@
 #include <gtkimhtml.h>
 #endif
 
+#include "twitter_charcount.h"
+
 
 static PurplePlugin *_twitter_protocol = NULL;
 
@@ -464,6 +466,7 @@ static void twitter_endpoint_im_start_foreach(TwitterConnectionData *twitter, Tw
 	twitter_endpoint_im_start(im);
 }
 
+static gboolean TWITTER_SIGNALS_CONNECTED = FALSE;
 
 static void twitter_connected(PurpleAccount *account)
 {
@@ -492,6 +495,24 @@ static void twitter_connected(PurpleAccount *account)
 			twitter, PURPLE_CALLBACK(deleting_conversation_cb), account);
 
 #endif
+
+	/* Since protocol plugins are loaded before conversations_init is called
+	 * we cannot connect these signals in plugin->load.
+	 * So we have this here, with a global var that tells us to only run this
+	 * once, regardless of number of accounts connecting */
+	if (!TWITTER_SIGNALS_CONNECTED)
+	{
+		TWITTER_SIGNALS_CONNECTED = TRUE;
+
+#if _HAVE_PIDGIN_
+		purple_signal_connect(purple_conversations_get_handle(),
+				"conversation-created",
+				_twitter_protocol, PURPLE_CALLBACK(twitter_charcount_conv_created_cb), NULL);
+		purple_signal_connect(purple_conversations_get_handle(),
+				"deleting-conversation",
+				_twitter_protocol, PURPLE_CALLBACK(twitter_charcount_conv_destroyed_cb), NULL);
+#endif
+	}
 
 	purple_connection_update_progress(gc, "Connected",
 			2,   /* which connection step this is */
@@ -1619,7 +1640,10 @@ static void twitter_init(PurplePlugin *plugin)
 	purple_signal_connect(purple_get_core(), "uri-handler", plugin,
 			PURPLE_CALLBACK(twitter_uri_handler), NULL);
 
+	twitter_charcount_attach_to_all_windows();
+
 	gtk_imhtml_class_register_protocol(TWITTER_URI "://", twitter_url_clicked_cb, twitter_context_menu);
+
 #endif
 	twitter_init_endpoint_chat_settings(twitter_endpoint_search_get_settings());
 	twitter_init_endpoint_chat_settings(twitter_endpoint_timeline_get_settings());
@@ -1628,6 +1652,10 @@ static void twitter_init(PurplePlugin *plugin)
 }
 
 static void twitter_destroy(PurplePlugin *plugin) {
+
+#if _HAVE_PIDGIN_
+	twitter_charcount_detach_from_all_windows();
+#endif
 	purple_debug_info(TWITTER_PROTOCOL_ID, "shutting down\n");
 }
 

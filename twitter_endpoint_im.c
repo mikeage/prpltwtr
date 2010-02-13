@@ -42,7 +42,7 @@ const char *twitter_conv_name_to_buddy_name(PurpleAccount *account, const char *
 }
 
 
-static TwitterImType twitter_conv_name_to_type(PurpleAccount *account, const char *name)
+TwitterImType twitter_conv_name_to_type(PurpleAccount *account, const char *name)
 {
 	g_return_val_if_fail(name != NULL && name[0] != '\0', TWITTER_IM_TYPE_UNKNOWN);
 	if (name[0] == '@')

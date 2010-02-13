@@ -65,5 +65,6 @@ char *twitter_endpoint_im_buddy_name_to_conv_name(TwitterEndpointIm *im, const c
 void twitter_status_data_update_conv(TwitterEndpointIm *ctx,
 		char *buddy_name,
 		TwitterTweet *s);
+TwitterImType twitter_conv_name_to_type(PurpleAccount *account, const char *name);
 
 #endif

@@ -266,11 +266,6 @@ void twitter_endpoint_chat_start(PurpleConnection *gc, TwitterEndpointChatSettin
         if (purple_find_conversation_with_account(PURPLE_CONV_TYPE_IM, chat_name, account)) {
 #else
         if (!purple_find_conversation_with_account(PURPLE_CONV_TYPE_CHAT, chat_name, account)) {
-		if (open_conv)
-		{
-			guint chat_id = twitter_get_next_chat_id();
-			serv_got_joined_chat(gc, chat_id, chat_name);
-		}
 #endif
 		if (!twitter_endpoint_chat_find(account, chat_name))
 		{
@@ -286,6 +281,13 @@ void twitter_endpoint_chat_start(PurpleConnection *gc, TwitterEndpointChatSettin
 					60 * interval,
 					twitter_endpoint_chat_interval_timeout, endpoint_chat);
 		}
+#if !_HAZE_
+		if (open_conv)
+		{
+			guint chat_id = twitter_get_next_chat_id();
+			serv_got_joined_chat(gc, chat_id, chat_name);
+		}
+#endif
         } else {
                 purple_debug_info(TWITTER_PROTOCOL_ID, "Chat %s is already open.", chat_name);
         }
