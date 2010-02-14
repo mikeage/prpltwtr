@@ -1408,21 +1408,25 @@ static void twitter_blist_chat_auto_open_toggle(PurpleBlistNode *node, gpointer 
 			(new_state ? g_strdup("1") : g_strdup("0")));
 }
 
+//TODO should be handled in twitter_endpoint_reply
 static void twitter_blist_buddy_at_msg(PurpleBlistNode *node, gpointer userdata)
 {
 	PurpleBuddy *buddy = PURPLE_BUDDY(node);
 	char *name = g_strdup_printf("@%s", buddy->name);
-	purple_conversation_new(PURPLE_CONV_TYPE_IM, purple_buddy_get_account(buddy),
+	PurpleConversation *conv = purple_conversation_new(PURPLE_CONV_TYPE_IM, purple_buddy_get_account(buddy),
 			name);
+	purple_conversation_present(conv);
 	g_free(name);
 }
 
+//TODO should be handled in twitter_endpoint_dm
 static void twitter_blist_buddy_dm(PurpleBlistNode *node, gpointer userdata)
 {
 	PurpleBuddy *buddy = PURPLE_BUDDY(node);
 	char *name = g_strdup_printf("d %s", buddy->name);
-	purple_conversation_new(PURPLE_CONV_TYPE_IM, purple_buddy_get_account(buddy),
+	PurpleConversation *conv = purple_conversation_new(PURPLE_CONV_TYPE_IM, purple_buddy_get_account(buddy),
 			name);
+	purple_conversation_present(conv);
 	g_free(name);
 }
 
@@ -1472,10 +1476,18 @@ static void twitter_set_buddy_icon(PurpleConnection *gc,
 }
 
 
+static void twitter_convo_closed(PurpleConnection *gc, const gchar *conv_name)
+{
+	TwitterEndpointIm *im = twitter_conv_name_to_endpoint_im(purple_connection_get_account(gc), conv_name);
+	if (im)
+	{
+		twitter_endpoint_im_convo_closed(im, conv_name);
+	}
+}
+
 /*
  * prpl stuff. see prpl.h for more information.
  */
-
 static PurplePluginProtocolInfo prpl_info =
 {
 	OPT_PROTO_CHAT_TOPIC,  /* options */
@@ -1531,7 +1543,7 @@ static PurplePluginProtocolInfo prpl_info =
 	NULL,		/* group_buddy */
 	NULL,	       /* rename_group */
 	NULL,				/* buddy_free */
-	NULL,	       /* convo_closed */
+	twitter_convo_closed,	       /* convo_closed */
 	purple_normalize_nocase,		  /* normalize */
 	twitter_set_buddy_icon,	     /* set_buddy_icon */
 	NULL,	       /* remove_group */
@@ -1598,10 +1610,30 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 				"@name clicked",
 				"Sorry, this has not been implemented yet");
 	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_REPLY)) {
-		//join chat with default interval, open in conv window
 		const char *id_str, *user;
+		long long id;
+		PurpleConversation *conv;
 		id_str = g_hash_table_lookup(params, "id");
 		user = g_hash_table_lookup(params, "user");
+		if (id_str == NULL || user == NULL || id_str[0] == '\0' || user[0] == '\0')
+		{
+			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. Invalid id/user for reply\n");
+			return FALSE;
+		}
+		id = strtoll(id_str, NULL, 10);
+		if (id == 0)
+		{
+			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. Invalid id for reply\n");
+			return FALSE;
+		}
+		conv = twitter_endpoint_reply_conversation_new(twitter_endpoint_im_find(account, TWITTER_IM_TYPE_AT_MSG),
+				user,
+				id);
+		if (!conv)
+		{
+			return FALSE;
+		}
+		purple_conversation_present(conv);
 	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_SEARCH)) {
 		//join chat with default interval, open in conv window
 		GHashTable *components;

@@ -8,5 +8,8 @@
 #include "twitter_buddy.h"
 
 TwitterEndpointImSettings *twitter_endpoint_reply_get_settings();
+PurpleConversation *twitter_endpoint_reply_conversation_new(TwitterEndpointIm *im,
+		const gchar *buddy_name,
+		long long reply_id);
 
 #endif

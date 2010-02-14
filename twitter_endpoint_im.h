@@ -33,6 +33,7 @@ typedef struct
 			void (*success_cb)(PurpleAccount *account, long long id, gpointer user_data),
 			void (*error_cb)(PurpleAccount *account, const TwitterRequestErrorData *error_data, gpointer user_data),
 			gpointer user_data);
+	void (*convo_closed)(PurpleConversation *conv);
 } TwitterEndpointImSettings;
 
 typedef struct
@@ -66,5 +67,6 @@ void twitter_status_data_update_conv(TwitterEndpointIm *ctx,
 		char *buddy_name,
 		TwitterTweet *s);
 TwitterImType twitter_conv_name_to_type(PurpleAccount *account, const char *name);
+void twitter_endpoint_im_convo_closed(TwitterEndpointIm *im, const gchar *conv_name);
 
 #endif

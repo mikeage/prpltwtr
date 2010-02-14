@@ -229,3 +229,18 @@ void twitter_status_data_update_conv(TwitterEndpointIm *ctx,
 	g_free(tweet);
 }
 
+void twitter_endpoint_im_convo_closed(TwitterEndpointIm *im, const gchar *conv_name)
+{
+	PurpleConversation *conv;
+	g_return_if_fail(im != NULL);
+	g_return_if_fail(conv_name != NULL);
+
+	if (!im->settings->convo_closed)
+		return;
+
+	conv = purple_find_conversation_with_account(PURPLE_CONV_TYPE_IM, conv_name, im->account);
+	if (!conv)
+		return;
+
+	im->settings->convo_closed(conv);
+}
