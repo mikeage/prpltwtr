@@ -62,7 +62,7 @@ static const char *_find_first_delimiter(const char *text, const char *delimiter
 #endif
 
 //TODO: move those
-static const char *twitter_linkify(PurpleAccount *account, const char *message)
+static char *twitter_linkify(PurpleAccount *account, const char *message)
 {
 #if _HAVE_PIDGIN_
 	GString *ret;
@@ -113,21 +113,34 @@ static const char *twitter_linkify(PurpleAccount *account, const char *message)
 //TODO: move those
 char *twitter_format_tweet(PurpleAccount *account, const char *src_user, const char *message, long long id, gboolean allow_link)
 {
-	const char *linkified_message = twitter_linkify(account, message);
+	char *linkified_message = twitter_linkify(account, message);
 	gboolean add_link = twitter_option_add_link_to_tweet(account) && allow_link;
+	GString *tweet;
 
 	g_return_val_if_fail(linkified_message != NULL, NULL);
 	g_return_val_if_fail(src_user != NULL, NULL);
 
-	if (add_link && id) {
-		return g_strdup_printf("%s\nhttp://twitter.com/%s/status/%lld\n",
-				linkified_message,
+	tweet = g_string_new(linkified_message);
+
+#if _HAVE_PIDGIN_
+	if (id)
+		g_string_append_printf(tweet,
+				"\n<a href=\"" TWITTER_URI ":///" TWITTER_URI_ACTION_REPLY "?account=a%s&user=%s&id=%lld\">reply</a>",
+				purple_account_get_username(account),
+				purple_url_encode(src_user),
+				id);
+#endif
+
+	if (add_link && id)
+	{
+		g_string_append_printf(tweet,
+				"\nhttp://twitter.com/%s/status/%lld\n",
 				src_user,
 				id);
 	}
-	else {
-		return g_strdup_printf("%s", linkified_message);
-	}
+
+	g_free(linkified_message);
+	return g_string_free(tweet, FALSE);
 }
 
 

@@ -1570,12 +1570,11 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 	if (strcmp(proto, TWITTER_URI))
 		return FALSE;
 
-	text = purple_url_decode(g_hash_table_lookup(params, "text"));
 	username = g_hash_table_lookup(params, "account");
 
-	if (text == NULL || username == NULL || username[0] == '\0')
+	if (username == NULL || username[0] == '\0')
 	{
-		purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri.\n");
+		purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. No account username\n");
 		return FALSE;
 	}
 
@@ -1591,17 +1590,30 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 	while (cmd_arg[0] == '/')
 		cmd_arg++;
 
-	purple_debug_info(TWITTER_PROTOCOL_ID, "Account %s got action %s with text %s\n", username, cmd_arg, text);
+	purple_debug_info(TWITTER_PROTOCOL_ID, "Account %s got action %s\n", username, cmd_arg);
 	if (!strcmp(cmd_arg, TWITTER_URI_ACTION_USER))
 	{
 		purple_notify_info(purple_account_get_connection(account),
 				"Clicked URI",
 				"@name clicked",
 				"Sorry, this has not been implemented yet");
+	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_REPLY)) {
+		//join chat with default interval, open in conv window
+		const char *id_str, *user;
+		id_str = g_hash_table_lookup(params, "id");
+		user = g_hash_table_lookup(params, "user");
 	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_SEARCH)) {
 		//join chat with default interval, open in conv window
-		GHashTable *components = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, g_free);
-		g_hash_table_insert(components, "search", g_strdup(text));
+		GHashTable *components;
+		text = g_hash_table_lookup(params, "text");
+
+		if (text == NULL || text[0] == '\0')
+		{
+			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. No text for search\n");
+			return FALSE;
+		}
+		components = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, g_free);
+		g_hash_table_insert(components, "search", g_strdup(purple_url_decode(text)));
 		twitter_endpoint_chat_start(purple_account_get_connection(account), twitter_get_endpoint_chat_settings(TWITTER_CHAT_SEARCH),
 				components, TRUE) ;
 	}

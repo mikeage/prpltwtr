@@ -17,6 +17,7 @@
 
 #define TWITTER_URI_ACTION_USER		"user" //TODO: move?
 #define TWITTER_URI_ACTION_SEARCH	"search" //TODO: move?
+#define TWITTER_URI_ACTION_REPLY	"reply" //TODO: move?
 
 gboolean twitter_usernames_match(PurpleAccount *account, const gchar *u1, const gchar *u2);
 long long purple_account_get_long_long(PurpleAccount *account, const gchar *key, long long default_value);
