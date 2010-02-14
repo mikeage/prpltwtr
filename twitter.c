@@ -1634,6 +1634,26 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 			return FALSE;
 		}
 		purple_conversation_present(conv);
+	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_RT)) {
+		const char *id_str;
+		long long id;
+		id_str = g_hash_table_lookup(params, "id");
+		if (id_str == NULL || id_str[0] == '\0')
+		{
+			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. Invalid id for rt\n");
+			return FALSE;
+		}
+		id = strtoll(id_str, NULL, 10);
+		if (id == 0)
+		{
+			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. Invalid id for rt\n");
+			return FALSE;
+		}
+		twitter_api_send_rt(purple_account_get_requestor(account),
+				id,
+				NULL,
+				NULL,
+				NULL);
 	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_SEARCH)) {
 		//join chat with default interval, open in conv window
 		GHashTable *components;

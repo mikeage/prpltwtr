@@ -124,11 +124,17 @@ char *twitter_format_tweet(PurpleAccount *account, const char *src_user, const c
 
 #if _HAVE_PIDGIN_
 	if (id)
+	{
+		const gchar *account_name = purple_account_get_username(account);
 		g_string_append_printf(tweet,
-				"\n<a href=\"" TWITTER_URI ":///" TWITTER_URI_ACTION_REPLY "?account=a%s&user=%s&id=%lld\">reply</a>",
-				purple_account_get_username(account),
+				"\n<a href=\"" TWITTER_URI ":///" TWITTER_URI_ACTION_REPLY "?account=a%s&user=%s&id=%lld\">reply</a>"
+				" <a href=\"" TWITTER_URI ":///" TWITTER_URI_ACTION_RT "?account=a%s&id=%lld\">rt</a>",
+				account_name,
 				purple_url_encode(src_user),
+				id,
+				account_name,
 				id);
+	}
 #endif
 
 	if (add_link && id)

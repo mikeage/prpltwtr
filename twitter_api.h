@@ -89,6 +89,12 @@ void twitter_api_send_dm(TwitterRequestor *r,
 		TwitterSendRequestErrorFunc error_func,
 		gpointer data);
 
+void twitter_api_send_rt(TwitterRequestor *r,
+		long long id,
+		TwitterSendXmlRequestSuccessFunc success_func,
+		TwitterSendRequestErrorFunc error_func,
+		gpointer data);
+
 void twitter_api_set_statuses(TwitterRequestor *r,
 		GArray *statuses,
 		long long in_reply_to_status_id,
