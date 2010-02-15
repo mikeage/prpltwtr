@@ -111,7 +111,13 @@ static char *twitter_linkify(PurpleAccount *account, const char *message)
 }
 
 //TODO: move those
-char *twitter_format_tweet(PurpleAccount *account, const char *src_user, const char *message, long long id, gboolean allow_link)
+char *twitter_format_tweet(PurpleAccount *account,
+		const char *src_user,
+		const char *message,
+		long long tweet_id,
+		PurpleConversationType conv_type,
+		const gchar *conv_name,
+		gboolean allow_link)
 {
 	char *linkified_message = twitter_linkify(account, message);
 	gboolean add_link = twitter_option_add_link_to_tweet(account) && allow_link;
@@ -123,26 +129,29 @@ char *twitter_format_tweet(PurpleAccount *account, const char *src_user, const c
 	tweet = g_string_new(linkified_message);
 
 #if _HAVE_PIDGIN_
-	if (id)
+	if (tweet_id && conv_type != PURPLE_CONV_TYPE_UNKNOWN && conv_name)
 	{
 		const gchar *account_name = purple_account_get_username(account);
 		g_string_append_printf(tweet,
-				"\n<a href=\"" TWITTER_URI ":///" TWITTER_URI_ACTION_REPLY "?account=a%s&user=%s&id=%lld\">reply</a>"
-				" <a href=\"" TWITTER_URI ":///" TWITTER_URI_ACTION_RT "?account=a%s&id=%lld\">rt</a>",
+				"\n<a href=\"" TWITTER_URI ":///" TWITTER_URI_ACTION_REPLY "?account=a%s&user=%s&id=%lld\">reply</a>",
 				account_name,
 				purple_url_encode(src_user),
-				id,
+				tweet_id);
+		g_string_append_printf(tweet,
+				" <a href=\"" TWITTER_URI ":///" TWITTER_URI_ACTION_RT "?account=a%s&id=%lld&conv_type=%d&conv_name=%s\">rt</a>",
 				account_name,
-				id);
+				tweet_id,
+				conv_type,
+				purple_url_encode(conv_name));
 	}
 #endif
 
-	if (add_link && id)
+	if (add_link && tweet_id)
 	{
 		g_string_append_printf(tweet,
 				"\nhttp://twitter.com/%s/status/%lld\n",
 				src_user,
-				id);
+				tweet_id);
 	}
 
 	g_free(linkified_message);

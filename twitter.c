@@ -1568,6 +1568,50 @@ static PurplePluginProtocolInfo prpl_info =
 };
 
 #if _HAVE_PIDGIN_
+typedef struct
+{
+	PurpleConversationType type;
+	gchar *conv_name;
+} TwitterConversationId;
+
+static void twitter_send_rt_success_cb(TwitterRequestor *r,
+		xmlnode *node,
+		gpointer user_data)
+{
+	TwitterConversationId *conv_id = user_data;
+	PurpleConversation *conv;
+	g_return_if_fail(conv_id != NULL);
+
+	conv = purple_find_conversation_with_account(conv_id->type, conv_id->conv_name, r->account);
+
+	if (conv)
+	{
+		purple_conversation_write(conv, NULL, "Successfully retweeted", PURPLE_MESSAGE_SYSTEM, time(NULL));
+	}
+
+	g_free(conv_id->conv_name);
+	g_free(conv_id);
+}
+
+static void twitter_send_rt_error_cb(TwitterRequestor *r,
+		const TwitterRequestErrorData *error_data,
+		gpointer user_data)
+{
+	TwitterConversationId *conv_id = user_data;
+	PurpleConversation *conv;
+	g_return_if_fail(conv_id != NULL);
+
+	conv = purple_find_conversation_with_account(conv_id->type, conv_id->conv_name, r->account);
+
+	if (conv)
+	{
+		purple_conversation_write(conv, NULL, "Retweet failed", PURPLE_MESSAGE_ERROR, time(NULL));
+	}
+
+	g_free(conv_id->conv_name);
+	g_free(conv_id);
+}
+
 static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHashTable *params)
 {
 	const char *text;
@@ -1635,9 +1679,20 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 		}
 		purple_conversation_present(conv);
 	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_RT)) {
+		TwitterConversationId *conv_id;
+
 		const char *id_str;
 		long long id;
+
+		gchar *conv_type_str;
+		PurpleConversationType conv_type;
+
+		gchar *conv_name_encoded;
+
 		id_str = g_hash_table_lookup(params, "id");
+		conv_name_encoded = g_hash_table_lookup(params, "conv_name");
+		conv_type_str = g_hash_table_lookup(params, "conv_type");
+
 		if (id_str == NULL || id_str[0] == '\0')
 		{
 			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. Invalid id for rt\n");
@@ -1649,11 +1704,17 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. Invalid id for rt\n");
 			return FALSE;
 		}
+
+		conv_type = atoi(conv_type_str);
+
+		conv_id = g_new0(TwitterConversationId, 1);
+		conv_id->conv_name = g_strdup(purple_url_decode(conv_name_encoded));
+		conv_id->type = conv_type;
 		twitter_api_send_rt(purple_account_get_requestor(account),
 				id,
-				NULL,
-				NULL,
-				NULL);
+				twitter_send_rt_success_cb,
+				twitter_send_rt_error_cb,
+				conv_id);
 	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_SEARCH)) {
 		//join chat with default interval, open in conv window
 		GHashTable *components;

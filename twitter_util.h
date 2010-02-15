@@ -38,5 +38,11 @@ GArray *twitter_utf8_get_segments(const gchar *message, int segment_length, cons
 #endif
 
 //TODO: move this?
-char *twitter_format_tweet(PurpleAccount *account, const char *src_user, const char *message, long long id, gboolean allow_link);
+char *twitter_format_tweet(PurpleAccount *account,
+		const char *src_user,
+		const char *message,
+		long long tweet_id,
+		PurpleConversationType conv_type,
+		const gchar *conv_name,
+		gboolean allow_link);
 #endif /* UTIL_H_ */

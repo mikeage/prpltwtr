@@ -209,13 +209,17 @@ void twitter_status_data_update_conv(TwitterEndpointIm *ctx,
 		purple_debug_info (TWITTER_PROTOCOL_ID, "saving %s\n", G_STRFUNC);
 		twitter_endpoint_im_set_since_id(ctx, s->id);
 	}
+
+	conv_name = twitter_endpoint_im_buddy_name_to_conv_name(ctx, buddy_name);
+
 	tweet = twitter_format_tweet(account,
 			buddy_name,
 			s->text,
 			s->id,
+			PURPLE_CONV_TYPE_IM,
+			conv_name,
 			ctx->settings->type == TWITTER_IM_TYPE_AT_MSG);
 
-	conv_name = twitter_endpoint_im_buddy_name_to_conv_name(ctx, buddy_name);
 
 	//Account received an im
 	/* TODO get in_reply_to_status? s->in_reply_to_screen_name
