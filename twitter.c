@@ -1719,6 +1719,26 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 				twitter_send_rt_success_cb,
 				twitter_send_rt_error_cb,
 				conv_id);
+	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_LINK)) {
+		const char *id_str, *user;
+		long long id;
+		gchar *link;
+		id_str = g_hash_table_lookup(params, "id");
+		user = g_hash_table_lookup(params, "user");
+		if (id_str == NULL || user == NULL || id_str[0] == '\0' || user[0] == '\0')
+		{
+			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. Invalid id/user for link\n");
+			return FALSE;
+		}
+		id = strtoll(id_str, NULL, 10);
+		if (id == 0)
+		{
+			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. Invalid id for link\n");
+			return FALSE;
+		}
+		link = g_strdup_printf("http://twitter.com/%s/status/%lld", user, id);
+		purple_notify_uri(NULL, link);
+		g_free(link);
 	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_SEARCH)) {
 		//join chat with default interval, open in conv window
 		GHashTable *components;
@@ -1747,12 +1767,17 @@ static void twitter_got_uri_action(const gchar *url, const gchar *action)
 
 static void twitter_context_menu_retweet(GtkWidget *w, const gchar *url)
 {
-	twitter_got_uri_action(url, "rt");
+	twitter_got_uri_action(url, TWITTER_URI_ACTION_RT);
 }
 
 static void twitter_context_menu_reply(GtkWidget *w, const gchar *url)
 {
-	twitter_got_uri_action(url, "reply");
+	twitter_got_uri_action(url, TWITTER_URI_ACTION_REPLY);
+}
+
+static void twitter_context_menu_link(GtkWidget *w, const gchar *url)
+{
+	twitter_got_uri_action(url, TWITTER_URI_ACTION_LINK);
 }
 
 static void twitter_url_menu_actions(GtkWidget *menu, const char *url)
@@ -1769,6 +1794,12 @@ static void twitter_url_menu_actions(GtkWidget *menu, const char *url)
 	item = gtk_image_menu_item_new_with_mnemonic(("Reply"));
 	gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
 	g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_reply), (gpointer)url);
+	gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
+
+	img = gtk_image_new_from_stock(GTK_STOCK_HOME, GTK_ICON_SIZE_MENU);
+	item = gtk_image_menu_item_new_with_mnemonic(("Goto Site"));
+	gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
+	g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_link), (gpointer)url);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
 }
 

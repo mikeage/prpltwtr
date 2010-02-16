@@ -120,7 +120,6 @@ char *twitter_format_tweet(PurpleAccount *account,
 		gboolean allow_link)
 {
 	char *linkified_message = twitter_linkify(account, message);
-	gboolean add_link = twitter_option_add_link_to_tweet(account) && allow_link;
 	GString *tweet;
 
 	g_return_val_if_fail(linkified_message != NULL, NULL);
@@ -142,15 +141,16 @@ char *twitter_format_tweet(PurpleAccount *account,
 				conv_type,
 				purple_url_encode(conv_name));
 	}
-#endif
+#else
 
-	if (add_link && tweet_id)
+	if (twitter_option_add_link_to_tweet(account) && allow_link && tweet_id)
 	{
 		g_string_append_printf(tweet,
 				"\nhttp://twitter.com/%s/status/%lld\n",
 				src_user,
 				tweet_id);
 	}
+#endif
 
 	g_free(linkified_message);
 	return g_string_free(tweet, FALSE);
