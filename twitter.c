@@ -1617,6 +1617,7 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 	const char *text;
 	const char *username;
 	PurpleAccount *account;
+	const gchar *action;
 	purple_debug_info(TWITTER_PROTOCOL_ID, "%s PROTO %s CMD_ARG %s\n", G_STRFUNC, proto, cmd_arg);
 
 	g_return_val_if_fail(proto != NULL, FALSE);
@@ -1646,6 +1647,9 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 	while (cmd_arg[0] == '/')
 		cmd_arg++;
 
+	action = g_hash_table_lookup(params, "action");
+	if (action)
+		cmd_arg = action;
 	purple_debug_info(TWITTER_PROTOCOL_ID, "Account %s got action %s\n", username, cmd_arg);
 	if (!strcmp(cmd_arg, TWITTER_URI_ACTION_USER))
 	{
@@ -1733,19 +1737,75 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 	return TRUE;
 }
 
-static gboolean twitter_url_clicked_cb(GtkIMHtml *imhtml, GtkIMHtmlLink *link)
-{
-	const gchar *url = gtk_imhtml_link_get_url(link);
-	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
-	purple_got_protocol_handler_uri(url);
 
-	return TRUE;
+static void twitter_got_uri_action(const gchar *url, const gchar *action)
+{
+	gchar *url2 = g_strdup_printf("%s&action=%s", url, action);
+	purple_got_protocol_handler_uri(url2);
+	g_free(url2);
+}
+
+static void twitter_context_menu_retweet(GtkWidget *w, const gchar *url)
+{
+	twitter_got_uri_action(url, "rt");
+}
+
+static void twitter_context_menu_reply(GtkWidget *w, const gchar *url)
+{
+	twitter_got_uri_action(url, "reply");
+}
+
+static void twitter_url_menu_actions(GtkWidget *menu, const char *url)
+{
+	GtkWidget *img, *item;
+
+	img = gtk_image_new_from_stock(GTK_STOCK_REFRESH, GTK_ICON_SIZE_MENU);
+	item = gtk_image_menu_item_new_with_mnemonic(("Retweet"));
+	gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
+	g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_retweet), (gpointer)url);
+	gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
+
+	img = gtk_image_new_from_stock(GTK_STOCK_REDO, GTK_ICON_SIZE_MENU);
+	item = gtk_image_menu_item_new_with_mnemonic(("Reply"));
+	gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
+	g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_reply), (gpointer)url);
+	gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
 }
 
 static gboolean twitter_context_menu(GtkIMHtml *imhtml, GtkIMHtmlLink *link, GtkWidget *menu)
 {
-	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+	twitter_url_menu_actions(menu, gtk_imhtml_link_get_url(link));
 	return TRUE;
+}
+
+static gboolean twitter_url_clicked_cb(GtkIMHtml *imhtml, GtkIMHtmlLink *link)
+{
+	GtkWidget *menu;
+	gchar *url;
+	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+
+	//If not the action url, handle it by using the uri handler, otherwise, show menu
+	if (!g_str_has_prefix(gtk_imhtml_link_get_url(link), TWITTER_URI ":///" TWITTER_URI_ACTION_ACTIONS "?"))
+	{
+		purple_got_protocol_handler_uri(gtk_imhtml_link_get_url(link));
+		return TRUE;
+	}
+
+	url = g_strdup(gtk_imhtml_link_get_url(link));
+
+	menu = gtk_menu_new();
+	//TODO: verify this is freeing data
+	g_object_set_data_full(G_OBJECT(menu), "x-imhtml-url-data", url,
+			(GDestroyNotify)g_free);
+
+	twitter_url_menu_actions(menu, url);
+
+	gtk_widget_show_all(menu);
+	gtk_menu_popup(GTK_MENU(menu), NULL, NULL, NULL, NULL,
+			0, gtk_get_current_event_time());
+
+	return TRUE;
+
 }
 #endif
 

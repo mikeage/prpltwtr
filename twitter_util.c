@@ -133,14 +133,12 @@ char *twitter_format_tweet(PurpleAccount *account,
 	{
 		const gchar *account_name = purple_account_get_username(account);
 		g_string_append_printf(tweet,
-				"\n<a href=\"" TWITTER_URI ":///" TWITTER_URI_ACTION_REPLY "?account=a%s&user=%s&id=%lld\">reply</a>",
+				" <a href=\"" TWITTER_URI ":///" TWITTER_URI_ACTION_ACTIONS "?account=a%s&user=%s&id=%lld",
 				account_name,
 				purple_url_encode(src_user),
 				tweet_id);
 		g_string_append_printf(tweet,
-				" <a href=\"" TWITTER_URI ":///" TWITTER_URI_ACTION_RT "?account=a%s&id=%lld&conv_type=%d&conv_name=%s\">rt</a>",
-				account_name,
-				tweet_id,
+				"&conv_type=%d&conv_name=%s\">*</a>",
 				conv_type,
 				purple_url_encode(conv_name));
 	}

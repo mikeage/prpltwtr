@@ -17,6 +17,7 @@
 
 #define TWITTER_URI_ACTION_USER		"user" //TODO: move?
 #define TWITTER_URI_ACTION_SEARCH	"search" //TODO: move?
+#define TWITTER_URI_ACTION_ACTIONS	"actions" //TODO: move?
 #define TWITTER_URI_ACTION_REPLY	"reply" //TODO: move?
 #define TWITTER_URI_ACTION_RT		"rt" //TODO: move?
 
