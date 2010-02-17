@@ -192,6 +192,8 @@ void twitter_chat_add_tweet(PurpleConvChat *chat, const char *who, const char *m
 			who,
 			message,
 			id,
+			PURPLE_CONV_TYPE_CHAT,
+			purple_conversation_get_name(chat->conv),
 			TRUE);
 #if _HAZE_
 	//This isn't in twitter_Format_tweet because we can't distinguish between a im and a chat

@@ -62,7 +62,7 @@ static const char *_find_first_delimiter(const char *text, const char *delimiter
 #endif
 
 //TODO: move those
-static const char *twitter_linkify(PurpleAccount *account, const char *message)
+static char *twitter_linkify(PurpleAccount *account, const char *message)
 {
 #if _HAVE_PIDGIN_
 	GString *ret;
@@ -111,23 +111,50 @@ static const char *twitter_linkify(PurpleAccount *account, const char *message)
 }
 
 //TODO: move those
-char *twitter_format_tweet(PurpleAccount *account, const char *src_user, const char *message, long long id, gboolean allow_link)
+char *twitter_format_tweet(PurpleAccount *account,
+		const char *src_user,
+		const char *message,
+		long long tweet_id,
+		PurpleConversationType conv_type,
+		const gchar *conv_name,
+		gboolean is_tweet)
 {
-	const char *linkified_message = twitter_linkify(account, message);
-	gboolean add_link = twitter_option_add_link_to_tweet(account) && allow_link;
+	char *linkified_message = twitter_linkify(account, message);
+	GString *tweet;
 
 	g_return_val_if_fail(linkified_message != NULL, NULL);
 	g_return_val_if_fail(src_user != NULL, NULL);
 
-	if (add_link && id) {
-		return g_strdup_printf("%s\nhttp://twitter.com/%s/status/%lld\n",
-				linkified_message,
+	tweet = g_string_new(linkified_message);
+
+#if _HAVE_PIDGIN_
+	if (is_tweet && tweet_id && conv_type != PURPLE_CONV_TYPE_UNKNOWN && conv_name)
+	{
+		const gchar *account_name = purple_account_get_username(account);
+		//TODO: make this an image
+		g_string_append_printf(tweet,
+				" <a href=\"" TWITTER_URI ":///" TWITTER_URI_ACTION_ACTIONS "?account=a%s&user=%s&id=%lld",
+				account_name,
+				purple_url_encode(src_user),
+				tweet_id);
+		g_string_append_printf(tweet,
+				"&conv_type=%d&conv_name=%s\">*</a>",
+				conv_type,
+				purple_url_encode(conv_name));
+	}
+#else
+
+	if (twitter_option_add_link_to_tweet(account) && is_tweet && tweet_id)
+	{
+		g_string_append_printf(tweet,
+				"\nhttp://twitter.com/%s/status/%lld\n",
 				src_user,
-				id);
+				tweet_id);
 	}
-	else {
-		return g_strdup_printf("%s", linkified_message);
-	}
+#endif
+
+	g_free(linkified_message);
+	return g_string_free(tweet, FALSE);
 }
 
 

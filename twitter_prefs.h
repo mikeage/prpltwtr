@@ -88,6 +88,7 @@
 #define TWITTER_PREF_URL_GET_SAVED_SEARCHES "/saved_searches.xml"
 #define TWITTER_PREF_URL_GET_SEARCH_RESULTS "/search.atom"
 #define TWITTER_PREF_URL_VERIFY_CREDENTIALS "/account/verify_credentials.xml"
+#define TWITTER_PREF_URL_RT "/statuses/retweet" /* Yay for inconsistency */
 /***** END URLS *****/
 
 GList *twitter_get_protocol_options();

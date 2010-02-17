@@ -100,6 +100,16 @@ static const gchar *twitter_option_url_verify_credentials(PurpleAccount *account
 	return twitter_api_create_url(account,
 			TWITTER_PREF_URL_VERIFY_CREDENTIALS);
 }
+static const gchar *twitter_option_url_rt(PurpleAccount *account, long long id)
+{
+	gchar *url = g_strdup_printf("%s/%lld.xml",
+			TWITTER_PREF_URL_RT,
+			id);
+	const gchar *result = twitter_api_create_url(account,
+			url);
+	g_free(url);
+	return result;
+}
 
 void twitter_api_get_rate_limit_status(TwitterRequestor *r,
 		TwitterSendXmlRequestSuccessFunc success_func,
@@ -396,6 +406,26 @@ void twitter_api_send_dm(TwitterRequestor *r,
 			twitter_option_url_new_dm(r->account), params,
 			success_func, error_func, data);
 	twitter_request_params_free(params);
+
+}
+
+void twitter_api_send_rt(TwitterRequestor *r,
+		long long id,
+		TwitterSendXmlRequestSuccessFunc success_func,
+		TwitterSendRequestErrorFunc error_func,
+		gpointer data)
+{
+	g_return_if_fail(id > 0);
+
+	/* Unlike every other request made to twitter, retweets
+	 * don't take the id as a parameter. Instead they decided
+	 * to mess with us by sending it as part of the url
+	 * Thanks for the consistency
+	 */
+
+	twitter_send_xml_request(r, TRUE,
+			twitter_option_url_rt(r->account, id), NULL,
+			success_func, error_func, data);
 
 }
 

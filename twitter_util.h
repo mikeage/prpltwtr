@@ -17,6 +17,10 @@
 
 #define TWITTER_URI_ACTION_USER		"user" //TODO: move?
 #define TWITTER_URI_ACTION_SEARCH	"search" //TODO: move?
+#define TWITTER_URI_ACTION_ACTIONS	"actions" //TODO: move?
+#define TWITTER_URI_ACTION_REPLY	"reply" //TODO: move?
+#define TWITTER_URI_ACTION_RT		"rt" //TODO: move?
+#define TWITTER_URI_ACTION_LINK		"link" //TODO: move?
 
 gboolean twitter_usernames_match(PurpleAccount *account, const gchar *u1, const gchar *u2);
 long long purple_account_get_long_long(PurpleAccount *account, const gchar *key, long long default_value);
@@ -36,5 +40,11 @@ GArray *twitter_utf8_get_segments(const gchar *message, int segment_length, cons
 #endif
 
 //TODO: move this?
-char *twitter_format_tweet(PurpleAccount *account, const char *src_user, const char *message, long long id, gboolean allow_link);
+char *twitter_format_tweet(PurpleAccount *account,
+		const char *src_user,
+		const char *message,
+		long long tweet_id,
+		PurpleConversationType conv_type,
+		const gchar *conv_name,
+		gboolean is_tweet);
 #endif /* UTIL_H_ */

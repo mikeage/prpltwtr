@@ -145,6 +145,7 @@ static TwitterEndpointImSettings TwitterEndpointDmSettings =
 	twitter_get_dms_all_cb,
 	twitter_get_dms_all_timeout_error_cb,
 	twitter_get_dms_last_since_id,
+	NULL, //convo_closed
 };
 
 TwitterEndpointImSettings *twitter_endpoint_dm_get_settings()
