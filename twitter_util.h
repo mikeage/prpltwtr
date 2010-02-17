@@ -46,5 +46,5 @@ char *twitter_format_tweet(PurpleAccount *account,
 		long long tweet_id,
 		PurpleConversationType conv_type,
 		const gchar *conv_name,
-		gboolean allow_link);
+		gboolean is_tweet);
 #endif /* UTIL_H_ */

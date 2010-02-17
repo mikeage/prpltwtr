@@ -117,7 +117,7 @@ char *twitter_format_tweet(PurpleAccount *account,
 		long long tweet_id,
 		PurpleConversationType conv_type,
 		const gchar *conv_name,
-		gboolean allow_link)
+		gboolean is_tweet)
 {
 	char *linkified_message = twitter_linkify(account, message);
 	GString *tweet;
@@ -128,9 +128,10 @@ char *twitter_format_tweet(PurpleAccount *account,
 	tweet = g_string_new(linkified_message);
 
 #if _HAVE_PIDGIN_
-	if (tweet_id && conv_type != PURPLE_CONV_TYPE_UNKNOWN && conv_name)
+	if (is_tweet && tweet_id && conv_type != PURPLE_CONV_TYPE_UNKNOWN && conv_name)
 	{
 		const gchar *account_name = purple_account_get_username(account);
+		//TODO: make this an image
 		g_string_append_printf(tweet,
 				" <a href=\"" TWITTER_URI ":///" TWITTER_URI_ACTION_ACTIONS "?account=a%s&user=%s&id=%lld",
 				account_name,
@@ -143,7 +144,7 @@ char *twitter_format_tweet(PurpleAccount *account,
 	}
 #else
 
-	if (twitter_option_add_link_to_tweet(account) && allow_link && tweet_id)
+	if (twitter_option_add_link_to_tweet(account) && is_tweet && tweet_id)
 	{
 		g_string_append_printf(tweet,
 				"\nhttp://twitter.com/%s/status/%lld\n",

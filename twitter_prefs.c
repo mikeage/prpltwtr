@@ -70,12 +70,14 @@ GList *twitter_get_protocol_options()
 			TWITTER_PREF_GET_FRIENDS_DEFAULT);
 	options = g_list_append (options, option);
 
+#if !_HAVE_PIDGIN_
 	/* Add URL link to each tweet */
 	option = purple_account_option_bool_new (
 			("Add URL link to each tweet"),
 			TWITTER_PREF_ADD_URL_TO_TWEET,
 			TWITTER_PREF_ADD_URL_TO_TWEET_DEFAULT);
 	options = g_list_append (options, option);
+#endif
 
 	/* Idle cutoff time */
 	option = purple_account_option_int_new(
