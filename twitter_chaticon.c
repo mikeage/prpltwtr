@@ -24,7 +24,6 @@
  */
 
 #if _HAVE_PIDGIN_
-#include "config.h"
 
 #define twitter_debug(fmt, ...)	purple_debug_info(TWITTER_PROTOCOL_ID, "%s: %s():%4d:  " fmt, __FILE__, __FUNCTION__, (int)__LINE__, ## __VA_ARGS__);
 

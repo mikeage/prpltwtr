@@ -2,6 +2,7 @@
 #define _TWITTER_CHATICON_H_
 
 #if _HAVE_PIDGIN_
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
