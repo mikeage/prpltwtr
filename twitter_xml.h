@@ -12,6 +12,14 @@
 #include <debug.h>
 #include <util.h>
 //#include "twitter_util.h" //TODO fix me
+/* 
+ * TODO: This needs some serious refactoring
+ * A buddy should not store the TwitterUserData (should be a separate object)
+ * And user_data should have a timestamp, so we can properly update it
+ * And maybe have partial TwitterUserData values, so we can pass a user
+ * where only the profile_image_url is set, and it won't remove our description
+ * The real TODO is to think about this some more
+ */
 
 typedef struct 
 {
@@ -35,6 +43,7 @@ typedef struct
 typedef struct
 {
 	char *screen_name;
+	char *icon_url; //I don't like this here
 	TwitterTweet *status;
 	TwitterUserData *user;
 } TwitterUserTweet;
@@ -63,7 +72,7 @@ TwitterUserTweet *twitter_verify_credentials_parse(xmlnode *node);
 TwitterSearchResults *twitter_search_results_node_parse(xmlnode *response_node);
 void twitter_search_results_free(TwitterSearchResults *results);
 
-TwitterUserTweet *twitter_user_tweet_new(const char *screen_name, TwitterUserData *user, TwitterTweet *tweet);
+TwitterUserTweet *twitter_user_tweet_new(const char *screen_name, const gchar *icon_url, TwitterUserData *user, TwitterTweet *tweet);
 TwitterUserData *twitter_user_tweet_take_user_data(TwitterUserTweet *ut);
 TwitterTweet *twitter_user_tweet_take_tweet(TwitterUserTweet *ut);
 void twitter_user_tweet_free(TwitterUserTweet *ut);
