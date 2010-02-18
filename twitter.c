@@ -32,6 +32,7 @@
 #endif
 
 #include "twitter_charcount.h"
+#include "twitter_chaticon.h"
 
 
 static PurplePlugin *_twitter_protocol = NULL;
@@ -505,12 +506,14 @@ static void twitter_connected(PurpleAccount *account)
 		TWITTER_SIGNALS_CONNECTED = TRUE;
 
 #if _HAVE_PIDGIN_
+		//FIXME: disconnect signals!
 		purple_signal_connect(purple_conversations_get_handle(),
 				"conversation-created",
 				_twitter_protocol, PURPLE_CALLBACK(twitter_charcount_conv_created_cb), NULL);
 		purple_signal_connect(purple_conversations_get_handle(),
 				"deleting-conversation",
 				_twitter_protocol, PURPLE_CALLBACK(twitter_charcount_conv_destroyed_cb), NULL);
+		twitter_chat_icon_init(_twitter_protocol);
 #endif
 	}
 
