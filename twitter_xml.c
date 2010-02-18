@@ -99,6 +99,16 @@ static gint _twitter_search_results_sort(gconstpointer _a, gconstpointer _b)
 		return 0;
 }
 
+static const gchar *twitter_search_entry_get_icon_url(xmlnode *entry_node)
+{
+	xmlnode *link_node = xmlnode_get_child(entry_node, "link");
+	for (; link_node && strcmp(xmlnode_get_attrib(link_node, "rel"), "image"); link_node = xmlnode_get_next_twin(link_node))
+	{ }
+	if (link_node)
+		return xmlnode_get_attrib(link_node, "href");
+	return NULL;
+}
+
 TwitterUserTweet *twitter_search_entry_node_parse(xmlnode *entry_node)
 {
 	if (entry_node != NULL && entry_node->name && !strcmp(entry_node->name, "entry"))
@@ -108,6 +118,7 @@ TwitterUserTweet *twitter_search_entry_node_parse(xmlnode *entry_node)
 		gchar *id_str = xmlnode_get_child_data(entry_node, "id"); //tag:search.twitter.com,2005:12345678
 		gchar *created_at_str = xmlnode_get_child_data(entry_node, "published"); //2009-12-24T19:29:24Z
 		gchar *screen_name_str = xmlnode_get_child_data(xmlnode_get_child(entry_node, "author"), "name"); //username (USER NAME)
+		const gchar *icon_url;
 		gchar *ptr;
 
 
@@ -121,6 +132,8 @@ TwitterUserTweet *twitter_search_entry_node_parse(xmlnode *entry_node)
 			ptr[0] = 0;
 		entry = twitter_user_tweet_new(screen_name_str, NULL, NULL);
 		g_free(screen_name_str);
+
+		icon_url = twitter_search_entry_get_icon_url(entry_node);
 
 		tweet->text = xmlnode_get_child_data(entry_node, "title");
 		tweet->created_at = purple_str_to_time(created_at_str, TRUE, NULL, NULL, NULL);
