@@ -8,7 +8,7 @@ void twitter_buddy_set_status_data(PurpleAccount *account, const char *src_user,
 TwitterUserTweet *twitter_buddy_get_buddy_data(PurpleBuddy *b);
 PurpleBuddy *twitter_buddy_new(PurpleAccount *account, const char *screenname, const char *alias);
 void twitter_buddy_set_user_data(PurpleAccount *account, TwitterUserData *u, gboolean add_missing_buddy);
-void twitter_buddy_update_icon_cb(PurpleUtilFetchUrlData *url_data, gpointer user_data, const gchar *url_text, gsize len, const gchar *error_message);
+void twitter_buddy_update_icon_from_username(PurpleAccount *account, const gchar *username, const gchar *url);
 void twitter_buddy_update_icon(PurpleBuddy *buddy);
 
 void twitter_buddy_touch_state(PurpleBuddy *buddy);
