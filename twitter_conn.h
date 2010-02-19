@@ -31,6 +31,12 @@ typedef struct
 	 * when @me sends a tweet to others */
 	GHashTable *user_reply_id_table;
 
+	/* key: gchar *screen_name
+	 * value: PurpleBuddyIcon
+	 * Store purple buddy icons for nonbuddies (for conversations)
+	 */
+	GHashTable *icons;
+
 	gboolean requesting;
 	TwitterEndpointIm *endpoint_ims[TWITTER_IM_TYPE_UNKNOWN];
 

@@ -1130,6 +1130,10 @@ static void twitter_login(PurpleAccount *account)
 	twitter->user_reply_id_table = g_hash_table_new_full (
 			g_str_hash, g_str_equal, g_free, g_free);
 
+	/* key: gchar *, value: gchar * (of a long long) */
+	twitter->icons = g_hash_table_new_full(
+			g_str_hash, g_str_equal, g_free, (GDestroyNotify) purple_buddy_icon_unref);
+
 	/* purple wants a minimum of 2 steps */
 	purple_connection_update_progress(gc, ("Connecting"),
 			0,   /* which connection step this is */
@@ -1186,6 +1190,10 @@ static void twitter_close(PurpleConnection *gc)
 	if (twitter->user_reply_id_table)
 		g_hash_table_destroy (twitter->user_reply_id_table);
 	twitter->user_reply_id_table = NULL;
+
+	if (twitter->icons)
+		g_hash_table_destroy(twitter->icons);
+	twitter->icons = NULL;
 
 	if (twitter->oauth_token)
 		g_free(twitter->oauth_token);
