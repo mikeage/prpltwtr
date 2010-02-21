@@ -106,7 +106,7 @@ static char *twitter_linkify(PurpleAccount *account, const char *message)
 
 	return g_string_free(ret, FALSE);
 #else
-	return message;
+	return g_strdup(message);
 #endif
 }
 

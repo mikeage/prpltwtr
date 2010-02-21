@@ -24,7 +24,19 @@
 #include <gtkimhtml.h>
 #include <core.h>
 
+typedef struct {
+	GdkPixbuf *pixbuf;      /* icon pixmap */
+	gboolean requested;     /* TRUE if download icon has been requested */
+	GList *request_list;    /* marker list */
+	PurpleUtilFetchUrlData *fetch_data; /* icon fetch data */
+	gchar *icon_url;        /* url for the user's icon */
+	gint use_count;         /* usage count */
+	time_t mtime;           /* mtime of file */
+} TwitterConvIcon;
+
 void twitter_chat_icon_init(PurplePlugin *plugin);
+void twitter_conv_icon_free(TwitterConvIcon *conv_icon);
+void twitter_request_conv_icon(PurpleAccount *account, const char *user_name, const gchar *url, gboolean renew);
 
 
 #endif

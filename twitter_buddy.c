@@ -1,6 +1,5 @@
 #include "twitter_buddy.h"
 #include "twitter_util.h"
-#include "twitter_conn.h"
 
 //TODO this should be TwitterBuddy
 TwitterUserTweet *twitter_buddy_get_buddy_data(PurpleBuddy *b)
@@ -220,19 +219,8 @@ typedef struct
 static void twitter_buddy_update_icon_cb(PurpleUtilFetchUrlData *url_data, gpointer user_data, const gchar *url_text, gsize len, const gchar *error_message)
 {
 	BuddyIconContext *b = user_data;
-	PurpleBuddyIcon *icon = purple_buddy_icon_new(b->account, b->buddy_name,
+	purple_buddy_icons_set_for_user(b->account, b->buddy_name,
 			g_memdup(url_text, len), len, b->url);
-	//if we have a buddy, then the buddy icon has already been reffed, so let the blist keep track of it
-	//otherwise, we'll store it ourselves
-	if (!purple_find_buddy(b->account, b->buddy_name))
-	{
-		PurpleConnection *gc = purple_account_get_connection(b->account);
-		TwitterConnectionData *twitter = gc->proto_data;
-		g_hash_table_replace(twitter->icons,
-				g_strdup(purple_normalize(b->account, b->buddy_name)),
-				icon);
-
-	}
 	g_free(b->buddy_name);
 	g_free(b->url);
 	g_free(b);

@@ -1,4 +1,5 @@
 #include "twitter_endpoint_timeline.h"
+#include "twitter_chaticon.h"
 
 //TODO: Should these be here?
 long long twitter_account_get_last_home_timeline_id(PurpleAccount *account)
@@ -84,6 +85,11 @@ static void twitter_get_home_timeline_parse_statuses(PurpleAccount *account,
 			twitter_status_data_free(status);
 		} else {
 			const char *text = status->text;
+#if _HAVE_PIDGIN_
+				//TODO: move this to twitter_endpoint_chat
+				//or, even better, make this into a signal...
+				twitter_request_conv_icon(account, data->screen_name, data->icon_url, FALSE);
+#endif
 			twitter_chat_add_tweet(chat, data->screen_name, text, status->id, status->created_at);
 			if (status->id && status->id > twitter_connection_get_last_home_timeline_id(gc))
 			{

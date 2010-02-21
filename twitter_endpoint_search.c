@@ -1,4 +1,5 @@
 #include "twitter_endpoint_search.h"
+#include "twitter_chaticon.h"
 
 static gpointer twitter_search_timeout_context_new(GHashTable *components)
 {
@@ -102,6 +103,11 @@ static void twitter_search_cb(PurpleAccount *account,
 				search_data = g_array_index (search_results,
 						TwitterUserTweet *, i);
 
+#if _HAVE_PIDGIN_
+				//TODO: move this to twitter_endpoint_chat
+				//or, even better, make this into a signal...
+				twitter_request_conv_icon(account, search_data->screen_name, search_data->icon_url, FALSE);
+#endif
 				twitter_chat_add_tweet(chat, search_data->screen_name, search_data->status->text, search_data->status->id, search_data->status->created_at);
 			}
 		} else {
