@@ -1,5 +1,4 @@
 #include "twitter_endpoint_timeline.h"
-#include "twitter_chaticon.h"
 
 //TODO: Should these be here?
 long long twitter_account_get_last_home_timeline_id(PurpleAccount *account)
@@ -58,11 +57,6 @@ static void twitter_get_home_timeline_parse_statuses(PurpleAccount *account,
 		TwitterEndpointChat *endpoint_chat, GList *statuses)
 {
 	PurpleConnection *gc = purple_account_get_connection(account);
-#if _HAZE_
-	PurpleConvIm *chat;
-#else
-	PurpleConvChat *chat;
-#endif
 	GList *l;
 
 	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
@@ -71,38 +65,28 @@ static void twitter_get_home_timeline_parse_statuses(PurpleAccount *account,
 
 	if (!statuses)
 		return;
-	chat = twitter_endpoint_chat_get_conv(endpoint_chat);
-	g_return_if_fail(chat != NULL); //TODO: destroy context
 
 	for (l = statuses; l; l = l->next)
 	{
 		TwitterUserTweet *data = l->data;
-		TwitterTweet *status = twitter_user_tweet_take_tweet(data);
-		TwitterUserData *user_data = twitter_user_tweet_take_user_data(data);
+		TwitterTweet *status;
+		TwitterUserData *user_data;
 
-		if (!user_data)
+		twitter_chat_got_tweet(endpoint_chat, data);
+		status = twitter_user_tweet_take_tweet(data);
+		user_data = twitter_user_tweet_take_user_data(data);
+
+		if (status->id && status->id > twitter_connection_get_last_home_timeline_id(gc))
 		{
-			twitter_status_data_free(status);
-		} else {
-			const char *text = status->text;
-#if _HAVE_PIDGIN_
-				//TODO: move this to twitter_endpoint_chat
-				//or, even better, make this into a signal...
-				twitter_request_conv_icon(account, data->screen_name, data->icon_url, FALSE);
-#endif
-			twitter_chat_add_tweet(chat, data->screen_name, text, status->id, status->created_at);
-			if (status->id && status->id > twitter_connection_get_last_home_timeline_id(gc))
-			{
-				twitter_connection_set_last_home_timeline_id(gc, status->id);
-			}
-			twitter_buddy_set_status_data(account, data->screen_name, status);
-			twitter_buddy_set_user_data(account, user_data, FALSE);
-
-			/* update user_reply_id_table table */
-			//gchar *reply_id = g_strdup_printf ("%lld", status->id);
-			//g_hash_table_insert (twitter->user_reply_id_table,
-					//g_strdup (screen_name), reply_id);
+			twitter_connection_set_last_home_timeline_id(gc, status->id);
 		}
+		twitter_buddy_set_status_data(account, data->screen_name, status);
+		twitter_buddy_set_user_data(account, user_data, FALSE);
+
+		/* update user_reply_id_table table */
+		//gchar *reply_id = g_strdup_printf ("%lld", status->id);
+		//g_hash_table_insert (twitter->user_reply_id_table,
+		//g_strdup (screen_name), reply_id);
 		twitter_user_tweet_free(data);
 	}
 }

@@ -1,5 +1,4 @@
 #include "twitter_endpoint_search.h"
-#include "twitter_chaticon.h"
 
 static gpointer twitter_search_timeout_context_new(GHashTable *components)
 {
@@ -66,11 +65,6 @@ static void twitter_search_cb(PurpleAccount *account,
 {
 	TwitterEndpointChatId *id = (TwitterEndpointChatId *) user_data;
 	gint i, len = search_results->len;
-#if _HAZE_
-	PurpleConvIm *chat;
-#else
-	PurpleConvChat *chat;
-#endif
 	TwitterEndpointChat *endpoint_chat;
 	TwitterSearchTimeoutContext *ctx;
 
@@ -93,27 +87,14 @@ static void twitter_search_cb(PurpleAccount *account,
 
 	if (len)
 	{
-		chat = twitter_endpoint_chat_get_conv(endpoint_chat);
-		if (chat)
-		{
-			purple_debug_info(TWITTER_PROTOCOL_ID, "%s found chat %s, adding tweets\n", G_STRFUNC, endpoint_chat->chat_name);
-			for (i = len-1; i >= 0; i--) {
-				TwitterUserTweet *search_data;
+		purple_debug_info(TWITTER_PROTOCOL_ID, "%s found chat %s, adding tweets\n", G_STRFUNC, endpoint_chat->chat_name);
+		for (i = len-1; i >= 0; i--) {
+			TwitterUserTweet *search_data;
 
-				search_data = g_array_index (search_results,
-						TwitterUserTweet *, i);
+			search_data = g_array_index (search_results,
+					TwitterUserTweet *, i);
 
-#if _HAVE_PIDGIN_
-				//TODO: move this to twitter_endpoint_chat
-				//or, even better, make this into a signal...
-				twitter_request_conv_icon(account, search_data->screen_name, search_data->icon_url, FALSE);
-#endif
-				twitter_chat_add_tweet(chat, search_data->screen_name, search_data->status->text, search_data->status->id, search_data->status->created_at);
-			}
-		} else {
-			purple_debug_info(TWITTER_PROTOCOL_ID, "%s could not find chat %s", G_STRFUNC, endpoint_chat->chat_name);
-			//destroy context
-			return;
+			twitter_chat_got_tweet(endpoint_chat, search_data);
 		}
 	}
 

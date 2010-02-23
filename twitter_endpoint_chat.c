@@ -1,4 +1,5 @@
 #include "twitter_endpoint_chat.h"
+#include "twitter_chaticon.h"
 
 static gint twitter_get_next_chat_id()
 {
@@ -68,7 +69,7 @@ TwitterEndpointChat *twitter_endpoint_chat_find_by_id(TwitterEndpointChatId *cha
 	return twitter_endpoint_chat_find(chat_id->account, chat_id->chat_name);
 }
 
-PurpleConversation *twitter_endpoint_chat_find_open_conv(TwitterEndpointChat *ctx)
+static PurpleConversation *twitter_endpoint_chat_find_open_conv(TwitterEndpointChat *ctx)
 {
 #if _HAZE_
 	return purple_find_conversation_with_account(PURPLE_CONV_TYPE_IM, ctx->chat_name, ctx->account);
@@ -175,38 +176,39 @@ gboolean twitter_blist_chat_is_auto_open(PurpleChat *chat)
 	return (auto_open != NULL && auto_open[0] != '0');
 }
 
-#if _HAZE_
-void twitter_chat_add_tweet(PurpleConvIm *chat, const char *who, const char *message, long long id, time_t time)
-#else
-void twitter_chat_add_tweet(PurpleConvChat *chat, const char *who, const char *message, long long id, time_t time)
-#endif
+static void twitter_chat_add_tweet(PurpleConversation *conv, const char *who, const char *message, long long id, time_t time)
 {
 	gchar *tweet;
 	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+#if !_HAZE_
+	PurpleConvChat *chat;
+	chat = purple_conversation_get_chat_data(conv);
 	g_return_if_fail(chat != NULL);
+#endif
+	g_return_if_fail(conv != NULL);
 	g_return_if_fail(who != NULL);
 	g_return_if_fail(message != NULL);
 
 	tweet = twitter_format_tweet(
-			purple_conversation_get_account(chat->conv),
+			purple_conversation_get_account(conv),
 			who,
 			message,
 			id,
 			PURPLE_CONV_TYPE_CHAT,
-			purple_conversation_get_name(chat->conv),
+			purple_conversation_get_name(conv),
 			TRUE);
 #if _HAZE_
 	//This isn't in twitter_Format_tweet because we can't distinguish between a im and a chat
 	gchar *tweet2 = g_strdup_printf("%s: %s", who, tweet);
 	g_free(tweet);
 	tweet = tweet2;
-	serv_got_im(purple_conversation_get_gc(chat->conv), chat->conv->name, tweet, PURPLE_MESSAGE_RECV, time);
+	serv_got_im(purple_conversation_get_gc(conv), conv->name, tweet, PURPLE_MESSAGE_RECV, time);
 #else
 	if (!purple_conv_chat_find_user(chat, who))
 	{
 		purple_debug_info(TWITTER_PROTOCOL_ID, "added %s to chat %s\n",
 				who,
-				purple_conversation_get_name(purple_conv_chat_get_conversation(chat)));
+				purple_conversation_get_name(conv));
 		purple_conv_chat_add_user(chat,
 				who,
 				NULL,   /* user-provided join message, IRC style */
@@ -214,7 +216,7 @@ void twitter_chat_add_tweet(PurpleConvChat *chat, const char *who, const char *m
 				FALSE);  /* show a join message */
 	}
 	purple_debug_info(TWITTER_PROTOCOL_ID, "message %s\n", message);
-	serv_got_chat_in(purple_conversation_get_gc(purple_conv_chat_get_conversation(chat)),
+	serv_got_chat_in(purple_conversation_get_gc(conv),
 			purple_conv_chat_get_id(chat),
 			who,
 			PURPLE_MESSAGE_RECV,
@@ -222,6 +224,43 @@ void twitter_chat_add_tweet(PurpleConvChat *chat, const char *who, const char *m
 			time);
 #endif
 	g_free(tweet);
+}
+
+static PurpleConversation *twitter_endpoint_chat_get_conv(TwitterEndpointChat *endpoint_chat)
+{
+#if _HAZE_
+	return twitter_endpoint_chat_find_open_conv(endpoint_chat);
+#else
+	PurpleConversation *conv = twitter_endpoint_chat_find_open_conv(endpoint_chat);
+	PurpleChat *blist_chat;
+	if (conv == NULL && (blist_chat = twitter_blist_chat_find(endpoint_chat->account, endpoint_chat->chat_name)))
+	{
+		if (twitter_blist_chat_is_auto_open(blist_chat))
+		{
+			purple_debug_info(TWITTER_PROTOCOL_ID, "%s, recreated conv for auto open chat (%s)\n", G_STRFUNC, endpoint_chat->chat_name);
+			guint chat_id = twitter_get_next_chat_id();
+			conv = serv_got_joined_chat(purple_account_get_connection(endpoint_chat->account), chat_id, endpoint_chat->chat_name);
+		}
+	}
+	return conv;
+#endif
+}
+
+
+void twitter_chat_got_tweet(TwitterEndpointChat *endpoint_chat, TwitterUserTweet *tweet)
+{
+	PurpleConversation *conv = twitter_endpoint_chat_get_conv(endpoint_chat);
+	g_return_if_fail(conv != NULL);
+	g_return_if_fail(tweet != NULL);
+	g_return_if_fail(tweet->screen_name != NULL);
+	g_return_if_fail(tweet->status != NULL);
+
+#if _HAVE_PIDGIN_
+	//TODO: make this into a signal?
+	twitter_request_conv_icon(purple_conversation_get_account(conv),
+			tweet->screen_name, tweet->icon_url, FALSE);
+#endif
+	twitter_chat_add_tweet(conv, tweet->screen_name, tweet->status->text, tweet->status->id, tweet->status->created_at);
 }
 
 static gboolean twitter_endpoint_chat_interval_timeout(gpointer data)
@@ -303,31 +342,6 @@ TwitterEndpointChat *twitter_endpoint_chat_find(PurpleAccount *account, const ch
 	return (TwitterEndpointChat *) g_hash_table_lookup(twitter->chat_contexts, purple_normalize(account, chat_name));
 }
 
-#if _HAZE_
-PurpleConvIm *twitter_endpoint_chat_get_conv(TwitterEndpointChat *endpoint_chat)
-{
-	return PURPLE_CONV_IM(twitter_endpoint_chat_find_open_conv(endpoint_chat));
-}
-#else
-PurpleConvChat *twitter_endpoint_chat_get_conv(TwitterEndpointChat *endpoint_chat)
-{
-	PurpleConversation *conv = twitter_endpoint_chat_find_open_conv(endpoint_chat);
-	PurpleChat *blist_chat;
-	if (conv == NULL && (blist_chat = twitter_blist_chat_find(endpoint_chat->account, endpoint_chat->chat_name)))
-	{
-		if (twitter_blist_chat_is_auto_open(blist_chat))
-		{
-			purple_debug_info(TWITTER_PROTOCOL_ID, "%s, recreated conv for auto open chat (%s)\n", G_STRFUNC, endpoint_chat->chat_name);
-			guint chat_id = twitter_get_next_chat_id();
-			conv = serv_got_joined_chat(purple_account_get_connection(endpoint_chat->account), chat_id, endpoint_chat->chat_name);
-		}
-	}
-	if (!conv)
-		return NULL;
-	return PURPLE_CONV_CHAT(conv);
-}
-#endif
-
 static void twitter_endpoint_chat_send_success_cb(PurpleAccount *account, xmlnode *node, gboolean last, gpointer _ctx_id)
 {
 	TwitterEndpointChatId *id = _ctx_id;
@@ -338,7 +352,7 @@ static void twitter_endpoint_chat_send_success_cb(PurpleAccount *account, xmlnod
 
 	if (ctx && tweet && tweet->text && (conv = twitter_endpoint_chat_find_open_conv(ctx)))
 	{
-		twitter_chat_add_tweet(PURPLE_CONV_CHAT(conv), account->username, tweet->text, 0, tweet->created_at);
+		twitter_chat_add_tweet(conv, account->username, tweet->text, 0, tweet->created_at);
 	}
 
 	if (tweet)
