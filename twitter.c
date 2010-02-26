@@ -32,7 +32,7 @@
 #endif
 
 #include "twitter_charcount.h"
-#include "twitter_chaticon.h"
+#include "twitter_convicon.h"
 
 
 static PurplePlugin *_twitter_protocol = NULL;

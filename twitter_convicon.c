@@ -1,4 +1,4 @@
-#include "twitter_chaticon.h"
+#include "twitter_convicon.h"
 
 /*
  * Conversation input characters count plugin.

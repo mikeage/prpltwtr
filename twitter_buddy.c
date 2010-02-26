@@ -1,6 +1,6 @@
 #include "twitter_buddy.h"
 #include "twitter_util.h"
-#include "twitter_chaticon.h"
+#include "twitter_convicon.h"
 
 //TODO this should be TwitterBuddy
 TwitterUserTweet *twitter_buddy_get_buddy_data(PurpleBuddy *b)

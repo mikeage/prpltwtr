@@ -1,5 +1,5 @@
-#ifndef _TWITTER_CHATICON_H_
-#define _TWITTER_CHATICON_H_
+#ifndef _TWITTER_CONVICON_H_
+#define _TWITTER_CONVICON_H_
 
 #if _HAVE_PIDGIN_
 #include "config.h"

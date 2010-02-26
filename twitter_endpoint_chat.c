@@ -1,5 +1,5 @@
 #include "twitter_endpoint_chat.h"
-#include "twitter_chaticon.h"
+#include "twitter_convicon.h"
 
 static gint twitter_get_next_chat_id()
 {
