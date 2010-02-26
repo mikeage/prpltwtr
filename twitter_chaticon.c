@@ -26,6 +26,7 @@
 #if _HAVE_PIDGIN_
 
 #include "twitter_conn.h"
+#include "twitter_request.h"
 
 typedef struct
 {
@@ -33,6 +34,7 @@ typedef struct
 	gchar *buddy_name;
 	gchar *url;
 } BuddyIconContext;
+static void insert_requested_icon(TwitterConvIcon *data);
 
 #define twitter_debug(fmt, ...)	purple_debug_info(TWITTER_PROTOCOL_ID, "%s: %s():%4d:  " fmt, __FILE__, __FUNCTION__, (int)__LINE__, ## __VA_ARGS__);
 
@@ -85,21 +87,68 @@ static GdkPixbuf *make_scaled_pixbuf(const guchar *url_text, gsize len)
 	return dest;
 }
 
+static void conv_icon_clear(TwitterConvIcon *conv_icon)
+{
+	g_return_if_fail(conv_icon != NULL);
+
+	if (conv_icon->icon_url)
+		g_free(conv_icon->icon_url);
+	conv_icon->icon_url = NULL;
+
+	if (conv_icon->pixbuf)
+		g_object_unref(G_OBJECT(conv_icon->pixbuf));
+	conv_icon->pixbuf = NULL;
+}
+
+static void conv_icon_set_buddy_icon_data(TwitterConvIcon *conv_icon, PurpleBuddyIcon *buddy_icon)
+{
+	gsize len;
+	const guchar *data;
+	g_return_if_fail(conv_icon != NULL);
+
+	conv_icon_clear(conv_icon);
+
+	if (buddy_icon)
+	{
+		data = purple_buddy_icon_get_data(buddy_icon, &len);
+
+		conv_icon->icon_url = g_strdup(purple_buddy_icon_get_checksum(buddy_icon));
+		conv_icon->pixbuf = make_scaled_pixbuf(data, len);
+	}
+
+}
 static TwitterConvIcon *buddy_icon_to_conv_icon(PurpleBuddyIcon *buddy_icon)
 {
 	TwitterConvIcon *conv_icon;
-	gsize len;
-	const guchar *data;
 
 	g_return_val_if_fail(buddy_icon != NULL, NULL);
 
-	data = purple_buddy_icon_get_data(buddy_icon, &len);
-	g_return_val_if_fail(data != NULL && len != 0, NULL);
-
 	conv_icon = g_new0(TwitterConvIcon, 1);
-	conv_icon->icon_url = g_strdup(purple_buddy_icon_get_checksum(buddy_icon));
-	conv_icon->pixbuf = make_scaled_pixbuf(data, len);
+	conv_icon_set_buddy_icon_data(conv_icon, buddy_icon);
+
 	return conv_icon;
+}
+
+void twitter_conv_icon_got_buddy_icon(PurpleAccount *account, const char *user_name, PurpleBuddyIcon *buddy_icon)
+{
+	PurpleConnection *gc = purple_account_get_connection(account);
+	TwitterConnectionData *twitter = gc->proto_data;
+	TwitterConvIcon *conv_icon = g_hash_table_lookup(twitter->icons, purple_normalize(account, user_name));
+
+	if (!conv_icon)
+	{
+		return;
+	}
+
+	if (!conv_icon->request_list)
+	{
+		conv_icon_clear(conv_icon);
+	} else {
+		conv_icon_set_buddy_icon_data(conv_icon, buddy_icon);
+	}
+
+	if (conv_icon->pixbuf)
+		insert_requested_icon(conv_icon);
 }
 
 static TwitterConvIcon *twitter_conv_icon_find(PurpleAccount *account, const char *who)
@@ -114,13 +163,16 @@ static TwitterConvIcon *twitter_conv_icon_find(PurpleAccount *account, const cha
 	if ((!conv_icon || !conv_icon->pixbuf) && (buddy_icon = purple_buddy_icons_find(account, who)))
 	{
 		twitter_debug("Found buddy_icon\n");
-		conv_icon = buddy_icon_to_conv_icon(buddy_icon);
-		purple_buddy_icon_unref(buddy_icon);
-		if (conv_icon)
+		if (!conv_icon)
 		{
-			g_hash_table_insert(twitter->icons, g_strdup(purple_normalize(account, who)), conv_icon);
-			return conv_icon;
+			if ((conv_icon = buddy_icon_to_conv_icon(buddy_icon)))
+				g_hash_table_insert(twitter->icons, g_strdup(purple_normalize(account, who)), conv_icon);
 		}
+		else
+		{
+			conv_icon_set_buddy_icon_data(conv_icon, buddy_icon);
+		}
+		purple_buddy_icon_unref(buddy_icon);
 	}
 	return conv_icon; //may be NULL
 }
@@ -256,21 +308,30 @@ static void got_page_cb(PurpleUtilFetchUrlData *url_data, gpointer user_data,
 {
 	BuddyIconContext *ctx = user_data;
 	TwitterConvIcon *conv_icon;
+	const gchar *pic_data;
 
 	conv_icon = twitter_conv_icon_find(ctx->account, ctx->buddy_name);
+	twitter_buddy_icon_context_free(ctx);
+
 	g_return_if_fail(conv_icon != NULL);
 
 	conv_icon->requested = FALSE;
 	conv_icon->fetch_data = NULL;
 
-	conv_icon->pixbuf = make_scaled_pixbuf((const guchar *) url_text, len);
+	if (len && !error_message && twitter_response_text_status_code(url_text) == 200 && (pic_data = twitter_response_text_data(url_text, len)))
+	{
+		twitter_debug("Attempting to create pixbuf\n");
+		conv_icon->pixbuf = make_scaled_pixbuf((const guchar *) pic_data, len);
+	}
 
-	insert_requested_icon(conv_icon);
-
-	twitter_buddy_icon_context_free(ctx);
+	if (conv_icon->pixbuf)
+	{
+		twitter_debug("All succeeded, inserting\n");
+		insert_requested_icon(conv_icon);
+	}
 }
 
-void twitter_request_conv_icon(PurpleAccount *account, const char *user_name, const gchar *url, gboolean renew)
+void twitter_request_conv_icon(PurpleAccount *account, const char *user_name, const gchar *url, time_t icon_time)
 {
 	/* look local icon cache for the requested icon */
 	PurpleConnection *gc = purple_account_get_connection(account);
@@ -288,28 +349,49 @@ void twitter_request_conv_icon(PurpleAccount *account, const char *user_name, co
 	{
 		data = g_new0(TwitterConvIcon, 1);
 		g_hash_table_insert(hash, g_strdup(purple_normalize(account, user_name)), data);
-		data->icon_url = g_strdup(url);
+		data->mtime = icon_time;
+	} else {
+		//A new icon is one posted with a tweet later than the current saved icon time
+		//and with a different url
+		gboolean new_icon = strcmp(url, data->icon_url) && icon_time > data->mtime;
+
+		twitter_debug("Have icon %s (%lld) for user %s, looking for %s (%lld)\n",
+			data->icon_url, (long long int) data->mtime, user_name,
+			url, (long long int) icon_time);
+
+		if (icon_time > data->mtime)
+			data->mtime = icon_time;
+
+		//Return if the image is cached already and it's the same one
+		if (data->pixbuf && !new_icon)
+			return;
+
+		/* Return if user's icon has been requested already. */
+		if (data->requested && !new_icon)
+			return;
+
+		//If we're already requesting, but it's a different url, cancel the fetch
+		if (data->fetch_data)
+			purple_util_fetch_url_cancel(data->fetch_data);
+
+		conv_icon_clear(data);
 	}
 
-	/* if the image is in a hash, just return */
-	if(data && data->pixbuf && !renew)
+	data->icon_url = g_strdup(url);
+	
+	//For buddies, we don't want to retrieve the icon here, we'll
+	//let the twitter_buddy fetch the icon and let us know when it's done
+	if (purple_find_buddy(account, user_name))
 		return;
 
-	/* check if saved file exists */
-
-	/* Return if user's icon has been requested already. */
-	if(data->requested)
-		return;
-	else
-		data->requested = TRUE; 
+	data->requested = TRUE; 
 
 	/* Create the URL for an user's icon. */
 	if(url) {
-		/* gotdata will be released in got_icon_cb */
 		BuddyIconContext *ctx = twitter_buddy_icon_context_new(account, user_name, url);
 		twitter_debug("requesting %s\n", url);
 		data->fetch_data =
-			purple_util_fetch_url(url, TRUE, NULL, FALSE, got_page_cb, ctx);
+			purple_util_fetch_url_request(url, TRUE, NULL, FALSE, NULL, TRUE, got_page_cb, ctx);
 	}
 }
 
@@ -328,12 +410,16 @@ void twitter_conv_icon_free(TwitterConvIcon *conv_icon)
 	conv_icon->request_list = NULL;
 
 	if (conv_icon->pixbuf)
+	{
 		g_object_unref(G_OBJECT(conv_icon->pixbuf));
+	}
 	conv_icon->pixbuf = NULL;
 
 	if (conv_icon->icon_url)
 		g_free(conv_icon->icon_url);
 	conv_icon->icon_url = NULL;
+
+	g_free(conv_icon);
 }
 
 static void mark_icon_for_user(GtkTextMark *mark, TwitterConvIcon *data)
@@ -378,7 +464,6 @@ static void twitter_chat_icon_displayed_chat_cb(PurpleAccount *account, const ch
 	GtkTextBuffer *text_buffer;
 	GtkTextIter insertion_point;
 	gint linenumber;
-	GdkPixbuf *icon_pixbuf;
 	TwitterConvIcon *conv_icon;
 	PurpleConnection *gc = purple_account_get_connection(account);
 	TwitterConnectionData *twitter = gc->proto_data;
@@ -410,13 +495,11 @@ static void twitter_chat_icon_displayed_chat_cb(PurpleAccount *account, const ch
 	/* if we have the icon for this user, insert the icon immediately */
 	if (TRUE)
 	{
-		icon_pixbuf = conv_icon->pixbuf;
-		if (icon_pixbuf)
+		if (conv_icon->pixbuf)
 		{
 			gtk_text_buffer_insert_pixbuf(text_buffer,
 					&insertion_point,
-					icon_pixbuf);
-			g_object_unref(G_OBJECT(icon_pixbuf));
+					conv_icon->pixbuf);
 		} else {
 			mark_icon_for_user(gtk_text_buffer_create_mark(
 						text_buffer, NULL, &insertion_point, FALSE), conv_icon);

@@ -70,18 +70,17 @@ static void twitter_get_home_timeline_parse_statuses(PurpleAccount *account,
 	{
 		TwitterUserTweet *data = l->data;
 		TwitterTweet *status;
-		TwitterUserData *user_data;
+		TwitterUserData *user_data = twitter_user_tweet_take_user_data(data);
 
+		twitter_buddy_set_user_data(account, user_data, FALSE);
 		twitter_chat_got_tweet(endpoint_chat, data);
 		status = twitter_user_tweet_take_tweet(data);
-		user_data = twitter_user_tweet_take_user_data(data);
 
 		if (status->id && status->id > twitter_connection_get_last_home_timeline_id(gc))
 		{
 			twitter_connection_set_last_home_timeline_id(gc, status->id);
 		}
 		twitter_buddy_set_status_data(account, data->screen_name, status);
-		twitter_buddy_set_user_data(account, user_data, FALSE);
 
 		/* update user_reply_id_table table */
 		//gchar *reply_id = g_strdup_printf ("%lld", status->id);

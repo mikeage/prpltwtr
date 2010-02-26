@@ -195,7 +195,7 @@ static void twitter_requestor_on_error(TwitterRequestor *r, const TwitterRequest
 		r->post_failed(r, &error_data);
 }
 
-static gint twitter_response_text_status_code(const gchar *response_text)
+gint twitter_response_text_status_code(const gchar *response_text)
 {
 	const gchar *ptr;
 	const gchar *starts_with = "HTTP/1.";
@@ -206,6 +206,15 @@ static gint twitter_response_text_status_code(const gchar *response_text)
 	ptr = response_text + strlen(starts_with) + 2; //add the "0 "
 
 	return atoi(ptr);
+}
+const gchar *twitter_response_text_data(const gchar *response_text, gsize len)
+{
+	const gchar *data = g_strstr_len(response_text, len, "\r\n\r\n");
+	if (data)
+	{
+		return data + 4;
+	}
+	return NULL;
 }
 
 static gchar *twitter_xml_node_parse_error(const xmlnode *node)
@@ -236,13 +245,7 @@ static void twitter_send_request_cb(PurpleUtilFetchUrlData *url_data, gpointer u
 	TwitterRequestErrorType error_type = TWITTER_REQUEST_ERROR_NONE;
 	gint status_code = twitter_response_text_status_code(response_text);
 
-	url_text = g_strstr_len(response_text, len, "\r\n\r\n");
-	if (url_text)
-	{
-		url_text += 4;
-	} else {
-		url_text = NULL;
-	}
+	url_text = twitter_response_text_data(response_text, len);
 
 	if (server_error_message)
 	{
