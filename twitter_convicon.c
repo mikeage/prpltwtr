@@ -34,7 +34,7 @@ typedef struct
 	gchar *buddy_name;
 	gchar *url;
 } BuddyIconContext;
-static void insert_requested_icon(TwitterConvIcon *data);
+static void insert_requested_icon(TwitterConvIcon *conv_icon);
 
 #define twitter_debug(fmt, ...)	purple_debug_info(TWITTER_PROTOCOL_ID, "%s: %s():%4d:  " fmt, __FILE__, __FUNCTION__, (int)__LINE__, ## __VA_ARGS__);
 
@@ -178,16 +178,16 @@ static TwitterConvIcon *twitter_conv_icon_find(PurpleAccount *account, const cha
 }
 
 
-static void remove_marks_func(TwitterConvIcon *data, GtkTextBuffer *text_buffer)
+static void remove_marks_func(TwitterConvIcon *conv_icon, GtkTextBuffer *text_buffer)
 {
 	GList *mark_list = NULL;
 	GList *current;
 
-	if(!data)
+	if(!conv_icon)
 		return;
 
-	if(data->request_list)
-		mark_list = data->request_list;
+	if(conv_icon->request_list)
+		mark_list = conv_icon->request_list;
 
 	/* remove the marks in its GtkTextBuffers */
 	current = g_list_first(mark_list);
@@ -220,7 +220,7 @@ static void remove_marks_func(TwitterConvIcon *data, GtkTextBuffer *text_buffer)
 		current = next;
 	}
 
-	data->request_list = mark_list;
+	conv_icon->request_list = mark_list;
 }
 
 static void insert_icon_at_mark(GtkTextMark *requested_mark, gpointer user_data)
@@ -229,7 +229,7 @@ static void insert_icon_at_mark(GtkTextMark *requested_mark, gpointer user_data)
 	GtkIMHtml *target_imhtml = NULL;
 	GtkTextBuffer *target_buffer = NULL;
 	GtkTextIter insertion_point;
-	TwitterConvIcon *data = user_data;
+	TwitterConvIcon *conv_icon = user_data;
 
 	/* find the conversation that contains the mark  */
 	for(win_list = pidgin_conv_windows_get_list(); win_list;
@@ -266,38 +266,38 @@ static void insert_icon_at_mark(GtkTextMark *requested_mark, gpointer user_data)
 	 * not invalidate the icon here, otherwise it may result in
 	 * thrashing. --yaz */
 
-	if(!data || !data->pixbuf) {
+	if(!conv_icon || !conv_icon->pixbuf) {
 		twitter_debug("No pixbuf\n");
 		return;
 	}
 
 	/* insert icon actually */
-	data->use_count++;
+	conv_icon->use_count++;
 	gtk_text_buffer_insert_pixbuf(target_buffer,
 			&insertion_point,
-			data->pixbuf);
+			conv_icon->pixbuf);
 
 	gtk_text_buffer_delete_mark(target_buffer, requested_mark);
 	requested_mark = NULL;
 	twitter_debug("inserted\n");
 }
 
-static void insert_requested_icon(TwitterConvIcon *data)
+static void insert_requested_icon(TwitterConvIcon *conv_icon)
 {
 	GList *mark_list = NULL;
 
-	if(!data)
+	if(!conv_icon)
 		return;
 
-	mark_list = data->request_list;
+	mark_list = conv_icon->request_list;
 
 	twitter_debug("about to insert icon for pending requests\n");
 
 	if(mark_list) {
-		g_list_foreach(mark_list, (GFunc) insert_icon_at_mark, data);
+		g_list_foreach(mark_list, (GFunc) insert_icon_at_mark, conv_icon);
 		mark_list = g_list_remove_all(mark_list, NULL);
 		g_list_free(mark_list);
-		data->request_list = NULL;
+		conv_icon->request_list = NULL;
 	}
 
 }
@@ -336,7 +336,7 @@ void twitter_request_conv_icon(PurpleAccount *account, const char *user_name, co
 	/* look local icon cache for the requested icon */
 	PurpleConnection *gc = purple_account_get_connection(account);
 	TwitterConnectionData *twitter = gc->proto_data;
-	TwitterConvIcon *data = NULL;
+	TwitterConvIcon *conv_icon = NULL;
 	GHashTable *hash = twitter->icons;
 
 	if(!hash)
@@ -344,53 +344,53 @@ void twitter_request_conv_icon(PurpleAccount *account, const char *user_name, co
 
 	/* since this function is called after mark_icon_for_user(), data
 	 * must exist here. */
-	data = twitter_conv_icon_find(account, user_name);
-	if (!data)
+	conv_icon = twitter_conv_icon_find(account, user_name);
+	if (!conv_icon)
 	{
-		data = g_new0(TwitterConvIcon, 1);
-		g_hash_table_insert(hash, g_strdup(purple_normalize(account, user_name)), data);
-		data->mtime = icon_time;
+		conv_icon = g_new0(TwitterConvIcon, 1);
+		g_hash_table_insert(hash, g_strdup(purple_normalize(account, user_name)), conv_icon);
+		conv_icon->mtime = icon_time;
 	} else {
 		//A new icon is one posted with a tweet later than the current saved icon time
 		//and with a different url
-		gboolean new_icon = strcmp(url, data->icon_url) && icon_time > data->mtime;
+		gboolean new_icon = strcmp(url, conv_icon->icon_url) && icon_time > conv_icon->mtime;
 
 		twitter_debug("Have icon %s (%lld) for user %s, looking for %s (%lld)\n",
-			data->icon_url, (long long int) data->mtime, user_name,
+			conv_icon->icon_url, (long long int) conv_icon->mtime, user_name,
 			url, (long long int) icon_time);
 
-		if (icon_time > data->mtime)
-			data->mtime = icon_time;
+		if (icon_time > conv_icon->mtime)
+			conv_icon->mtime = icon_time;
 
 		//Return if the image is cached already and it's the same one
-		if (data->pixbuf && !new_icon)
+		if (conv_icon->pixbuf && !new_icon)
 			return;
 
 		/* Return if user's icon has been requested already. */
-		if (data->requested && !new_icon)
+		if (conv_icon->requested && !new_icon)
 			return;
 
 		//If we're already requesting, but it's a different url, cancel the fetch
-		if (data->fetch_data)
-			purple_util_fetch_url_cancel(data->fetch_data);
+		if (conv_icon->fetch_data)
+			purple_util_fetch_url_cancel(conv_icon->fetch_data);
 
-		conv_icon_clear(data);
+		conv_icon_clear(conv_icon);
 	}
 
-	data->icon_url = g_strdup(url);
+	conv_icon->icon_url = g_strdup(url);
 	
 	//For buddies, we don't want to retrieve the icon here, we'll
 	//let the twitter_buddy fetch the icon and let us know when it's done
 	if (purple_find_buddy(account, user_name))
 		return;
 
-	data->requested = TRUE; 
+	conv_icon->requested = TRUE; 
 
 	/* Create the URL for an user's icon. */
 	if(url) {
 		BuddyIconContext *ctx = twitter_buddy_icon_context_new(account, user_name, url);
 		twitter_debug("requesting %s\n", url);
-		data->fetch_data =
+		conv_icon->fetch_data =
 			purple_util_fetch_url_request(url, TRUE, NULL, FALSE, NULL, TRUE, got_page_cb, ctx);
 	}
 }
@@ -422,9 +422,9 @@ void twitter_conv_icon_free(TwitterConvIcon *conv_icon)
 	g_free(conv_icon);
 }
 
-static void mark_icon_for_user(GtkTextMark *mark, TwitterConvIcon *data)
+static void mark_icon_for_user(GtkTextMark *mark, TwitterConvIcon *conv_icon)
 {
-	data->request_list = g_list_prepend(data->request_list, mark);
+	conv_icon->request_list = g_list_prepend(conv_icon->request_list, mark);
 }
 
 static gboolean twitter_chat_icon_displaying_chat_cb(PurpleAccount *account, const char *who, char **message,
