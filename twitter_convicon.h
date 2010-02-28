@@ -35,8 +35,10 @@ typedef struct {
 } TwitterConvIcon;
 
 void twitter_chat_icon_init(PurplePlugin *plugin);
-void twitter_conv_icon_free(TwitterConvIcon *conv_icon);
-void twitter_request_conv_icon(PurpleAccount *account, const char *user_name, const gchar *url, time_t icon_time);
+void twitter_chat_icon_account_load(PurpleAccount *account);
+void twitter_chat_icon_account_unload(PurpleAccount *account);
+
+void twitter_conv_icon_got_user_icon(PurpleAccount *account, const char *user_name, const gchar *url, time_t icon_time);
 void twitter_conv_icon_got_buddy_icon(PurpleAccount *account, const char *user_name, PurpleBuddyIcon *buddy_icon);
 
 

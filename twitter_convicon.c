@@ -331,7 +331,7 @@ static void got_page_cb(PurpleUtilFetchUrlData *url_data, gpointer user_data,
 	}
 }
 
-void twitter_request_conv_icon(PurpleAccount *account, const char *user_name, const gchar *url, time_t icon_time)
+void twitter_conv_icon_got_user_icon(PurpleAccount *account, const char *user_name, const gchar *url, time_t icon_time)
 {
 	/* look local icon cache for the requested icon */
 	PurpleConnection *gc = purple_account_get_connection(account);
@@ -395,7 +395,7 @@ void twitter_request_conv_icon(PurpleAccount *account, const char *user_name, co
 	}
 }
 
-void twitter_conv_icon_free(TwitterConvIcon *conv_icon)
+static void twitter_conv_icon_free(TwitterConvIcon *conv_icon)
 {
 	if (!conv_icon)
 		return;
@@ -507,6 +507,23 @@ static void twitter_chat_icon_displayed_chat_cb(PurpleAccount *account, const ch
 	}
 
 	twitter_debug("reach end of function\n");
+}
+
+void twitter_chat_icon_account_load(PurpleAccount *account)
+{
+	PurpleConnection *gc = purple_account_get_connection(account);
+	TwitterConnectionData *twitter = gc->proto_data;
+	twitter->icons = g_hash_table_new_full(g_str_hash, g_str_equal,
+			g_free, (GDestroyNotify) twitter_conv_icon_free);
+}
+
+void twitter_chat_icon_account_unload(PurpleAccount *account)
+{
+	PurpleConnection *gc = purple_account_get_connection(account);
+	TwitterConnectionData *twitter = gc->proto_data;
+	if (twitter->icons)
+		g_hash_table_destroy(twitter->icons);
+	twitter->icons = NULL;
 }
 
 void twitter_chat_icon_init(PurplePlugin *plugin)

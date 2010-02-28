@@ -1131,8 +1131,7 @@ static void twitter_login(PurpleAccount *account)
 			g_str_hash, g_str_equal, g_free, g_free);
 
 #if _HAVE_PIDGIN_
-	twitter->icons = g_hash_table_new_full(g_str_hash, g_str_equal,
-			g_free, (GDestroyNotify) twitter_conv_icon_free);
+	twitter_chat_icon_account_load(account);
 #endif
 
 	/* purple wants a minimum of 2 steps */
@@ -1174,6 +1173,7 @@ static void twitter_endpoint_im_free_foreach(TwitterConnectionData *conn, Twitte
 static void twitter_close(PurpleConnection *gc)
 {
 	/* notify other twitter accounts */
+	PurpleAccount *account = purple_connection_get_account(gc);
 	TwitterConnectionData *twitter = gc->proto_data;
 
 	twitter_connection_foreach_endpoint_im(twitter, twitter_endpoint_im_free_foreach, NULL);
@@ -1193,9 +1193,7 @@ static void twitter_close(PurpleConnection *gc)
 	twitter->user_reply_id_table = NULL;
 
 #if _HAVE_PIDGIN_
-	if (twitter->icons)
-		g_hash_table_destroy(twitter->icons);
-	twitter->icons = NULL;
+	twitter_chat_icon_account_unload(account);
 #endif
 
 	if (twitter->oauth_token)

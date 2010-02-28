@@ -257,7 +257,7 @@ void twitter_chat_got_tweet(TwitterEndpointChat *endpoint_chat, TwitterUserTweet
 
 #if _HAVE_PIDGIN_
 	//TODO: make this into a signal?
-	twitter_request_conv_icon(purple_conversation_get_account(conv),
+	twitter_conv_icon_got_user_icon(purple_conversation_get_account(conv),
 			tweet->screen_name, tweet->icon_url, tweet->status->created_at);
 #endif
 	twitter_chat_add_tweet(conv, tweet->screen_name, tweet->status->text, tweet->status->id, tweet->status->created_at);
