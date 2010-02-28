@@ -513,7 +513,6 @@ static void twitter_connected(PurpleAccount *account)
 		purple_signal_connect(purple_conversations_get_handle(),
 				"deleting-conversation",
 				_twitter_protocol, PURPLE_CALLBACK(twitter_charcount_conv_destroyed_cb), NULL);
-		twitter_conv_icon_init(_twitter_protocol);
 #endif
 	}
 
@@ -1131,7 +1130,8 @@ static void twitter_login(PurpleAccount *account)
 			g_str_hash, g_str_equal, g_free, g_free);
 
 #if _HAVE_PIDGIN_
-	twitter_conv_icon_account_load(account);
+	if (twitter_option_enable_conv_icon(account))
+		twitter_conv_icon_account_load(account);
 #endif
 
 	/* purple wants a minimum of 2 steps */

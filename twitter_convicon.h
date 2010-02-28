@@ -34,7 +34,6 @@ typedef struct {
 	time_t mtime;           /* mtime of file */
 } TwitterConvIcon;
 
-void twitter_conv_icon_init(PurplePlugin *plugin);
 void twitter_conv_icon_account_load(PurpleAccount *account);
 void twitter_conv_icon_account_unload(PurpleAccount *account);
 
