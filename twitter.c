@@ -513,7 +513,7 @@ static void twitter_connected(PurpleAccount *account)
 		purple_signal_connect(purple_conversations_get_handle(),
 				"deleting-conversation",
 				_twitter_protocol, PURPLE_CALLBACK(twitter_charcount_conv_destroyed_cb), NULL);
-		twitter_chat_icon_init(_twitter_protocol);
+		twitter_conv_icon_init(_twitter_protocol);
 #endif
 	}
 
@@ -1131,7 +1131,7 @@ static void twitter_login(PurpleAccount *account)
 			g_str_hash, g_str_equal, g_free, g_free);
 
 #if _HAVE_PIDGIN_
-	twitter_chat_icon_account_load(account);
+	twitter_conv_icon_account_load(account);
 #endif
 
 	/* purple wants a minimum of 2 steps */
@@ -1193,7 +1193,7 @@ static void twitter_close(PurpleConnection *gc)
 	twitter->user_reply_id_table = NULL;
 
 #if _HAVE_PIDGIN_
-	twitter_chat_icon_account_unload(account);
+	twitter_conv_icon_account_unload(account);
 #endif
 
 	if (twitter->oauth_token)
@@ -1879,12 +1879,13 @@ static void twitter_init(PurplePlugin *plugin)
 	_twitter_protocol = plugin;
 }
 
-static void twitter_destroy(PurplePlugin *plugin) {
-
+static void twitter_destroy(PurplePlugin *plugin) 
+{
+	purple_debug_info(TWITTER_PROTOCOL_ID, "shutting down\n");
 #if _HAVE_PIDGIN_
 	twitter_charcount_detach_from_all_windows();
 #endif
-	purple_debug_info(TWITTER_PROTOCOL_ID, "shutting down\n");
+	purple_signals_disconnect_by_handle(plugin);
 }
 
 static PurplePluginInfo info =

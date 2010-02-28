@@ -427,7 +427,7 @@ static void mark_icon_for_user(GtkTextMark *mark, TwitterConvIcon *conv_icon)
 	conv_icon->request_list = g_list_prepend(conv_icon->request_list, mark);
 }
 
-static gboolean twitter_chat_icon_displaying_chat_cb(PurpleAccount *account, const char *who, char **message,
+static gboolean twitter_conv_icon_displaying_chat_cb(PurpleAccount *account, const char *who, char **message,
 		PurpleConversation *conv, PurpleMessageFlags flags,
 		void *unused)
 {
@@ -457,7 +457,7 @@ static gboolean twitter_chat_icon_displaying_chat_cb(PurpleAccount *account, con
 }
 
 
-static void twitter_chat_icon_displayed_chat_cb(PurpleAccount *account, const char *who, char *message,
+static void twitter_conv_icon_displayed_chat_cb(PurpleAccount *account, const char *who, char *message,
 		PurpleConversation *conv, PurpleMessageFlags flags)
 {
 	GtkIMHtml *imhtml;
@@ -509,7 +509,7 @@ static void twitter_chat_icon_displayed_chat_cb(PurpleAccount *account, const ch
 	twitter_debug("reach end of function\n");
 }
 
-void twitter_chat_icon_account_load(PurpleAccount *account)
+void twitter_conv_icon_account_load(PurpleAccount *account)
 {
 	PurpleConnection *gc = purple_account_get_connection(account);
 	TwitterConnectionData *twitter = gc->proto_data;
@@ -517,7 +517,7 @@ void twitter_chat_icon_account_load(PurpleAccount *account)
 			g_free, (GDestroyNotify) twitter_conv_icon_free);
 }
 
-void twitter_chat_icon_account_unload(PurpleAccount *account)
+void twitter_conv_icon_account_unload(PurpleAccount *account)
 {
 	PurpleConnection *gc = purple_account_get_connection(account);
 	TwitterConnectionData *twitter = gc->proto_data;
@@ -526,14 +526,14 @@ void twitter_chat_icon_account_unload(PurpleAccount *account)
 	twitter->icons = NULL;
 }
 
-void twitter_chat_icon_init(PurplePlugin *plugin)
+void twitter_conv_icon_init(PurplePlugin *plugin)
 {
 	twitter_debug("Init\n");
 	purple_signal_connect(pidgin_conversations_get_handle(),
 			"displaying-chat-msg",
-			plugin, PURPLE_CALLBACK(twitter_chat_icon_displaying_chat_cb), NULL);
+			plugin, PURPLE_CALLBACK(twitter_conv_icon_displaying_chat_cb), NULL);
 	purple_signal_connect(pidgin_conversations_get_handle(),
 			"displayed-chat-msg",
-			plugin, PURPLE_CALLBACK(twitter_chat_icon_displayed_chat_cb), NULL);
+			plugin, PURPLE_CALLBACK(twitter_conv_icon_displayed_chat_cb), NULL);
 }
 #endif
