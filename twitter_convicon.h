@@ -30,8 +30,10 @@ typedef struct {
 	GList *request_list;    /* marker list */
 	PurpleUtilFetchUrlData *fetch_data; /* icon fetch data */
 	gchar *icon_url;        /* url for the user's icon */
-	gint use_count;         /* usage count */
 	time_t mtime;           /* mtime of file */
+	GList *convs;		/* list of conversations */
+
+	gchar *username;
 } TwitterConvIcon;
 
 void twitter_conv_icon_account_load(PurpleAccount *account);

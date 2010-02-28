@@ -58,6 +58,14 @@ static void twitter_buddy_icon_context_free(BuddyIconContext *ctx)
 	g_free(ctx);
 }
 
+static TwitterConvIcon *twitter_conv_icon_new(PurpleAccount *account, const gchar *username)
+{
+	TwitterConvIcon *conv_icon = g_new0(TwitterConvIcon, 1);
+	conv_icon->username = g_strdup(purple_normalize(account, username));
+	twitter_debug("Created conv icon %s\n", conv_icon->username);
+	return conv_icon;
+}
+
 static GdkPixbuf *make_scaled_pixbuf(const guchar *url_text, gsize len)
 {
 	/* make pixbuf */
@@ -123,7 +131,9 @@ static TwitterConvIcon *buddy_icon_to_conv_icon(PurpleBuddyIcon *buddy_icon)
 
 	g_return_val_if_fail(buddy_icon != NULL, NULL);
 
-	conv_icon = g_new0(TwitterConvIcon, 1);
+	conv_icon = twitter_conv_icon_new(
+			purple_buddy_icon_get_account(buddy_icon),
+			purple_buddy_icon_get_username(buddy_icon));
 	conv_icon_set_buddy_icon_data(conv_icon, buddy_icon);
 
 	return conv_icon;
@@ -272,7 +282,6 @@ static void insert_icon_at_mark(GtkTextMark *requested_mark, gpointer user_data)
 	}
 
 	/* insert icon actually */
-	conv_icon->use_count++;
 	gtk_text_buffer_insert_pixbuf(target_buffer,
 			&insertion_point,
 			conv_icon->pixbuf);
@@ -347,13 +356,12 @@ void twitter_conv_icon_got_user_icon(PurpleAccount *account, const char *user_na
 	conv_icon = twitter_conv_icon_find(account, user_name);
 	if (!conv_icon)
 	{
-		conv_icon = g_new0(TwitterConvIcon, 1);
-		g_hash_table_insert(hash, g_strdup(purple_normalize(account, user_name)), conv_icon);
-		conv_icon->mtime = icon_time;
+		twitter_debug("conv icon doesn't exist\n");
+		return;
 	} else {
 		//A new icon is one posted with a tweet later than the current saved icon time
 		//and with a different url
-		gboolean new_icon = strcmp(url, conv_icon->icon_url) && icon_time > conv_icon->mtime;
+		gboolean new_icon = !conv_icon->icon_url || (strcmp(url, conv_icon->icon_url) && icon_time > conv_icon->mtime);
 
 		twitter_debug("Have icon %s (%lld) for user %s, looking for %s (%lld)\n",
 			conv_icon->icon_url, (long long int) conv_icon->mtime, user_name,
@@ -399,6 +407,7 @@ static void twitter_conv_icon_free(TwitterConvIcon *conv_icon)
 {
 	if (!conv_icon)
 		return;
+	twitter_debug("Freeing %s\n", conv_icon->username);
 	if (conv_icon->requested)
 	{
 		purple_util_fetch_url_cancel(conv_icon->fetch_data);
@@ -418,6 +427,9 @@ static void twitter_conv_icon_free(TwitterConvIcon *conv_icon)
 	if (conv_icon->icon_url)
 		g_free(conv_icon->icon_url);
 	conv_icon->icon_url = NULL;
+
+	g_free(conv_icon->username);
+	conv_icon->username = NULL;
 
 	g_free(conv_icon);
 }
@@ -459,6 +471,31 @@ static gboolean twitter_conv_icon_displaying_chat_cb(PurpleAccount *account, con
 	return FALSE;
 }
 
+static void twitter_conv_icon_add_conv(TwitterConvIcon *conv_icon, PurpleConversation *conv)
+{
+	GList **conv_conv_icons = purple_conversation_get_data(conv, TWITTER_PROTOCOL_ID "-conv-icons");
+	g_return_if_fail(conv_conv_icons != NULL);
+
+	if (!g_list_find(conv_icon->convs, conv))
+	{
+		conv_icon->convs = g_list_prepend(conv_icon->convs, conv);
+		*conv_conv_icons = g_list_prepend(*conv_conv_icons, conv_icon);
+	}
+}
+
+static void twitter_conv_icon_remove_conv(TwitterConvIcon *conv_icon, PurpleConversation *conv)
+{
+	conv_icon->convs = g_list_remove(conv_icon->convs, conv);
+
+	if (!conv_icon->convs)
+	{
+		PurpleAccount *account = purple_conversation_get_account(conv);
+		PurpleConnection *gc = purple_account_get_connection(account);
+		TwitterConnectionData *twitter = gc->proto_data;
+		//Free the conv icon
+		g_hash_table_remove(twitter->icons, conv_icon->username);
+	}
+}
 
 static void twitter_conv_icon_displayed_chat_cb(PurpleAccount *account, const char *who, char *message,
 		PurpleConversation *conv,
@@ -495,13 +532,16 @@ static void twitter_conv_icon_displayed_chat_cb(PurpleAccount *account, const ch
 
 	/* if we don't have the icon for this user, put a mark instead and
 	 * request the icon */
-	if (!conv_icon) {
-		conv_icon = g_new0(TwitterConvIcon, 1);
+	if (!conv_icon) 
+	{
+		conv_icon = twitter_conv_icon_new(account, who);
+		twitter_conv_icon_add_conv(conv_icon, conv);
 		g_hash_table_insert(twitter->icons, g_strdup(purple_normalize(account, who)), conv_icon);
 		mark_icon_for_user(gtk_text_buffer_create_mark(text_buffer, NULL, &insertion_point, FALSE),
 				conv_icon);
 		return;
 	}
+	twitter_conv_icon_add_conv(conv_icon, conv);
 
 	/* if we have the icon for this user, insert the icon immediately */
 	if (TRUE)
@@ -520,6 +560,35 @@ static void twitter_conv_icon_displayed_chat_cb(PurpleAccount *account, const ch
 	twitter_debug("reach end of function\n");
 }
 
+static void twitter_conv_icon_deleting_conversation_cb(PurpleConversation *conv, PurpleAccount *account)
+{
+	GList **conv_icons;
+	GList *l;
+	if (purple_conversation_get_account(conv) != account)
+		return;
+
+	conv_icons = purple_conversation_get_data(conv, TWITTER_PROTOCOL_ID "-conv-icons");
+
+	for (l = *conv_icons; l; l = l->next)
+	{
+		TwitterConvIcon *conv_icon = l->data;
+		twitter_conv_icon_remove_conv(conv_icon, conv);
+	}
+	g_list_free(*conv_icons);
+
+	g_free(conv_icons);
+}
+
+static void twitter_conv_icon_conversation_created_cb(PurpleConversation *conv, PurpleAccount *account)
+{
+	GList **conv_icons;
+	if (purple_conversation_get_account(conv) != account)
+		return;
+	conv_icons = g_new0(GList *, 1);
+
+	purple_conversation_set_data(conv, TWITTER_PROTOCOL_ID "-conv-icons", conv_icons);
+}
+
 void twitter_conv_icon_account_load(PurpleAccount *account)
 {
 	PurpleConnection *gc = purple_account_get_connection(account);
@@ -533,6 +602,10 @@ void twitter_conv_icon_account_load(PurpleAccount *account)
 	purple_signal_connect(pidgin_conversations_get_handle(),
 			"displayed-chat-msg",
 			twitter->icons, PURPLE_CALLBACK(twitter_conv_icon_displayed_chat_cb), account);
+	purple_signal_connect(purple_conversations_get_handle(), "conversation-created",
+			twitter->icons, PURPLE_CALLBACK(twitter_conv_icon_conversation_created_cb), account);
+	purple_signal_connect(purple_conversations_get_handle(), "deleting-conversation",
+			twitter->icons, PURPLE_CALLBACK(twitter_conv_icon_deleting_conversation_cb), account);
 }
 
 void twitter_conv_icon_account_unload(PurpleAccount *account)
