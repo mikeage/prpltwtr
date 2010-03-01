@@ -42,7 +42,7 @@ static BuddyIconContext *twitter_buddy_icon_context_new(PurpleAccount *account, 
 {
 	BuddyIconContext *ctx = g_new0(BuddyIconContext, 1);
 	ctx->account = account;
-	ctx->buddy_name = g_strdup(buddy_name);
+	ctx->buddy_name = g_strdup(purple_normalize(account, buddy_name));
 	ctx->url = g_strdup(url);
 	return ctx;
 }
@@ -356,8 +356,9 @@ void twitter_conv_icon_got_user_icon(PurpleAccount *account, const char *user_na
 	conv_icon = twitter_conv_icon_find(account, user_name);
 	if (!conv_icon)
 	{
-		twitter_debug("conv icon doesn't exist\n");
-		return;
+		conv_icon = twitter_conv_icon_new(account, user_name);
+		g_hash_table_insert(hash, g_strdup(purple_normalize(account, user_name)), conv_icon);
+		conv_icon->mtime = icon_time;
 	} else {
 		//A new icon is one posted with a tweet later than the current saved icon time
 		//and with a different url
@@ -397,7 +398,7 @@ void twitter_conv_icon_got_user_icon(PurpleAccount *account, const char *user_na
 	/* Create the URL for an user's icon. */
 	if(url) {
 		BuddyIconContext *ctx = twitter_buddy_icon_context_new(account, user_name, url);
-		twitter_debug("requesting %s\n", url);
+		twitter_debug("requesting %s for %s\n", url, user_name);
 		conv_icon->fetch_data =
 			purple_util_fetch_url_request(url, TRUE, NULL, FALSE, NULL, TRUE, got_page_cb, ctx);
 	}
