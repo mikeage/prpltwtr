@@ -1,12 +1,13 @@
 #include "twitter_buddy.h"
 #include "twitter_util.h"
+#include "twitter_convicon.h"
 
 //TODO this should be TwitterBuddy
 TwitterUserTweet *twitter_buddy_get_buddy_data(PurpleBuddy *b)
 {
 	if (b->proto_data == NULL)
 	{
-		TwitterUserTweet *twitter_buddy = twitter_user_tweet_new(b->name, NULL, NULL);
+		TwitterUserTweet *twitter_buddy = twitter_user_tweet_new(b->name, NULL, NULL, NULL);
 		b->proto_data = twitter_buddy;
 	}
 	return b->proto_data;
@@ -155,7 +156,7 @@ PurpleBuddy *twitter_buddy_new(PurpleAccount *account, const char *screenname, c
 	{
 		if (b->proto_data == NULL)
 		{
-			b->proto_data = twitter_user_tweet_new(screenname, NULL, NULL);
+			b->proto_data = twitter_user_tweet_new(screenname, NULL, NULL, NULL);
 		}
 		return b;
 	}
@@ -166,7 +167,7 @@ PurpleBuddy *twitter_buddy_new(PurpleAccount *account, const char *screenname, c
 		g = purple_group_new(group_name);
 	b = purple_buddy_new(account, screenname, alias);
 	purple_blist_add_buddy(b, NULL, g, NULL);
-	twitter_buddy = twitter_user_tweet_new(screenname, NULL, NULL);
+	twitter_buddy = twitter_user_tweet_new(screenname, NULL, NULL, NULL);
 	b->proto_data = twitter_buddy;
 	return b;
 }
@@ -209,33 +210,79 @@ void twitter_buddy_set_user_data(PurpleAccount *account, TwitterUserData *u, gbo
 	twitter_buddy_update_icon(b);
 }
 
-void twitter_buddy_update_icon_cb(PurpleUtilFetchUrlData *url_data, gpointer user_data, const gchar *url_text, gsize len, const gchar *error_message)
+typedef struct
 {
-	PurpleBuddy *buddy = user_data;
-	TwitterUserTweet *buddy_data = buddy->proto_data;
-	if (buddy_data != NULL && buddy_data->user != NULL)
+	PurpleAccount *account;
+	gchar *buddy_name;
+	gchar *url;
+} BuddyIconContext;
+
+static void twitter_buddy_update_icon_cb(PurpleUtilFetchUrlData *url_data, gpointer user_data, const gchar *url_text, gsize len, const gchar *error_message)
+{
+	BuddyIconContext *b = user_data;
+#if _HAVE_PIDGIN_
+	PurpleBuddyIcon *buddy_icon;
+#endif
+	purple_buddy_icons_set_for_user(b->account, b->buddy_name,
+			g_memdup(url_text, len), len, b->url);
+#if _HAVE_PIDGIN_
+	if ((buddy_icon = purple_buddy_icons_find(b->account, b->buddy_name)))
 	{
-		purple_buddy_icons_set_for_user(buddy->account, buddy->name,
-				g_memdup(url_text, len), len, buddy_data->user->profile_image_url);
+		twitter_conv_icon_got_buddy_icon(b->account, b->buddy_name, buddy_icon);
+		purple_buddy_icon_unref(buddy_icon);
+	}
+#endif
+	g_free(b->buddy_name);
+	g_free(b->url);
+	g_free(b);
+}
+
+
+void twitter_buddy_update_icon_from_username(PurpleAccount *account, const gchar *username, const gchar *url)
+{
+	const gchar *previous_url;
+	PurpleBuddyIcon *icon;
+	if (url == NULL)
+	{
+		purple_buddy_icons_set_for_user(account, username, NULL, 0, NULL);
+		return;
+	}
+
+	if ((icon = purple_buddy_icons_find(account, username)))
+	{
+		previous_url = purple_buddy_icon_get_checksum(icon);
+		purple_buddy_icon_unref(icon);
+	} else {
+		previous_url = NULL;
+	}
+
+	if (previous_url == NULL || !g_str_equal(previous_url, url))
+	{
+		BuddyIconContext *b = g_new0(BuddyIconContext, 1);
+		b->account = account;
+		b->buddy_name = g_strdup(username);
+		b->url = g_strdup(url);
+
+		purple_buddy_icons_set_for_user(account, username,
+				NULL, 0, url);
+
+#if _HAVE_PIDGIN_
+		twitter_conv_icon_got_buddy_icon(account, username, NULL);
+#endif
+
+		purple_util_fetch_url(url, TRUE, NULL, FALSE, twitter_buddy_update_icon_cb, b);
+
 	}
 }
 
 void twitter_buddy_update_icon(PurpleBuddy *buddy)
 {
-	const char *previous_url = purple_buddy_icons_get_checksum_for_user(buddy);
 	TwitterUserTweet *twitter_buddy_data = buddy->proto_data;
 	if (twitter_buddy_data == NULL || twitter_buddy_data->user == NULL)
 	{
 		return;
 	} else {
 		const char *url = twitter_buddy_data->user->profile_image_url;
-		if (url == NULL)
-		{
-			purple_buddy_icons_set_for_user(buddy->account, buddy->name, NULL, 0, NULL);
-		} else {
-			if (!previous_url || !g_str_equal(previous_url, url)) {
-				purple_util_fetch_url(url, TRUE, NULL, FALSE, twitter_buddy_update_icon_cb, buddy);
-			}
-		}
+		twitter_buddy_update_icon_from_username(buddy->account, buddy->name, url);
 	}
 }

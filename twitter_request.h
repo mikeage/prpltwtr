@@ -133,4 +133,7 @@ TwitterRequestParams *twitter_request_params_add_oauth_params(PurpleAccount *acc
 		const TwitterRequestParams *params,
 		const gchar *token, const gchar *signing_key);
 
+const gchar *twitter_response_text_data(const gchar *response_text, gsize len);
+gint twitter_response_text_status_code(const gchar *response_text);
+
 #endif

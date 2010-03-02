@@ -71,6 +71,9 @@
 #define TWITTER_PREF_API_BASE "twitter_api_base_url"
 #define TWITTER_PREF_API_BASE_DEFAULT "api.twitter.com/1/"
 
+#define TWITTER_PREF_ENABLE_CONV_ICON "enable_conv_icon"
+#define TWITTER_PREF_ENABLE_CONV_ICON_DEFAULT TRUE
+
 #define TWITTER_PREF_SEARCH_API_BASE "twitter_search_api_base_url"
 #define TWITTER_PREF_SEARCH_API_BASE_DEFAULT "search.twitter.com/"
 
@@ -108,6 +111,7 @@ gboolean twitter_option_use_https(PurpleAccount *account);
 gboolean twitter_option_use_oauth(PurpleAccount *account);
 gint twitter_option_home_timeline_max_tweets(PurpleAccount *account);
 gboolean twitter_option_default_dm(PurpleAccount *account);
+gboolean twitter_option_enable_conv_icon(PurpleAccount *account);
 
 const gchar *twitter_option_api_host(PurpleAccount *account);
 const gchar *twitter_option_api_subdir(PurpleAccount *account);

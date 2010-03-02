@@ -99,6 +99,16 @@ static gint _twitter_search_results_sort(gconstpointer _a, gconstpointer _b)
 		return 0;
 }
 
+static const gchar *twitter_search_entry_get_icon_url(xmlnode *entry_node)
+{
+	xmlnode *link_node = xmlnode_get_child(entry_node, "link");
+	for (; link_node && strcmp(xmlnode_get_attrib(link_node, "rel"), "image"); link_node = xmlnode_get_next_twin(link_node))
+	{ }
+	if (link_node)
+		return xmlnode_get_attrib(link_node, "href");
+	return NULL;
+}
+
 TwitterUserTweet *twitter_search_entry_node_parse(xmlnode *entry_node)
 {
 	if (entry_node != NULL && entry_node->name && !strcmp(entry_node->name, "entry"))
@@ -108,6 +118,7 @@ TwitterUserTweet *twitter_search_entry_node_parse(xmlnode *entry_node)
 		gchar *id_str = xmlnode_get_child_data(entry_node, "id"); //tag:search.twitter.com,2005:12345678
 		gchar *created_at_str = xmlnode_get_child_data(entry_node, "published"); //2009-12-24T19:29:24Z
 		gchar *screen_name_str = xmlnode_get_child_data(xmlnode_get_child(entry_node, "author"), "name"); //username (USER NAME)
+		const gchar *icon_url;
 		gchar *ptr;
 
 
@@ -119,7 +130,8 @@ TwitterUserTweet *twitter_search_entry_node_parse(xmlnode *entry_node)
 		ptr = strstr(screen_name_str, " ");
 		if (ptr)
 			ptr[0] = 0;
-		entry = twitter_user_tweet_new(screen_name_str, NULL, NULL);
+		icon_url = twitter_search_entry_get_icon_url(entry_node);
+		entry = twitter_user_tweet_new(screen_name_str, icon_url, NULL, NULL);
 		g_free(screen_name_str);
 
 		tweet->text = xmlnode_get_child_data(entry_node, "title");
@@ -277,7 +289,7 @@ TwitterUserTweet *twitter_verify_credentials_parse(xmlnode *node)
 		return NULL;
 
 	tweet = twitter_status_node_parse(xmlnode_get_child(node, "status"));
-	data = twitter_user_tweet_new(user->screen_name, user, tweet);
+	data = twitter_user_tweet_new(user->screen_name, user->profile_image_url, user, tweet);
 
 	return data;
 }
@@ -287,13 +299,15 @@ TwitterTweet *twitter_dm_node_parse(xmlnode *dm_node)
 	return twitter_status_node_parse(dm_node);
 }
 
-TwitterUserTweet *twitter_user_tweet_new(const char *screen_name, TwitterUserData *user, TwitterTweet *tweet)
+TwitterUserTweet *twitter_user_tweet_new(const char *screen_name, const gchar *icon_url, TwitterUserData *user, TwitterTweet *tweet)
 {
 	TwitterUserTweet *data = g_new0(TwitterUserTweet, 1);
 
 	data->user = user;
 	data->status = tweet;
 	data->screen_name = g_strdup(screen_name);
+	if (icon_url)
+		data->icon_url = g_strdup(icon_url);
 	
 	return data;
 }
@@ -322,6 +336,8 @@ void twitter_user_tweet_free(TwitterUserTweet *ut)
 		twitter_status_data_free(ut->status);
 	if (ut->screen_name)
 		g_free(ut->screen_name);
+	if (ut->icon_url)
+		g_free(ut->icon_url);
 	g_free(ut);
 }
 
@@ -333,7 +349,7 @@ GList *twitter_dms_node_parse(xmlnode *dms_node)
 	{
 		TwitterUserData *user = twitter_user_node_parse(xmlnode_get_child(dm_node, "sender"));
 		TwitterTweet *tweet = twitter_dm_node_parse(dm_node);
-		TwitterUserTweet *data = twitter_user_tweet_new(user->screen_name, user, tweet);
+		TwitterUserTweet *data = twitter_user_tweet_new(user->screen_name, user->profile_image_url, user, tweet);
 
 		dms = g_list_prepend(dms, data);
 
@@ -363,7 +379,7 @@ GList *twitter_users_node_parse(xmlnode *users_node)
 		{
 			TwitterUserData *user = twitter_user_node_parse(user_node);
 			TwitterTweet *tweet = twitter_dm_node_parse(xmlnode_get_child(user_node, "status"));
-			TwitterUserTweet *data = twitter_user_tweet_new(user->screen_name, user, tweet);
+			TwitterUserTweet *data = twitter_user_tweet_new(user->screen_name, user->profile_image_url, user, tweet);
 
 			users = g_list_append(users, data);
 		}
@@ -393,7 +409,7 @@ GList *twitter_statuses_node_parse(xmlnode *statuses_node)
 		{
 			TwitterUserData *user = twitter_user_node_parse(xmlnode_get_child(status_node, "user"));
 			TwitterTweet *tweet = twitter_dm_node_parse(status_node);
-			TwitterUserTweet *data = twitter_user_tweet_new(user->screen_name, user, tweet);
+			TwitterUserTweet *data = twitter_user_tweet_new(user->screen_name, user->profile_image_url, user, tweet);
 
 			statuses = g_list_prepend(statuses, data);
 		}

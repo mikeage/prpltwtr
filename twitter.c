@@ -32,6 +32,7 @@
 #endif
 
 #include "twitter_charcount.h"
+#include "twitter_convicon.h"
 
 
 static PurplePlugin *_twitter_protocol = NULL;
@@ -505,6 +506,7 @@ static void twitter_connected(PurpleAccount *account)
 		TWITTER_SIGNALS_CONNECTED = TRUE;
 
 #if _HAVE_PIDGIN_
+		//FIXME: disconnect signals!
 		purple_signal_connect(purple_conversations_get_handle(),
 				"conversation-created",
 				_twitter_protocol, PURPLE_CALLBACK(twitter_charcount_conv_created_cb), NULL);
@@ -1127,6 +1129,11 @@ static void twitter_login(PurpleAccount *account)
 	twitter->user_reply_id_table = g_hash_table_new_full (
 			g_str_hash, g_str_equal, g_free, g_free);
 
+#if _HAVE_PIDGIN_
+	if (twitter_option_enable_conv_icon(account))
+		twitter_conv_icon_account_load(account);
+#endif
+
 	/* purple wants a minimum of 2 steps */
 	purple_connection_update_progress(gc, ("Connecting"),
 			0,   /* which connection step this is */
@@ -1166,6 +1173,7 @@ static void twitter_endpoint_im_free_foreach(TwitterConnectionData *conn, Twitte
 static void twitter_close(PurpleConnection *gc)
 {
 	/* notify other twitter accounts */
+	PurpleAccount *account = purple_connection_get_account(gc);
 	TwitterConnectionData *twitter = gc->proto_data;
 
 	twitter_connection_foreach_endpoint_im(twitter, twitter_endpoint_im_free_foreach, NULL);
@@ -1183,6 +1191,10 @@ static void twitter_close(PurpleConnection *gc)
 	if (twitter->user_reply_id_table)
 		g_hash_table_destroy (twitter->user_reply_id_table);
 	twitter->user_reply_id_table = NULL;
+
+#if _HAVE_PIDGIN_
+	twitter_conv_icon_account_unload(account);
+#endif
 
 	if (twitter->oauth_token)
 		g_free(twitter->oauth_token);
@@ -1867,12 +1879,13 @@ static void twitter_init(PurplePlugin *plugin)
 	_twitter_protocol = plugin;
 }
 
-static void twitter_destroy(PurplePlugin *plugin) {
-
+static void twitter_destroy(PurplePlugin *plugin) 
+{
+	purple_debug_info(TWITTER_PROTOCOL_ID, "shutting down\n");
 #if _HAVE_PIDGIN_
 	twitter_charcount_detach_from_all_windows();
 #endif
-	purple_debug_info(TWITTER_PROTOCOL_ID, "shutting down\n");
+	purple_signals_disconnect_by_handle(plugin);
 }
 
 static PurplePluginInfo info =
