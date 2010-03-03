@@ -58,19 +58,18 @@ static gchar *twitter_search_verify_components(GHashTable *components)
 }
 
 static void twitter_search_cb(PurpleAccount *account,
-		const GArray *search_results,
+		const GList *search_results,
 		const gchar *refresh_url,
 		long long max_id,
 		gpointer user_data)
 {
 	TwitterEndpointChatId *id = (TwitterEndpointChatId *) user_data;
-	gint i, len = search_results->len;
 	TwitterEndpointChat *endpoint_chat;
 	TwitterSearchTimeoutContext *ctx;
 
 	g_return_if_fail(id != NULL);
 
-	purple_debug_info(TWITTER_PROTOCOL_ID, "%s, chat_name %s len: %d\n", G_STRFUNC, id->chat_name,  len);
+	purple_debug_info(TWITTER_PROTOCOL_ID, "%s, chat_name %s\n", G_STRFUNC, id->chat_name);
 
 	endpoint_chat = twitter_endpoint_chat_find_by_id(id);
 	twitter_endpoint_chat_id_free(id);
@@ -85,14 +84,14 @@ static void twitter_search_cb(PurpleAccount *account,
 	g_return_if_fail (ctx != NULL);
 	//TODO add DEBUG stuff in case something breaks
 
-	if (len)
+	if (search_results)
 	{
+		const GList *l;
 		purple_debug_info(TWITTER_PROTOCOL_ID, "%s found chat %s, adding tweets\n", G_STRFUNC, endpoint_chat->chat_name);
-		for (i = len-1; i >= 0; i--) {
-			TwitterUserTweet *search_data;
 
-			search_data = g_array_index (search_results,
-					TwitterUserTweet *, i);
+		for (l = search_results; l; l = l->next)
+		{
+			TwitterUserTweet *search_data = l->data;
 
 			twitter_chat_got_tweet(endpoint_chat, search_data);
 		}

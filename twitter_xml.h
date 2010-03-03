@@ -51,7 +51,7 @@ typedef struct
 typedef struct
 {
 	char *refresh_url;
-	GArray *tweets;
+	GList *tweets;
 	gint max_id;
 } TwitterSearchResults;
 
