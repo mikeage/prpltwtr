@@ -269,6 +269,30 @@ void twitter_chat_got_tweet(TwitterEndpointChat *endpoint_chat, TwitterUserTweet
 	twitter_chat_add_tweet(conv, tweet->screen_name, tweet->status->text, tweet->status->id, tweet->status->created_at);
 }
 
+static gboolean twitter_sent_tweets_contains_id(TwitterEndpointChat *ctx, long long id)
+{
+	GList *l;
+	for (l = ctx->sent_tweet_ids; l; l = l->next)
+	{
+		long long *el = l->data;
+		if (*el == id)
+			return TRUE;
+		else if (*el > id)
+			return FALSE;
+	}
+	return FALSE;
+}
+
+//Removes all tweet id before id
+static void twitter_sent_tweets_ids_remove_before(TwitterEndpointChat *ctx, long long id)
+{
+	while (ctx->sent_tweet_ids && *((long long *) ctx->sent_tweet_ids->data) <= id)
+	{
+		g_free(ctx->sent_tweet_ids->data);
+		ctx->sent_tweet_ids = g_list_delete_link(ctx->sent_tweet_ids, ctx->sent_tweet_ids);
+	}
+}
+
 void twitter_chat_got_user_tweets(TwitterEndpointChat *endpoint_chat, GList *user_tweets)
 {
 	PurpleAccount *account;
@@ -293,12 +317,16 @@ void twitter_chat_got_user_tweets(TwitterEndpointChat *endpoint_chat, GList *use
 		if (user)
 			twitter_buddy_set_user_data(account, user, FALSE);
 
-		twitter_chat_got_tweet(endpoint_chat, user_tweet);
+		/* This could be more efficient */
+		if (!twitter_sent_tweets_contains_id(endpoint_chat, user_tweet->status->id))
+			twitter_chat_got_tweet(endpoint_chat, user_tweet);
+
 		status = twitter_user_tweet_take_tweet(user_tweet);
 		twitter_buddy_set_status_data(account, user_tweet->screen_name, status);
 
 		twitter_user_tweet_free(user_tweet);
 	}
+	twitter_sent_tweets_ids_remove_before(endpoint_chat, max_id);
 	g_list_free(user_tweets);
 }
 
@@ -404,6 +432,7 @@ static void twitter_endpoint_chat_send_success_cb(PurpleAccount *account, xmlnod
 {
 	TwitterEndpointChatId *id = _ctx_id;
 	TwitterTweet *tweet = twitter_status_node_parse(node);
+
 #if !_HAZE_
 	TwitterEndpointChat *ctx = twitter_endpoint_chat_find_by_id(id);
 	PurpleConversation *conv;
