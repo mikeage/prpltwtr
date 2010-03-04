@@ -19,7 +19,7 @@ struct _TwitterSearchErrorData
 
 /* @search_result: an array of TwitterUserTweet */
 typedef void (*TwitterSearchSuccessFunc)(PurpleAccount *account,
-        const GList *search_results,
+        GList *search_results,
         const gchar *refresh_url,
         long long max_id,
         gpointer user_data);

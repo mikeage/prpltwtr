@@ -274,7 +274,8 @@ void twitter_chat_got_user_tweets(TwitterEndpointChat *endpoint_chat, GList *use
 		TwitterUserData *user = twitter_user_tweet_take_user_data(user_tweet);
 		TwitterTweet *status;
 
-		twitter_buddy_set_user_data(account, user, FALSE);
+		if (user)
+			twitter_buddy_set_user_data(account, user, FALSE);
 
 		twitter_chat_got_tweet(endpoint_chat, user_tweet);
 		status = twitter_user_tweet_take_tweet(user_tweet);

@@ -58,7 +58,7 @@ static gchar *twitter_search_verify_components(GHashTable *components)
 }
 
 static void twitter_search_cb(PurpleAccount *account,
-		const GList *search_results,
+		GList *search_results,
 		const gchar *refresh_url,
 		long long max_id,
 		gpointer user_data)
@@ -82,19 +82,10 @@ static void twitter_search_cb(PurpleAccount *account,
 	ctx = (TwitterSearchTimeoutContext *) endpoint_chat->endpoint_data;
 
 	g_return_if_fail (ctx != NULL);
-	//TODO add DEBUG stuff in case something breaks
 
 	if (search_results)
 	{
-		const GList *l;
-		purple_debug_info(TWITTER_PROTOCOL_ID, "%s found chat %s, adding tweets\n", G_STRFUNC, endpoint_chat->chat_name);
-
-		for (l = search_results; l; l = l->next)
-		{
-			TwitterUserTweet *search_data = l->data;
-
-			twitter_chat_got_tweet(endpoint_chat, search_data);
-		}
+		twitter_chat_got_user_tweets(endpoint_chat, search_results);
 	}
 
 	ctx->last_tweet_id = max_id;
