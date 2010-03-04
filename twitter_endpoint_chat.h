@@ -101,6 +101,7 @@ PurpleChat *twitter_blist_chat_find(PurpleAccount *account, const char *name);
 gboolean twitter_blist_chat_is_auto_open(PurpleChat *chat);
 
 void twitter_chat_got_tweet(TwitterEndpointChat *endpoint_chat, TwitterUserTweet *tweet);
+void twitter_chat_got_user_tweets(TwitterEndpointChat *endpoint_chat, GList *user_tweets);
 int twitter_endpoint_chat_send(TwitterEndpointChat *ctx, const gchar *message);
 
 

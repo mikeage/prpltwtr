@@ -52,42 +52,28 @@ static char *twitter_timeline_chat_name_from_components(GHashTable *components)
 	return twitter_chat_name_from_timeline_id(0);
 }
 
-//TODO: the proper way to do this would be to have this and twitter_search return the same data type
-static void twitter_get_home_timeline_parse_statuses(PurpleAccount *account,
-		TwitterEndpointChat *endpoint_chat, GList *statuses)
+static void twitter_get_home_timeline_parse_statuses(TwitterEndpointChat *endpoint_chat, GList *statuses)
 {
-	PurpleConnection *gc = purple_account_get_connection(account);
+	PurpleConnection *gc; 
 	GList *l;
+	TwitterUserTweet *user_tweet;
 
 	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
 
-	g_return_if_fail(account != NULL);
+	g_return_if_fail(endpoint_chat != NULL);
+	gc = purple_account_get_connection(endpoint_chat->account);
 
 	if (!statuses)
 		return;
 
-	for (l = statuses; l; l = l->next)
+	l = g_list_last(statuses);
+	user_tweet = l->data;
+	if (user_tweet && user_tweet->status &&
+			user_tweet->status->id > twitter_connection_get_last_home_timeline_id(gc))
 	{
-		TwitterUserTweet *data = l->data;
-		TwitterTweet *status;
-		TwitterUserData *user_data = twitter_user_tweet_take_user_data(data);
-
-		twitter_buddy_set_user_data(account, user_data, FALSE);
-		twitter_chat_got_tweet(endpoint_chat, data);
-		status = twitter_user_tweet_take_tweet(data);
-
-		if (status->id && status->id > twitter_connection_get_last_home_timeline_id(gc))
-		{
-			twitter_connection_set_last_home_timeline_id(gc, status->id);
-		}
-		twitter_buddy_set_status_data(account, data->screen_name, status);
-
-		/* update user_reply_id_table table */
-		//gchar *reply_id = g_strdup_printf ("%lld", status->id);
-		//g_hash_table_insert (twitter->user_reply_id_table,
-		//g_strdup (screen_name), reply_id);
-		twitter_user_tweet_free(data);
+		twitter_connection_set_last_home_timeline_id(gc, user_tweet->status->id);
 	}
+	twitter_chat_got_user_tweets(endpoint_chat, statuses);
 }
 
 static void twitter_get_home_timeline_cb(TwitterRequestor *r, xmlnode *node, gpointer user_data)
@@ -105,8 +91,7 @@ static void twitter_get_home_timeline_cb(TwitterRequestor *r, xmlnode *node, gpo
 		return;
 
 	GList *statuses = twitter_statuses_node_parse(node);
-	twitter_get_home_timeline_parse_statuses(r->account, endpoint_chat, statuses);
-	g_list_free(statuses);
+	twitter_get_home_timeline_parse_statuses(endpoint_chat, statuses);
 
 }
 
@@ -127,8 +112,7 @@ static void twitter_get_home_timeline_all_cb(TwitterRequestor *r,
 		return;
 
 	GList *statuses = twitter_statuses_nodes_parse(nodes);
-	twitter_get_home_timeline_parse_statuses(r->account, endpoint_chat, statuses);
-	g_list_free(statuses);
+	twitter_get_home_timeline_parse_statuses(endpoint_chat, statuses);
 }
 static gboolean twitter_endpoint_timeline_interval_start(TwitterEndpointChat *endpoint)
 {

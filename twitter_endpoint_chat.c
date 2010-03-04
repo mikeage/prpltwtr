@@ -1,5 +1,6 @@
 #include "twitter_endpoint_chat.h"
 #include "twitter_convicon.h"
+#include "twitter_buddy.h"
 
 static gint twitter_get_next_chat_id()
 {
@@ -261,6 +262,27 @@ void twitter_chat_got_tweet(TwitterEndpointChat *endpoint_chat, TwitterUserTweet
 			tweet->screen_name, tweet->icon_url, tweet->status->created_at);
 #endif
 	twitter_chat_add_tweet(conv, tweet->screen_name, tweet->status->text, tweet->status->id, tweet->status->created_at);
+}
+
+void twitter_chat_got_user_tweets(TwitterEndpointChat *endpoint_chat, GList *user_tweets)
+{
+	PurpleAccount *account = endpoint_chat->account;
+	GList *l;
+	for (l = user_tweets; l; l = l->next)
+	{
+		TwitterUserTweet *user_tweet = l->data;
+		TwitterUserData *user = twitter_user_tweet_take_user_data(user_tweet);
+		TwitterTweet *status;
+
+		twitter_buddy_set_user_data(account, user, FALSE);
+
+		twitter_chat_got_tweet(endpoint_chat, user_tweet);
+		status = twitter_user_tweet_take_tweet(user_tweet);
+		twitter_buddy_set_status_data(account, user_tweet->screen_name, status);
+
+		twitter_user_tweet_free(user_tweet);
+	}
+	g_list_free(user_tweets);
 }
 
 static gboolean twitter_endpoint_chat_interval_timeout(gpointer data)
