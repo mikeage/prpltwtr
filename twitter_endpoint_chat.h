@@ -68,6 +68,8 @@ struct _TwitterEndpointChat
 	gchar *chat_name;
 	TwitterEndpointChatSettings *settings;
 	gpointer endpoint_data;
+
+	GList *sent_tweet_ids;
 };
 
 //Identifier to use for multithreading
