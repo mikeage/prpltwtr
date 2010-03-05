@@ -85,28 +85,27 @@ static char *twitter_linkify(PurpleAccount *account, const char *message)
 		first_token = _find_first_delimiter(ptr, symbols, &symbol_index);
 		if (first_token == NULL)
 		{
-			g_string_append(ret, ptr);
+			g_string_append(ret, purple_markup_escape_text(ptr, -1));
 			break;
 		}
 		current_action = symbol_actions[symbol_index];
-		g_string_append_len(ret, ptr, first_token - ptr);
+		g_string_append(ret, purple_markup_escape_text(ptr, first_token - ptr));
 		ptr = first_token;
 		delim = _find_first_delimiter(ptr, delims, NULL);
 		if (delim == NULL)
 			delim = end;
-		link_text = g_strndup(ptr, delim - ptr);
 		//Added the 'a' before the account name because of a highlighting issue... ugly hack
 		g_string_append_printf(ret, "<a href=\"" TWITTER_URI ":///%s?account=a%s&text=%s\">%s</a>",
 				current_action,
 				purple_account_get_username(account),
 				purple_url_encode(link_text),
-				purple_markup_escape_text(link_text, -1));
+				purple_markup_escape_text(ptr, delim - ptr));
 		ptr = delim;
 	}
 
 	return g_string_free(ret, FALSE);
 #else
-	return g_strdup(message);
+	return g_strdup(purple_marketup_escape_text(message, -1));
 #endif
 }
 
