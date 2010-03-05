@@ -61,6 +61,13 @@ static const char *_find_first_delimiter(const char *text, const char *delimiter
 }
 #endif
 
+static void _g_string_append_escaped_len(GString *s, const gchar *txt, gssize len)
+{
+	gchar *tmp = purple_markup_escape_text(txt, len);
+	g_string_append(s, tmp);
+	g_free(tmp);
+}
+
 //TODO: move those
 static char *twitter_linkify(PurpleAccount *account, const char *message)
 {
@@ -78,34 +85,38 @@ static char *twitter_linkify(PurpleAccount *account, const char *message)
 
 	while (ptr != NULL && ptr < end)
 	{
-		const char *first_token = NULL;
-		char *current_action = NULL;
-		char *link_text = NULL;
+		const char *first_token;
+		char *current_action;
+		char *link_text;
 		int symbol_index = 0;
 		first_token = _find_first_delimiter(ptr, symbols, &symbol_index);
 		if (first_token == NULL)
 		{
-			g_string_append(ret, purple_markup_escape_text(ptr, -1));
+			_g_string_append_escaped_len(ret, ptr, -1);
 			break;
 		}
 		current_action = symbol_actions[symbol_index];
-		g_string_append(ret, purple_markup_escape_text(ptr, first_token - ptr));
+		_g_string_append_escaped_len(ret, ptr, first_token - ptr);
 		ptr = first_token;
 		delim = _find_first_delimiter(ptr, delims, NULL);
 		if (delim == NULL)
 			delim = end;
+		link_text = g_strndup(ptr, delim - ptr);
 		//Added the 'a' before the account name because of a highlighting issue... ugly hack
-		g_string_append_printf(ret, "<a href=\"" TWITTER_URI ":///%s?account=a%s&text=%s\">%s</a>",
+		g_string_append_printf(ret, "<a href=\"" TWITTER_URI ":///%s?account=a%s&text=%s\">",
 				current_action,
 				purple_account_get_username(account),
-				purple_url_encode(link_text),
-				purple_markup_escape_text(ptr, delim - ptr));
+				purple_url_encode(link_text));
+		_g_string_append_escaped_len(ret, link_text, -1);
+		g_string_append(ret, "</a>");
 		ptr = delim;
+
+		g_free(link_text);
 	}
 
 	return g_string_free(ret, FALSE);
 #else
-	return g_strdup(purple_marketup_escape_text(message, -1));
+	return purple_markup_escape_text(message, -1);
 #endif
 }
 
