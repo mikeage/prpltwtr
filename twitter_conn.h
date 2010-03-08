@@ -4,6 +4,7 @@
 #include <glib.h>
 #include "twitter_endpoint_im.h"
 #include "twitter_request.h"
+#include "twitter_mbprefs.h"
 
 typedef struct
 {
@@ -44,6 +45,8 @@ typedef struct
 
 	gchar *oauth_token;
 	gchar *oauth_token_secret;
+
+	TwitterMbPrefs *mb_prefs;
 } TwitterConnectionData;
 
 void twitter_connection_foreach_endpoint_im(TwitterConnectionData *twitter,

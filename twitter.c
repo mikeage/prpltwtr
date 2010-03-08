@@ -33,6 +33,7 @@
 
 #include "twitter_charcount.h"
 #include "twitter_convicon.h"
+#include "twitter_mbprefs.h"
 
 
 static PurplePlugin *_twitter_protocol = NULL;
@@ -475,6 +476,8 @@ static void twitter_connected(PurpleAccount *account)
 	TwitterConnectionData *twitter = gc->proto_data;
 
 	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+
+	twitter->mb_prefs = twitter_get_mb_pref(NULL); //TODO
 
 	twitter_connection_set_endpoint_im(twitter,
 			TWITTER_IM_TYPE_AT_MSG,
@@ -1277,6 +1280,7 @@ static void twitter_set_info(PurpleConnection *gc, const char *info) {
 static void twitter_get_info(PurpleConnection *gc, const char *username) {
 	//TODO: error check
 	//TODO: fix for buddy not on list?
+	TwitterConnectionData *twitter = gc->proto_data;
 	PurpleNotifyUserInfo *info = purple_notify_user_info_new();
 	PurpleBuddy *b = purple_find_buddy(purple_connection_get_account(gc), username);
 	gchar *url;
@@ -1302,8 +1306,7 @@ static void twitter_get_info(PurpleConnection *gc, const char *username) {
 	} else {
 		purple_notify_user_info_add_pair(info, "Description:", "No user info");
 	}
-	//TODO: fix account link
-	url = g_strdup_printf("http://twitter.com/%s", username);
+	url = twitter->mb_prefs->get_user_profile_url(NULL, username); //TODO
 	purple_notify_user_info_add_pair(info, "Account Link:", url);
 	g_free(url);
 	purple_notify_userinfo(gc,
@@ -1735,6 +1738,8 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 		const char *id_str, *user;
 		long long id;
 		gchar *link;
+		PurpleConnection *gc = purple_account_get_connection(account);
+		TwitterConnectionData *twitter = gc->proto_data;
 		id_str = g_hash_table_lookup(params, "id");
 		user = g_hash_table_lookup(params, "user");
 		if (id_str == NULL || user == NULL || id_str[0] == '\0' || user[0] == '\0')
@@ -1748,7 +1753,7 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. Invalid id for link\n");
 			return FALSE;
 		}
-		link = g_strdup_printf("http://twitter.com/%s/status/%lld", user, id);
+		link = twitter->mb_prefs->get_status_url(NULL, user, id); //TODO
 		purple_notify_uri(NULL, link);
 		g_free(link);
 	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_SEARCH)) {

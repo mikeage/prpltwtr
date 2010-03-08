@@ -156,10 +156,11 @@ char *twitter_format_tweet(PurpleAccount *account,
 
 	if (twitter_option_add_link_to_tweet(account) && is_tweet && tweet_id)
 	{
-		g_string_append_printf(tweet,
-				"\nhttp://twitter.com/%s/status/%lld\n",
-				src_user,
-				tweet_id);
+		PurpleConnection *gc = purple_account_get_connection(account);
+		TwitterConnectionData *twitter = gc->proto_data;
+		gchar *url = twitter->mb_pref->get_status_url(NULL, src_user, tweet_id); //TODO
+		g_string_append_printf(tweet, "\n%s\n", url);
+		g_free(url);
 	}
 #endif
 

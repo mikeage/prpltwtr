@@ -11,17 +11,12 @@
 #include <time.h>
 #include <locale.h>
 
-typedef enum
-{
-	TWITTER_MB_TYPE_TWITTER,
-	TWITTER_MB_TYPE_STATUS_NET,
-	TWITTER_MB_TYPE_UNKNOWN //Keep this last
-} TwitterMbType;
-
 typedef struct
 {
 	gchar *(*get_user_profile_url)(const gchar *host, const gchar *who);
 	gchar *(*get_status_url)(const gchar *host, const gchar *who, long long tweet_id);
 } TwitterMbPrefs;
+
+TwitterMbPrefs *twitter_get_mb_pref(const gchar *api_base_url);
 
 #endif

@@ -29,11 +29,11 @@ static gchar *get_status_url_twitter(const gchar *host, const gchar *who, long l
 }
 static gchar *get_user_profile_url_statusnet(const gchar *host, const gchar *who)
 {
-	return NULL;
+	return NULL; //TODO
 }
 static gchar *get_status_url_statusnet(const gchar *host, const gchar *who, long long tweet_id)
 {
-	return NULL;
+	return NULL; //TODO
 }
 
 static TwitterMbPrefs TwitterMbPrefsTwitter =
@@ -47,3 +47,8 @@ static TwitterMbPrefs TwitterMbPrefsStatusNet =
 	get_user_profile_url_statusnet, //get_user_profile_url
 	get_status_url_statusnet, //get_status_url
 };
+
+TwitterMbPrefs *twitter_get_mb_pref(const gchar *api_host)
+{
+	return &TwitterMbPrefsTwitter;
+}
