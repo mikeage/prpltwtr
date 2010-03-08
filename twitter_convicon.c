@@ -36,8 +36,6 @@ typedef struct
 } BuddyIconContext;
 static void insert_requested_icon(TwitterConvIcon *conv_icon);
 
-#define twitter_debug(fmt, ...)	purple_debug_info(TWITTER_PROTOCOL_ID, "%s: %s():%4d:  " fmt, __FILE__, __FUNCTION__, (int)__LINE__, ## __VA_ARGS__);
-
 static BuddyIconContext *twitter_buddy_icon_context_new(PurpleAccount *account, const gchar *buddy_name, const gchar *url)
 {
 	BuddyIconContext *ctx = g_new0(BuddyIconContext, 1);
@@ -62,7 +60,7 @@ static TwitterConvIcon *twitter_conv_icon_new(PurpleAccount *account, const gcha
 {
 	TwitterConvIcon *conv_icon = g_new0(TwitterConvIcon, 1);
 	conv_icon->username = g_strdup(purple_normalize(account, username));
-	twitter_debug("Created conv icon %s\n", conv_icon->username);
+	purple_debug_info(TWITTER_PROTOCOL_ID, "Created conv icon %s\n", conv_icon->username);
 	return conv_icon;
 }
 
@@ -168,11 +166,10 @@ static TwitterConvIcon *twitter_conv_icon_find(PurpleAccount *account, const cha
 	TwitterConvIcon *conv_icon;
 	TwitterConnectionData *twitter = gc->proto_data;
 
-	twitter_debug("Looking up %s\n", who);
+	purple_debug_info(TWITTER_PROTOCOL_ID, "Looking up %s\n", who);
 	conv_icon = g_hash_table_lookup(twitter->icons, purple_normalize(account, who));
 	if ((!conv_icon || !conv_icon->pixbuf) && (buddy_icon = purple_buddy_icons_find(account, who)))
 	{
-		twitter_debug("Found buddy_icon\n");
 		if (!conv_icon)
 		{
 			if ((conv_icon = buddy_icon_to_conv_icon(buddy_icon)))
@@ -264,7 +261,7 @@ static void insert_icon_at_mark(GtkTextMark *requested_mark, gpointer user_data)
 	}
 
 	if(!(target_imhtml && target_buffer)) {
-		twitter_debug("No target imhtml/target buffer\n");
+		purple_debug_info(TWITTER_PROTOCOL_ID, "No target imhtml/target buffer\n");
 		return;
 	}
 
@@ -277,7 +274,7 @@ static void insert_icon_at_mark(GtkTextMark *requested_mark, gpointer user_data)
 	 * thrashing. --yaz */
 
 	if(!conv_icon || !conv_icon->pixbuf) {
-		twitter_debug("No pixbuf\n");
+		purple_debug_info(TWITTER_PROTOCOL_ID, "No pixbuf\n");
 		return;
 	}
 
@@ -288,7 +285,7 @@ static void insert_icon_at_mark(GtkTextMark *requested_mark, gpointer user_data)
 
 	gtk_text_buffer_delete_mark(target_buffer, requested_mark);
 	requested_mark = NULL;
-	twitter_debug("inserted\n");
+	purple_debug_info(TWITTER_PROTOCOL_ID, "inserted icon into conv\n");
 }
 
 static void insert_requested_icon(TwitterConvIcon *conv_icon)
@@ -300,7 +297,7 @@ static void insert_requested_icon(TwitterConvIcon *conv_icon)
 
 	mark_list = conv_icon->request_list;
 
-	twitter_debug("about to insert icon for pending requests\n");
+	purple_debug_info(TWITTER_PROTOCOL_ID, "about to insert icon for pending requests\n");
 
 	if(mark_list) {
 		g_list_foreach(mark_list, (GFunc) insert_icon_at_mark, conv_icon);
@@ -329,13 +326,13 @@ static void got_page_cb(PurpleUtilFetchUrlData *url_data, gpointer user_data,
 
 	if (len && !error_message && twitter_response_text_status_code(url_text) == 200 && (pic_data = twitter_response_text_data(url_text, len)))
 	{
-		twitter_debug("Attempting to create pixbuf\n");
+		purple_debug_info(TWITTER_PROTOCOL_ID, "Attempting to create pixbuf\n");
 		conv_icon->pixbuf = make_scaled_pixbuf((const guchar *) pic_data, len);
 	}
 
 	if (conv_icon->pixbuf)
 	{
-		twitter_debug("All succeeded, inserting\n");
+		purple_debug_info(TWITTER_PROTOCOL_ID, "All succeeded, inserting\n");
 		insert_requested_icon(conv_icon);
 	}
 }
@@ -364,7 +361,7 @@ void twitter_conv_icon_got_user_icon(PurpleAccount *account, const char *user_na
 		//and with a different url
 		gboolean new_icon = !conv_icon->icon_url || (strcmp(url, conv_icon->icon_url) && icon_time > conv_icon->mtime);
 
-		twitter_debug("Have icon %s (%lld) for user %s, looking for %s (%lld)\n",
+		purple_debug_info(TWITTER_PROTOCOL_ID, "Have icon %s (%lld) for user %s, looking for %s (%lld)\n",
 			conv_icon->icon_url, (long long int) conv_icon->mtime, user_name,
 			url, (long long int) icon_time);
 
@@ -398,7 +395,7 @@ void twitter_conv_icon_got_user_icon(PurpleAccount *account, const char *user_na
 	/* Create the URL for an user's icon. */
 	if(url) {
 		BuddyIconContext *ctx = twitter_buddy_icon_context_new(account, user_name, url);
-		twitter_debug("requesting %s for %s\n", url, user_name);
+		purple_debug_info(TWITTER_PROTOCOL_ID, "requesting %s for %s\n", url, user_name);
 		conv_icon->fetch_data =
 			purple_util_fetch_url_request(url, TRUE, NULL, FALSE, NULL, TRUE, got_page_cb, ctx);
 	}
@@ -408,7 +405,7 @@ static void twitter_conv_icon_free(TwitterConvIcon *conv_icon)
 {
 	if (!conv_icon)
 		return;
-	twitter_debug("Freeing %s\n", conv_icon->username);
+	purple_debug_info(TWITTER_PROTOCOL_ID, "Freeing icon for %s\n", conv_icon->username);
 	if (conv_icon->requested)
 	{
 		purple_util_fetch_url_cancel(conv_icon->fetch_data);
@@ -451,7 +448,7 @@ static gboolean twitter_conv_icon_displaying_chat_cb(PurpleAccount *account, con
 	if (account != account_signal)
 		return FALSE;
 
-	twitter_debug("called\n");
+	purple_debug_info(TWITTER_PROTOCOL_ID, "called %s\n", G_STRFUNC);
 
 	/* get text buffer */
 	imhtml = GTK_IMHTML(PIDGIN_CONVERSATION(conv)->imhtml);
@@ -467,7 +464,6 @@ static gboolean twitter_conv_icon_displaying_chat_cb(PurpleAccount *account, con
 	//On another note, we don't insert the icon here because the message may not end up being displayed
 	//based on what other plugins do
 	purple_conversation_set_data(conv, TWITTER_PROTOCOL_ID "-icon-ln", GINT_TO_POINTER(linenumber));
-	twitter_debug("conv = %p linenumber = %d\n", conv, linenumber);
 
 	return FALSE;
 }
@@ -517,7 +513,7 @@ static void twitter_conv_icon_displayed_chat_cb(PurpleAccount *account, const ch
 	gc = purple_account_get_connection(account);
 	twitter = gc->proto_data;
 
-	twitter_debug("called\n");
+	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
 
 	/* insert icon */
 	imhtml = GTK_IMHTML(PIDGIN_CONVERSATION(conv)->imhtml);
@@ -558,7 +554,7 @@ static void twitter_conv_icon_displayed_chat_cb(PurpleAccount *account, const ch
 		}
 	}
 
-	twitter_debug("reach end of function\n");
+	purple_debug_info(TWITTER_PROTOCOL_ID, "end %s\n", G_STRFUNC);
 }
 
 static void twitter_conv_icon_deleting_conversation_cb(PurpleConversation *conv, PurpleAccount *account)
