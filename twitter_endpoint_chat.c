@@ -1,5 +1,6 @@
 #include "twitter_endpoint_chat.h"
 #include "twitter_convicon.h"
+#include "twitter_buddy.h"
 
 static gint twitter_get_next_chat_id()
 {
@@ -10,6 +11,7 @@ static gint twitter_get_next_chat_id()
 void twitter_endpoint_chat_free(TwitterEndpointChat *ctx)
 {
 	PurpleConnection *gc;
+	GList *l;
 
 	if (ctx->settings && ctx->settings->endpoint_data_free)
 		ctx->settings->endpoint_data_free(ctx->endpoint_data);
@@ -25,6 +27,10 @@ void twitter_endpoint_chat_free(TwitterEndpointChat *ctx)
 		g_free(ctx->chat_name);
 		ctx->chat_name = NULL;
 	}
+
+	for (l = ctx->sent_tweet_ids; l; l = l->next)
+		g_free(l->data);
+	g_list_free(ctx->sent_tweet_ids);
 	g_slice_free(TwitterEndpointChat, ctx);
 }
 
@@ -263,6 +269,86 @@ void twitter_chat_got_tweet(TwitterEndpointChat *endpoint_chat, TwitterUserTweet
 	twitter_chat_add_tweet(conv, tweet->screen_name, tweet->status->text, tweet->status->id, tweet->status->created_at);
 }
 
+static gboolean twitter_sent_tweets_contains_id(TwitterEndpointChat *ctx, long long id)
+{
+	GList *l;
+	for (l = ctx->sent_tweet_ids; l; l = l->next)
+	{
+		long long *el = l->data;
+		if (*el == id)
+			return TRUE;
+		else if (*el > id)
+			return FALSE;
+	}
+	return FALSE;
+}
+
+//Removes all tweet id before id
+static void twitter_sent_tweets_ids_remove_before(TwitterEndpointChat *ctx, long long id)
+{
+	while (ctx->sent_tweet_ids && *((long long *) ctx->sent_tweet_ids->data) <= id)
+	{
+		g_free(ctx->sent_tweet_ids->data);
+		ctx->sent_tweet_ids = g_list_delete_link(ctx->sent_tweet_ids, ctx->sent_tweet_ids);
+	}
+}
+
+void twitter_chat_got_user_tweets(TwitterEndpointChat *endpoint_chat, GList *user_tweets)
+{
+	PurpleAccount *account;
+	GList *l;
+	long long max_id = 0;
+
+	g_return_if_fail(endpoint_chat != NULL);
+
+	account = endpoint_chat->account;
+
+	if (!user_tweets)
+		return;
+
+	l = g_list_last(user_tweets);
+	max_id = ((TwitterUserTweet *) l->data)->status->id;
+	for (l = user_tweets; l; l = l->next)
+	{
+		TwitterUserTweet *user_tweet = l->data;
+		TwitterUserData *user = twitter_user_tweet_take_user_data(user_tweet);
+		TwitterTweet *status;
+
+		if (user)
+			twitter_buddy_set_user_data(account, user, FALSE);
+
+		/* This could be more efficient */
+		if (!twitter_sent_tweets_contains_id(endpoint_chat, user_tweet->status->id))
+			twitter_chat_got_tweet(endpoint_chat, user_tweet);
+
+		status = twitter_user_tweet_take_tweet(user_tweet);
+		twitter_buddy_set_status_data(account, user_tweet->screen_name, status);
+
+		twitter_user_tweet_free(user_tweet);
+	}
+	twitter_sent_tweets_ids_remove_before(endpoint_chat, max_id);
+	g_list_free(user_tweets);
+}
+
+static int _tweet_id_compare(long long *a, long long *b)
+{
+	if (*a < *b)
+		return -1;
+	else if (*a == *b)
+		return 0;
+	else
+		return 1;
+}
+
+static void twitter_add_sent_tweet_id(TwitterEndpointChat *endpoint_chat, long long tweet_id)
+{
+	long long *p = g_new(long long, 1);
+	*p = tweet_id;
+	endpoint_chat->sent_tweet_ids = g_list_insert_sorted(endpoint_chat->sent_tweet_ids,
+			p,
+			(GCompareFunc) _tweet_id_compare);
+}
+
 static gboolean twitter_endpoint_chat_interval_timeout(gpointer data)
 {
 	TwitterEndpointChat *endpoint = data;
@@ -345,9 +431,10 @@ TwitterEndpointChat *twitter_endpoint_chat_find(PurpleAccount *account, const ch
 static void twitter_endpoint_chat_send_success_cb(PurpleAccount *account, xmlnode *node, gboolean last, gpointer _ctx_id)
 {
 	TwitterEndpointChatId *id = _ctx_id;
+	TwitterTweet *tweet = twitter_status_node_parse(node);
+
 #if !_HAZE_
 	TwitterEndpointChat *ctx = twitter_endpoint_chat_find_by_id(id);
-	TwitterTweet *tweet = twitter_status_node_parse(node);
 	PurpleConversation *conv;
 
 	if (ctx && tweet && tweet->text && (conv = twitter_endpoint_chat_find_open_conv(ctx)))
@@ -355,9 +442,12 @@ static void twitter_endpoint_chat_send_success_cb(PurpleAccount *account, xmlnod
 		twitter_chat_add_tweet(conv, account->username, tweet->text, 0, tweet->created_at);
 	}
 
+#endif
+	if (tweet && tweet->id)
+		twitter_add_sent_tweet_id(ctx, tweet->id);
+
 	if (tweet)
 		twitter_status_data_free(tweet);
-#endif
 
 	if (last)
 		twitter_endpoint_chat_id_free(id);

@@ -87,10 +87,10 @@ static time_t twitter_status_parse_timestamp(const char *timestamp)
 	return tval;
 }
 
-static gint _twitter_search_results_sort(gconstpointer _a, gconstpointer _b)
+static gint _twitter_search_results_sort(TwitterUserTweet *_a, TwitterUserTweet * _b)
 {
-	long long a = (*((TwitterUserTweet **) _a))->status->id;
-	long long b = (*((TwitterUserTweet **) _b))->status->id;
+	long long a = _a->status->id;
+	long long b = _b->status->id;
 	if (a < b)
 		return 1;
 	else if (a > b)
@@ -145,7 +145,7 @@ TwitterUserTweet *twitter_search_entry_node_parse(xmlnode *entry_node)
 	}
 	return NULL;
 }
-static TwitterSearchResults *twitter_search_results_new(GArray *tweets, gchar *refresh_url, gint max_id)
+static TwitterSearchResults *twitter_search_results_new(GList *tweets, gchar *refresh_url, gint max_id)
 {
 	TwitterSearchResults *results = g_new(TwitterSearchResults, 1);
 	results->refresh_url = refresh_url;
@@ -162,32 +162,25 @@ void twitter_search_results_free(TwitterSearchResults *results)
 		g_free(results->refresh_url);
 	if (results->tweets)
 	{
-		guint i, len;
-
-		len = results->tweets->len;
-
-		for (i = 0; i < len; i++) {
-			TwitterUserTweet *search_data;
-
-			search_data = g_array_index (results->tweets,
-					TwitterUserTweet *, i);
-			twitter_user_tweet_free(search_data);
+		GList *l;
+		for (l = results->tweets; l; l = l->next)
+		{
+			if (l->data)
+				twitter_user_tweet_free((TwitterUserTweet *) l->data);
 		}
-		g_array_free (results->tweets, TRUE);
+		g_list_free(results->tweets);
 	}
 	g_free(results);
 }
 
 TwitterSearchResults *twitter_search_results_node_parse(xmlnode *response_node)
 {
-	GArray *search_results = NULL;
+	GList *search_results = NULL;
 	const gchar *refresh_url = NULL;
 	long long max_id = 0; /* id of last search result */
 	xmlnode *entry_node;
 	xmlnode *link_node;
 	const gchar *ptr;
-
-	search_results = g_array_new (FALSE, FALSE, sizeof (TwitterUserTweet *));
 
 	for (link_node = xmlnode_get_child(response_node, "link"); link_node; link_node = xmlnode_get_next_twin(link_node))
 	{
@@ -208,13 +201,14 @@ TwitterSearchResults *twitter_search_results_node_parse(xmlnode *response_node)
 		TwitterUserTweet *entry = twitter_search_entry_node_parse(entry_node);
 		if (entry != NULL)
 		{
-			g_array_append_val(search_results, entry);
+			search_results = g_list_append(search_results, entry);
 			if (max_id < entry->status->id)
 				max_id = entry->status->id;
 		}
 	}
 
-	g_array_sort(search_results, _twitter_search_results_sort);
+	//TODO: test and remove
+	search_results = g_list_sort(search_results, (GCompareFunc) _twitter_search_results_sort);
 
 	purple_debug_info(TWITTER_PROTOCOL_ID, "refresh_url: %s, max_id: %lld\n",
 			refresh_url, max_id);
