@@ -4,6 +4,7 @@
  */
 
 #include "twitter_util.h"
+#include <version.h>
 
 #ifndef purple_markup_escape_text
 
@@ -108,7 +109,7 @@ void purple_account_set_long_long(PurpleAccount *account, const gchar *key, long
 
 
 //TODO: move those
-#if _HAVE_PIDGIN_
+#if _HAVE_PIDGIN_ && PURPLE_VERSION_CHECK(2, 6, 0)
 static const char *_find_first_delimiter(const char *text, const char *delimiters, int *delim_id)
 {
 	const char *delimiter;
@@ -128,7 +129,6 @@ static const char *_find_first_delimiter(const char *text, const char *delimiter
 	} while (*++text != '\0');
 	return NULL;
 }
-#endif
 
 static void _g_string_append_escaped_len(GString *s, const gchar *txt, gssize len)
 {
@@ -140,7 +140,6 @@ static void _g_string_append_escaped_len(GString *s, const gchar *txt, gssize le
 //TODO: move those
 static char *twitter_linkify(PurpleAccount *account, const char *message)
 {
-#if _HAVE_PIDGIN_
 	GString *ret;
 	static char symbols[] = "#@";
 	static char *symbol_actions[] = {TWITTER_URI_ACTION_SEARCH, TWITTER_URI_ACTION_USER};
@@ -184,10 +183,8 @@ static char *twitter_linkify(PurpleAccount *account, const char *message)
 	}
 
 	return g_string_free(ret, FALSE);
-#else
-	return purple_markup_escape_text(message, -1);
-#endif
 }
+#endif
 
 //TODO: move those
 char *twitter_format_tweet(PurpleAccount *account,
@@ -198,15 +195,21 @@ char *twitter_format_tweet(PurpleAccount *account,
 		const gchar *conv_name,
 		gboolean is_tweet)
 {
-	char *linkified_message = twitter_linkify(account, message);
+	char *linkified_message;
 	GString *tweet;
+
+#if _HAVE_PIDGIN_ && PURPLE_VERSION_CHECK(2, 6, 0)
+	linkified_message = twitter_linkify(account, message);
+#else
+	linkified_message = purple_markup_escape_text(message, -1);
+#endif
 
 	g_return_val_if_fail(linkified_message != NULL, NULL);
 	g_return_val_if_fail(src_user != NULL, NULL);
 
 	tweet = g_string_new(linkified_message);
 
-#if _HAVE_PIDGIN_
+#if _HAVE_PIDGIN_ && PURPLE_VERSION_CHECK(2, 6, 0)
 	if (is_tweet && tweet_id && conv_type != PURPLE_CONV_TYPE_UNKNOWN && conv_name)
 	{
 		const gchar *account_name = purple_account_get_username(account);
