@@ -34,6 +34,10 @@
 #include "twitter_charcount.h"
 #include "twitter_convicon.h"
 
+#if !PURPLE_VERSION_CHECK(2, 6, 0)
+#define PURPLE_CHAT(obj) ((PurpleChat *)(obj))
+#define PURPLE_BUDDY(obj) ((PurpleBuddy *)(obj))
+#endif
 
 static PurplePlugin *_twitter_protocol = NULL;
 
@@ -1579,7 +1583,7 @@ static PurplePluginProtocolInfo prpl_info =
 	NULL
 };
 
-#if _HAVE_PIDGIN_
+#if _HAVE_PIDGIN_ && PURPLE_VERSION_CHECK(2, 6, 0)
 typedef struct
 {
 	PurpleConversationType type;
@@ -1865,12 +1869,14 @@ static void twitter_init(PurplePlugin *plugin)
 	prpl_info.protocol_options = twitter_get_protocol_options();
 
 #if _HAVE_PIDGIN_
+	twitter_charcount_attach_to_all_windows();
+
+#if PURPLE_VERSION_CHECK(2, 6, 0)
 	purple_signal_connect(purple_get_core(), "uri-handler", plugin,
 			PURPLE_CALLBACK(twitter_uri_handler), NULL);
 
-	twitter_charcount_attach_to_all_windows();
-
 	gtk_imhtml_class_register_protocol(TWITTER_URI "://", twitter_url_clicked_cb, twitter_context_menu);
+#endif
 
 #endif
 	twitter_init_endpoint_chat_settings(twitter_endpoint_search_get_settings());
