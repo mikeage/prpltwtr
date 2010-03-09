@@ -6,8 +6,9 @@
 #include "twitter_util.h"
 #include <version.h>
 
-#ifndef purple_markup_escape_text
+#if !PURPLE_VERSION_CHECK(2, 6, 0)
 
+//from libpurple/util.c
 static void append_escaped_text(GString *str,
 		const gchar *text, gssize length)
 {
@@ -58,6 +59,7 @@ static void append_escaped_text(GString *str,
 	}
 }
 
+//from libpurple/util.c
 static gchar *purple_markup_escape_text(const gchar *text, gssize length)
 {
 	GString *str;
