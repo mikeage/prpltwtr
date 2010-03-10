@@ -158,9 +158,12 @@ char *twitter_format_tweet(PurpleAccount *account,
 	{
 		PurpleConnection *gc = purple_account_get_connection(account);
 		TwitterConnectionData *twitter = gc->proto_data;
-		gchar *url = twitter->mb_pref->get_status_url(NULL, src_user, tweet_id); //TODO
-		g_string_append_printf(tweet, "\n%s\n", url);
-		g_free(url);
+		gchar *url = twitter_mb_prefs_get_status_url(twitter->mb_prefs, src_user, tweet_id);
+		if (url)
+		{
+			g_string_append_printf(tweet, "\n%s\n", url);
+			g_free(url);
+		}
 	}
 #endif
 

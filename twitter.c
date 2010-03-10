@@ -477,7 +477,7 @@ static void twitter_connected(PurpleAccount *account)
 
 	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
 
-	twitter->mb_prefs = twitter_get_mb_pref(NULL); //TODO
+	twitter->mb_prefs = twitter_mb_prefs_new(account);
 
 	twitter_connection_set_endpoint_im(twitter,
 			TWITTER_IM_TYPE_AT_MSG,
@@ -1199,6 +1199,9 @@ static void twitter_close(PurpleConnection *gc)
 	twitter_conv_icon_account_unload(account);
 #endif
 
+	if (twitter->mb_prefs)
+		twitter_mb_prefs_free(twitter->mb_prefs);
+
 	if (twitter->oauth_token)
 		g_free(twitter->oauth_token);
 
@@ -1306,9 +1309,12 @@ static void twitter_get_info(PurpleConnection *gc, const char *username) {
 	} else {
 		purple_notify_user_info_add_pair(info, "Description:", "No user info");
 	}
-	url = twitter->mb_prefs->get_user_profile_url(NULL, username); //TODO
+	url = twitter_mb_prefs_get_user_profile_url(twitter->mb_prefs, username);
 	purple_notify_user_info_add_pair(info, "Account Link:", url);
-	g_free(url);
+	if (url)
+	{
+		g_free(url);
+	}
 	purple_notify_userinfo(gc,
 		username,
 		info,
@@ -1753,9 +1759,12 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. Invalid id for link\n");
 			return FALSE;
 		}
-		link = twitter->mb_prefs->get_status_url(NULL, user, id); //TODO
-		purple_notify_uri(NULL, link);
-		g_free(link);
+		link = twitter_mb_prefs_get_status_url(twitter->mb_prefs, user, id);
+		if (link)
+		{
+			purple_notify_uri(NULL, link);
+			g_free(link);
+		}
 	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_SEARCH)) {
 		//join chat with default interval, open in conv window
 		GHashTable *components;
