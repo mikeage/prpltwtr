@@ -23,7 +23,6 @@ typedef struct
 
 struct _TwitterMbPrefsSettings
 {
-	TwitterMbPrefs *(*mb_prefs_new)(PurpleAccount *account);
 	gchar *(*get_user_profile_url)(TwitterMbPrefs *prefs, const gchar *who);
 	gchar *(*get_status_url)(TwitterMbPrefs *prefs, const gchar *who, long long tweet_id);
 	void (*mb_prefs_free)(TwitterMbPrefs *mb_prefs);
