@@ -1,4 +1,4 @@
-#include "twitter_endpoint_dm.h"
+#include "twitter_endpoint_reply.h"
 #include "twitter_util.h"
 
 static void twitter_send_reply_success_cb(PurpleAccount *account, xmlnode *node, gboolean last, gpointer _who)
@@ -31,11 +31,27 @@ static int twitter_send_reply_do(PurpleAccount *account, const char *who,
 	GArray *statuses = twitter_utf8_get_segments(message, MAX_TWEET_LENGTH, added_text);
 	long long in_reply_to_status_id = 0;
 	const gchar *reply_id;
+	gchar *conv_name = twitter_endpoint_im_buddy_name_to_conv_name(twitter_endpoint_im_find(account, TWITTER_IM_TYPE_AT_MSG), who);
+	PurpleConversation *conv = purple_find_conversation_with_account(PURPLE_CONV_TYPE_IM, conv_name, account);
 
-	reply_id = (const gchar *)g_hash_table_lookup (
-			twitter->user_reply_id_table, who);
-	if (reply_id)
-		in_reply_to_status_id = strtoll (reply_id, NULL, 10);
+	if (conv)
+	{
+		long long *in_reply_to_status_id_pnt = purple_conversation_get_data(conv, "twitter_conv_last_reply_id");
+		if (in_reply_to_status_id_pnt)
+		{
+			in_reply_to_status_id = *in_reply_to_status_id_pnt;
+			g_free(in_reply_to_status_id_pnt);
+			purple_conversation_set_data(conv, "twitter_conv_last_reply_id", NULL);
+		}
+	}
+	if (!in_reply_to_status_id)
+	{
+
+		reply_id = (const gchar *)g_hash_table_lookup (
+				twitter->user_reply_id_table, who);
+		if (reply_id)
+			in_reply_to_status_id = strtoll (reply_id, NULL, 10);
+	}
 
 	twitter_api_set_statuses(purple_account_get_requestor(account),
 			statuses,
@@ -44,6 +60,7 @@ static int twitter_send_reply_do(PurpleAccount *account, const char *who,
 			twitter_send_reply_error_cb,
 			g_strdup(who)); //TODO
 
+	g_free(conv_name);
 	g_free(added_text);
 
 	return 1;
@@ -169,6 +186,31 @@ static void twitter_get_replies_last_since_id(PurpleAccount *account,
 			request);
 }
 
+static void twitter_endpoint_reply_convo_closed(PurpleConversation *conv)
+{
+	long long *id;
+	if (!conv)
+		return;
+	id = purple_conversation_get_data(conv, "twitter_conv_last_reply_id");
+	if (id)
+		g_free(id);
+}
+
+PurpleConversation *twitter_endpoint_reply_conversation_new(TwitterEndpointIm *im,
+		const gchar *buddy_name,
+		long long reply_id)
+{
+	gchar *conv_name = twitter_endpoint_im_buddy_name_to_conv_name(im, buddy_name);
+	PurpleConversation *conv = purple_conversation_new(PURPLE_CONV_TYPE_IM, im->account, conv_name);
+
+	if (conv && reply_id)
+	{
+		purple_conversation_set_data(conv, "twitter_conv_last_reply_id", g_memdup(&reply_id, sizeof(reply_id)));
+	}
+
+	g_free(conv_name);
+	return conv;
+}
 
 static TwitterEndpointImSettings TwitterEndpointReplySettings =
 {
@@ -181,6 +223,7 @@ static TwitterEndpointImSettings TwitterEndpointReplySettings =
 	twitter_get_replies_all_cb,
 	twitter_get_replies_all_timeout_error_cb,
 	twitter_get_replies_last_since_id,
+	twitter_endpoint_reply_convo_closed, //convo_closed
 };
 
 TwitterEndpointImSettings *twitter_endpoint_reply_get_settings()

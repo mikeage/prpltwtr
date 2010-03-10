@@ -209,13 +209,17 @@ void twitter_status_data_update_conv(TwitterEndpointIm *ctx,
 		purple_debug_info (TWITTER_PROTOCOL_ID, "saving %s\n", G_STRFUNC);
 		twitter_endpoint_im_set_since_id(ctx, s->id);
 	}
+
+	conv_name = twitter_endpoint_im_buddy_name_to_conv_name(ctx, buddy_name);
+
 	tweet = twitter_format_tweet(account,
 			buddy_name,
 			s->text,
 			s->id,
+			PURPLE_CONV_TYPE_IM,
+			conv_name,
 			ctx->settings->type == TWITTER_IM_TYPE_AT_MSG);
 
-	conv_name = twitter_endpoint_im_buddy_name_to_conv_name(ctx, buddy_name);
 
 	//Account received an im
 	/* TODO get in_reply_to_status? s->in_reply_to_screen_name
@@ -229,3 +233,18 @@ void twitter_status_data_update_conv(TwitterEndpointIm *ctx,
 	g_free(tweet);
 }
 
+void twitter_endpoint_im_convo_closed(TwitterEndpointIm *im, const gchar *conv_name)
+{
+	PurpleConversation *conv;
+	g_return_if_fail(im != NULL);
+	g_return_if_fail(conv_name != NULL);
+
+	if (!im->settings->convo_closed)
+		return;
+
+	conv = purple_find_conversation_with_account(PURPLE_CONV_TYPE_IM, conv_name, im->account);
+	if (!conv)
+		return;
+
+	im->settings->convo_closed(conv);
+}

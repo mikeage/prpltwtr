@@ -68,6 +68,8 @@ struct _TwitterEndpointChat
 	gchar *chat_name;
 	TwitterEndpointChatSettings *settings;
 	gpointer endpoint_data;
+
+	GList *sent_tweet_ids;
 };
 
 //Identifier to use for multithreading
@@ -89,15 +91,6 @@ TwitterEndpointChat *twitter_endpoint_chat_new(
 
 void twitter_endpoint_chat_free(TwitterEndpointChat *ctx);
 
-//Find open conversation
-PurpleConversation *twitter_endpoint_chat_find_open_conv(TwitterEndpointChat *ctx);
-//Find open conversation, or create it if it doesn't exist
-#if _HAZE_
-PurpleConvIm *twitter_endpoint_chat_get_conv(TwitterEndpointChat *endpoint_chat);
-#else
-PurpleConvChat *twitter_endpoint_chat_get_conv(TwitterEndpointChat *endpoint_chat);
-#endif
-
 void twitter_endpoint_chat_start(PurpleConnection *gc, TwitterEndpointChatSettings *settings,
 		GHashTable *components, gboolean open_conv);
 TwitterEndpointChat *twitter_endpoint_chat_find(PurpleAccount *account, const char *chat_name);
@@ -109,11 +102,8 @@ PurpleChat *twitter_blist_chat_find(PurpleAccount *account, const char *name);
 
 gboolean twitter_blist_chat_is_auto_open(PurpleChat *chat);
 
-#if _HAZE_
-void twitter_chat_add_tweet(PurpleConvIm *chat, const char *who, const char *message, long long id, time_t time);
-#else
-void twitter_chat_add_tweet(PurpleConvChat *chat, const char *who, const char *message, long long id, time_t time);
-#endif
+void twitter_chat_got_tweet(TwitterEndpointChat *endpoint_chat, TwitterUserTweet *tweet);
+void twitter_chat_got_user_tweets(TwitterEndpointChat *endpoint_chat, GList *user_tweets);
 int twitter_endpoint_chat_send(TwitterEndpointChat *ctx, const gchar *message);
 
 

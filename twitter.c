@@ -32,6 +32,8 @@
 #endif
 
 #include "twitter_charcount.h"
+#include "twitter_convicon.h"
+#include "twitter_mbprefs.h"
 
 
 static PurplePlugin *_twitter_protocol = NULL;
@@ -475,6 +477,8 @@ static void twitter_connected(PurpleAccount *account)
 
 	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
 
+	twitter->mb_prefs = twitter_mb_prefs_new(account);
+
 	twitter_connection_set_endpoint_im(twitter,
 			TWITTER_IM_TYPE_AT_MSG,
 			twitter_endpoint_im_new(account,
@@ -505,6 +509,7 @@ static void twitter_connected(PurpleAccount *account)
 		TWITTER_SIGNALS_CONNECTED = TRUE;
 
 #if _HAVE_PIDGIN_
+		//FIXME: disconnect signals!
 		purple_signal_connect(purple_conversations_get_handle(),
 				"conversation-created",
 				_twitter_protocol, PURPLE_CALLBACK(twitter_charcount_conv_created_cb), NULL);
@@ -1127,6 +1132,11 @@ static void twitter_login(PurpleAccount *account)
 	twitter->user_reply_id_table = g_hash_table_new_full (
 			g_str_hash, g_str_equal, g_free, g_free);
 
+#if _HAVE_PIDGIN_
+	if (twitter_option_enable_conv_icon(account))
+		twitter_conv_icon_account_load(account);
+#endif
+
 	/* purple wants a minimum of 2 steps */
 	purple_connection_update_progress(gc, ("Connecting"),
 			0,   /* which connection step this is */
@@ -1166,6 +1176,7 @@ static void twitter_endpoint_im_free_foreach(TwitterConnectionData *conn, Twitte
 static void twitter_close(PurpleConnection *gc)
 {
 	/* notify other twitter accounts */
+	PurpleAccount *account = purple_connection_get_account(gc);
 	TwitterConnectionData *twitter = gc->proto_data;
 
 	twitter_connection_foreach_endpoint_im(twitter, twitter_endpoint_im_free_foreach, NULL);
@@ -1183,6 +1194,13 @@ static void twitter_close(PurpleConnection *gc)
 	if (twitter->user_reply_id_table)
 		g_hash_table_destroy (twitter->user_reply_id_table);
 	twitter->user_reply_id_table = NULL;
+
+#if _HAVE_PIDGIN_
+	twitter_conv_icon_account_unload(account);
+#endif
+
+	if (twitter->mb_prefs)
+		twitter_mb_prefs_free(twitter->mb_prefs);
 
 	if (twitter->oauth_token)
 		g_free(twitter->oauth_token);
@@ -1265,6 +1283,7 @@ static void twitter_set_info(PurpleConnection *gc, const char *info) {
 static void twitter_get_info(PurpleConnection *gc, const char *username) {
 	//TODO: error check
 	//TODO: fix for buddy not on list?
+	TwitterConnectionData *twitter = gc->proto_data;
 	PurpleNotifyUserInfo *info = purple_notify_user_info_new();
 	PurpleBuddy *b = purple_find_buddy(purple_connection_get_account(gc), username);
 	gchar *url;
@@ -1290,10 +1309,12 @@ static void twitter_get_info(PurpleConnection *gc, const char *username) {
 	} else {
 		purple_notify_user_info_add_pair(info, "Description:", "No user info");
 	}
-	//TODO: fix account link
-	url = g_strdup_printf("http://twitter.com/%s", username);
+	url = twitter_mb_prefs_get_user_profile_url(twitter->mb_prefs, username);
 	purple_notify_user_info_add_pair(info, "Account Link:", url);
-	g_free(url);
+	if (url)
+	{
+		g_free(url);
+	}
 	purple_notify_userinfo(gc,
 		username,
 		info,
@@ -1408,21 +1429,25 @@ static void twitter_blist_chat_auto_open_toggle(PurpleBlistNode *node, gpointer 
 			(new_state ? g_strdup("1") : g_strdup("0")));
 }
 
+//TODO should be handled in twitter_endpoint_reply
 static void twitter_blist_buddy_at_msg(PurpleBlistNode *node, gpointer userdata)
 {
 	PurpleBuddy *buddy = PURPLE_BUDDY(node);
 	char *name = g_strdup_printf("@%s", buddy->name);
-	purple_conversation_new(PURPLE_CONV_TYPE_IM, purple_buddy_get_account(buddy),
+	PurpleConversation *conv = purple_conversation_new(PURPLE_CONV_TYPE_IM, purple_buddy_get_account(buddy),
 			name);
+	purple_conversation_present(conv);
 	g_free(name);
 }
 
+//TODO should be handled in twitter_endpoint_dm
 static void twitter_blist_buddy_dm(PurpleBlistNode *node, gpointer userdata)
 {
 	PurpleBuddy *buddy = PURPLE_BUDDY(node);
 	char *name = g_strdup_printf("d %s", buddy->name);
-	purple_conversation_new(PURPLE_CONV_TYPE_IM, purple_buddy_get_account(buddy),
+	PurpleConversation *conv = purple_conversation_new(PURPLE_CONV_TYPE_IM, purple_buddy_get_account(buddy),
 			name);
+	purple_conversation_present(conv);
 	g_free(name);
 }
 
@@ -1472,10 +1497,18 @@ static void twitter_set_buddy_icon(PurpleConnection *gc,
 }
 
 
+static void twitter_convo_closed(PurpleConnection *gc, const gchar *conv_name)
+{
+	TwitterEndpointIm *im = twitter_conv_name_to_endpoint_im(purple_connection_get_account(gc), conv_name);
+	if (im)
+	{
+		twitter_endpoint_im_convo_closed(im, conv_name);
+	}
+}
+
 /*
  * prpl stuff. see prpl.h for more information.
  */
-
 static PurplePluginProtocolInfo prpl_info =
 {
 	OPT_PROTO_CHAT_TOPIC,  /* options */
@@ -1531,7 +1564,7 @@ static PurplePluginProtocolInfo prpl_info =
 	NULL,		/* group_buddy */
 	NULL,	       /* rename_group */
 	NULL,				/* buddy_free */
-	NULL,	       /* convo_closed */
+	twitter_convo_closed,	       /* convo_closed */
 	purple_normalize_nocase,		  /* normalize */
 	twitter_set_buddy_icon,	     /* set_buddy_icon */
 	NULL,	       /* remove_group */
@@ -1556,11 +1589,56 @@ static PurplePluginProtocolInfo prpl_info =
 };
 
 #if _HAVE_PIDGIN_
+typedef struct
+{
+	PurpleConversationType type;
+	gchar *conv_name;
+} TwitterConversationId;
+
+static void twitter_send_rt_success_cb(TwitterRequestor *r,
+		xmlnode *node,
+		gpointer user_data)
+{
+	TwitterConversationId *conv_id = user_data;
+	PurpleConversation *conv;
+	g_return_if_fail(conv_id != NULL);
+
+	conv = purple_find_conversation_with_account(conv_id->type, conv_id->conv_name, r->account);
+
+	if (conv)
+	{
+		purple_conversation_write(conv, NULL, "Successfully retweeted", PURPLE_MESSAGE_SYSTEM, time(NULL));
+	}
+
+	g_free(conv_id->conv_name);
+	g_free(conv_id);
+}
+
+static void twitter_send_rt_error_cb(TwitterRequestor *r,
+		const TwitterRequestErrorData *error_data,
+		gpointer user_data)
+{
+	TwitterConversationId *conv_id = user_data;
+	PurpleConversation *conv;
+	g_return_if_fail(conv_id != NULL);
+
+	conv = purple_find_conversation_with_account(conv_id->type, conv_id->conv_name, r->account);
+
+	if (conv)
+	{
+		purple_conversation_write(conv, NULL, "Retweet failed", PURPLE_MESSAGE_ERROR, time(NULL));
+	}
+
+	g_free(conv_id->conv_name);
+	g_free(conv_id);
+}
+
 static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHashTable *params)
 {
 	const char *text;
 	const char *username;
 	PurpleAccount *account;
+	const gchar *action;
 	purple_debug_info(TWITTER_PROTOCOL_ID, "%s PROTO %s CMD_ARG %s\n", G_STRFUNC, proto, cmd_arg);
 
 	g_return_val_if_fail(proto != NULL, FALSE);
@@ -1570,12 +1648,11 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 	if (strcmp(proto, TWITTER_URI))
 		return FALSE;
 
-	text = purple_url_decode(g_hash_table_lookup(params, "text"));
 	username = g_hash_table_lookup(params, "account");
 
-	if (text == NULL || username == NULL || username[0] == '\0')
+	if (username == NULL || username[0] == '\0')
 	{
-		purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri.\n");
+		purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. No account username\n");
 		return FALSE;
 	}
 
@@ -1591,36 +1668,207 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 	while (cmd_arg[0] == '/')
 		cmd_arg++;
 
-	purple_debug_info(TWITTER_PROTOCOL_ID, "Account %s got action %s with text %s\n", username, cmd_arg, text);
+	action = g_hash_table_lookup(params, "action");
+	if (action)
+		cmd_arg = action;
+	purple_debug_info(TWITTER_PROTOCOL_ID, "Account %s got action %s\n", username, cmd_arg);
 	if (!strcmp(cmd_arg, TWITTER_URI_ACTION_USER))
 	{
 		purple_notify_info(purple_account_get_connection(account),
 				"Clicked URI",
 				"@name clicked",
 				"Sorry, this has not been implemented yet");
+	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_REPLY)) {
+		const char *id_str, *user;
+		long long id;
+		PurpleConversation *conv;
+		id_str = g_hash_table_lookup(params, "id");
+		user = g_hash_table_lookup(params, "user");
+		if (id_str == NULL || user == NULL || id_str[0] == '\0' || user[0] == '\0')
+		{
+			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. Invalid id/user for reply\n");
+			return FALSE;
+		}
+		id = strtoll(id_str, NULL, 10);
+		if (id == 0)
+		{
+			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. Invalid id for reply\n");
+			return FALSE;
+		}
+		conv = twitter_endpoint_reply_conversation_new(twitter_endpoint_im_find(account, TWITTER_IM_TYPE_AT_MSG),
+				user,
+				id);
+		if (!conv)
+		{
+			return FALSE;
+		}
+		purple_conversation_present(conv);
+	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_RT)) {
+		TwitterConversationId *conv_id;
+
+		const char *id_str;
+		long long id;
+
+		gchar *conv_type_str;
+		PurpleConversationType conv_type;
+
+		gchar *conv_name_encoded;
+
+		id_str = g_hash_table_lookup(params, "id");
+		conv_name_encoded = g_hash_table_lookup(params, "conv_name");
+		conv_type_str = g_hash_table_lookup(params, "conv_type");
+
+		if (id_str == NULL || id_str[0] == '\0')
+		{
+			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. Invalid id for rt\n");
+			return FALSE;
+		}
+		id = strtoll(id_str, NULL, 10);
+		if (id == 0)
+		{
+			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. Invalid id for rt\n");
+			return FALSE;
+		}
+
+		conv_type = atoi(conv_type_str);
+
+		conv_id = g_new0(TwitterConversationId, 1);
+		conv_id->conv_name = g_strdup(purple_url_decode(conv_name_encoded));
+		conv_id->type = conv_type;
+		twitter_api_send_rt(purple_account_get_requestor(account),
+				id,
+				twitter_send_rt_success_cb,
+				twitter_send_rt_error_cb,
+				conv_id);
+	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_LINK)) {
+		const char *id_str, *user;
+		long long id;
+		gchar *link;
+		PurpleConnection *gc = purple_account_get_connection(account);
+		TwitterConnectionData *twitter = gc->proto_data;
+		id_str = g_hash_table_lookup(params, "id");
+		user = g_hash_table_lookup(params, "user");
+		if (id_str == NULL || user == NULL || id_str[0] == '\0' || user[0] == '\0')
+		{
+			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. Invalid id/user for link\n");
+			return FALSE;
+		}
+		id = strtoll(id_str, NULL, 10);
+		if (id == 0)
+		{
+			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. Invalid id for link\n");
+			return FALSE;
+		}
+		link = twitter_mb_prefs_get_status_url(twitter->mb_prefs, user, id);
+		if (link)
+		{
+			purple_notify_uri(NULL, link);
+			g_free(link);
+		}
 	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_SEARCH)) {
 		//join chat with default interval, open in conv window
-		GHashTable *components = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, g_free);
-		g_hash_table_insert(components, "search", g_strdup(text));
+		GHashTable *components;
+		text = g_hash_table_lookup(params, "text");
+
+		if (text == NULL || text[0] == '\0')
+		{
+			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. No text for search\n");
+			return FALSE;
+		}
+		components = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, g_free);
+		g_hash_table_insert(components, "search", g_strdup(purple_url_decode(text)));
 		twitter_endpoint_chat_start(purple_account_get_connection(account), twitter_get_endpoint_chat_settings(TWITTER_CHAT_SEARCH),
 				components, TRUE) ;
 	}
 	return TRUE;
 }
 
-static gboolean twitter_url_clicked_cb(GtkIMHtml *imhtml, GtkIMHtmlLink *link)
-{
-	const gchar *url = gtk_imhtml_link_get_url(link);
-	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
-	purple_got_protocol_handler_uri(url);
 
-	return TRUE;
+static void twitter_got_uri_action(const gchar *url, const gchar *action)
+{
+	gchar *url2 = g_strdup_printf("%s&action=%s", url, action);
+	purple_got_protocol_handler_uri(url2);
+	g_free(url2);
+}
+
+static void twitter_context_menu_retweet(GtkWidget *w, const gchar *url)
+{
+	twitter_got_uri_action(url, TWITTER_URI_ACTION_RT);
+}
+
+static void twitter_context_menu_reply(GtkWidget *w, const gchar *url)
+{
+	twitter_got_uri_action(url, TWITTER_URI_ACTION_REPLY);
+}
+
+static void twitter_context_menu_link(GtkWidget *w, const gchar *url)
+{
+	twitter_got_uri_action(url, TWITTER_URI_ACTION_LINK);
+}
+
+static void twitter_url_menu_actions(GtkWidget *menu, const char *url)
+{
+	GtkWidget *img, *item;
+
+	img = gtk_image_new_from_stock(GTK_STOCK_REFRESH, GTK_ICON_SIZE_MENU);
+	item = gtk_image_menu_item_new_with_mnemonic(("Retweet"));
+	gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
+	g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_retweet), (gpointer)url);
+	gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
+
+	img = gtk_image_new_from_stock(GTK_STOCK_REDO, GTK_ICON_SIZE_MENU);
+	item = gtk_image_menu_item_new_with_mnemonic(("Reply"));
+	gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
+	g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_reply), (gpointer)url);
+	gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
+
+	img = gtk_image_new_from_stock(GTK_STOCK_HOME, GTK_ICON_SIZE_MENU);
+	item = gtk_image_menu_item_new_with_mnemonic(("Goto Site"));
+	gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
+	g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_link), (gpointer)url);
+	gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
 }
 
 static gboolean twitter_context_menu(GtkIMHtml *imhtml, GtkIMHtmlLink *link, GtkWidget *menu)
 {
-	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+	twitter_url_menu_actions(menu, gtk_imhtml_link_get_url(link));
 	return TRUE;
+}
+
+static gboolean twitter_url_clicked_cb(GtkIMHtml *imhtml, GtkIMHtmlLink *link)
+{
+	static GtkWidget *menu = NULL;
+	gchar *url;
+	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+
+	if (menu)
+	{
+		gtk_widget_destroy(menu);
+		menu = NULL;
+	}
+
+	//If not the action url, handle it by using the uri handler, otherwise, show menu
+	if (!g_str_has_prefix(gtk_imhtml_link_get_url(link), TWITTER_URI ":///" TWITTER_URI_ACTION_ACTIONS "?"))
+	{
+		purple_got_protocol_handler_uri(gtk_imhtml_link_get_url(link));
+		return TRUE;
+	}
+
+	url = g_strdup(gtk_imhtml_link_get_url(link));
+
+	menu = gtk_menu_new();
+	//TODO: verify this is freeing data
+	g_object_set_data_full(G_OBJECT(menu), "x-imhtml-url-data", url,
+			(GDestroyNotify)g_free);
+
+	twitter_url_menu_actions(menu, url);
+
+	gtk_widget_show_all(menu);
+	gtk_menu_popup(GTK_MENU(menu), NULL, NULL, NULL, NULL,
+			0, gtk_get_current_event_time());
+
+	return TRUE;
+
 }
 #endif
 
@@ -1651,12 +1899,13 @@ static void twitter_init(PurplePlugin *plugin)
 	_twitter_protocol = plugin;
 }
 
-static void twitter_destroy(PurplePlugin *plugin) {
-
+static void twitter_destroy(PurplePlugin *plugin) 
+{
+	purple_debug_info(TWITTER_PROTOCOL_ID, "shutting down\n");
 #if _HAVE_PIDGIN_
 	twitter_charcount_detach_from_all_windows();
 #endif
-	purple_debug_info(TWITTER_PROTOCOL_ID, "shutting down\n");
+	purple_signals_disconnect_by_handle(plugin);
 }
 
 static PurplePluginInfo info =

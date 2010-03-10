@@ -61,8 +61,15 @@ static const char *_find_first_delimiter(const char *text, const char *delimiter
 }
 #endif
 
+static void _g_string_append_escaped_len(GString *s, const gchar *txt, gssize len)
+{
+	gchar *tmp = purple_markup_escape_text(txt, len);
+	g_string_append(s, tmp);
+	g_free(tmp);
+}
+
 //TODO: move those
-static const char *twitter_linkify(PurpleAccount *account, const char *message)
+static char *twitter_linkify(PurpleAccount *account, const char *message)
 {
 #if _HAVE_PIDGIN_
 	GString *ret;
@@ -78,56 +85,89 @@ static const char *twitter_linkify(PurpleAccount *account, const char *message)
 
 	while (ptr != NULL && ptr < end)
 	{
-		const char *first_token = NULL;
-		char *current_action = NULL;
-		char *link_text = NULL;
+		const char *first_token;
+		char *current_action;
+		char *link_text;
 		int symbol_index = 0;
 		first_token = _find_first_delimiter(ptr, symbols, &symbol_index);
 		if (first_token == NULL)
 		{
-			g_string_append(ret, ptr);
+			_g_string_append_escaped_len(ret, ptr, -1);
 			break;
 		}
 		current_action = symbol_actions[symbol_index];
-		g_string_append_len(ret, ptr, first_token - ptr);
+		_g_string_append_escaped_len(ret, ptr, first_token - ptr);
 		ptr = first_token;
 		delim = _find_first_delimiter(ptr, delims, NULL);
 		if (delim == NULL)
 			delim = end;
 		link_text = g_strndup(ptr, delim - ptr);
 		//Added the 'a' before the account name because of a highlighting issue... ugly hack
-		g_string_append_printf(ret, "<a href=\"" TWITTER_URI ":///%s?account=a%s&text=%s\">%s</a>",
+		g_string_append_printf(ret, "<a href=\"" TWITTER_URI ":///%s?account=a%s&text=%s\">",
 				current_action,
 				purple_account_get_username(account),
-				purple_url_encode(link_text),
-				purple_markup_escape_text(link_text, -1));
+				purple_url_encode(link_text));
+		_g_string_append_escaped_len(ret, link_text, -1);
+		g_string_append(ret, "</a>");
 		ptr = delim;
+
+		g_free(link_text);
 	}
 
 	return g_string_free(ret, FALSE);
 #else
-	return message;
+	return purple_markup_escape_text(message, -1);
 #endif
 }
 
 //TODO: move those
-char *twitter_format_tweet(PurpleAccount *account, const char *src_user, const char *message, long long id, gboolean allow_link)
+char *twitter_format_tweet(PurpleAccount *account,
+		const char *src_user,
+		const char *message,
+		long long tweet_id,
+		PurpleConversationType conv_type,
+		const gchar *conv_name,
+		gboolean is_tweet)
 {
-	const char *linkified_message = twitter_linkify(account, message);
-	gboolean add_link = twitter_option_add_link_to_tweet(account) && allow_link;
+	char *linkified_message = twitter_linkify(account, message);
+	GString *tweet;
 
 	g_return_val_if_fail(linkified_message != NULL, NULL);
 	g_return_val_if_fail(src_user != NULL, NULL);
 
-	if (add_link && id) {
-		return g_strdup_printf("%s\nhttp://twitter.com/%s/status/%lld\n",
-				linkified_message,
-				src_user,
-				id);
+	tweet = g_string_new(linkified_message);
+
+#if _HAVE_PIDGIN_
+	if (is_tweet && tweet_id && conv_type != PURPLE_CONV_TYPE_UNKNOWN && conv_name)
+	{
+		const gchar *account_name = purple_account_get_username(account);
+		//TODO: make this an image
+		g_string_append_printf(tweet,
+				" <a href=\"" TWITTER_URI ":///" TWITTER_URI_ACTION_ACTIONS "?account=a%s&user=%s&id=%lld",
+				account_name,
+				purple_url_encode(src_user),
+				tweet_id);
+		g_string_append_printf(tweet,
+				"&conv_type=%d&conv_name=%s\">*</a>",
+				conv_type,
+				purple_url_encode(conv_name));
 	}
-	else {
-		return g_strdup_printf("%s", linkified_message);
+#else
+	if (twitter_option_add_link_to_tweet(account) && is_tweet && tweet_id)
+	{
+		PurpleConnection *gc = purple_account_get_connection(account);
+		TwitterConnectionData *twitter = gc->proto_data;
+		gchar *url = twitter_mb_prefs_get_status_url(twitter->mb_prefs, src_user, tweet_id);
+		if (url)
+		{
+			g_string_append_printf(tweet, "\n%s\n", url);
+			g_free(url);
+		}
 	}
+#endif
+
+	g_free(linkified_message);
+	return g_string_free(tweet, FALSE);
 }
 
 

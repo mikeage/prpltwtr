@@ -4,6 +4,7 @@
 #include <glib.h>
 #include "twitter_endpoint_im.h"
 #include "twitter_request.h"
+#include "twitter_mbprefs.h"
 
 typedef struct
 {
@@ -31,11 +32,21 @@ typedef struct
 	 * when @me sends a tweet to others */
 	GHashTable *user_reply_id_table;
 
+#if _HAVE_PIDGIN_
+	/* key: gchar *screen_name
+	 * value: TwitterConvIcon
+	 * Store purple buddy icons for nonbuddies (for conversations)
+	 */
+	GHashTable *icons;
+#endif
+
 	gboolean requesting;
 	TwitterEndpointIm *endpoint_ims[TWITTER_IM_TYPE_UNKNOWN];
 
 	gchar *oauth_token;
 	gchar *oauth_token_secret;
+
+	TwitterMbPrefs *mb_prefs;
 } TwitterConnectionData;
 
 void twitter_connection_foreach_endpoint_im(TwitterConnectionData *twitter,
