@@ -153,7 +153,6 @@ char *twitter_format_tweet(PurpleAccount *account,
 				purple_url_encode(conv_name));
 	}
 #else
-
 	if (twitter_option_add_link_to_tweet(account) && is_tweet && tweet_id)
 	{
 		PurpleConnection *gc = purple_account_get_connection(account);

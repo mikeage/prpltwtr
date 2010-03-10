@@ -1837,9 +1837,15 @@ static gboolean twitter_context_menu(GtkIMHtml *imhtml, GtkIMHtmlLink *link, Gtk
 
 static gboolean twitter_url_clicked_cb(GtkIMHtml *imhtml, GtkIMHtmlLink *link)
 {
-	GtkWidget *menu;
+	static GtkWidget *menu = NULL;
 	gchar *url;
 	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+
+	if (menu)
+	{
+		gtk_widget_destroy(menu);
+		menu = NULL;
+	}
 
 	//If not the action url, handle it by using the uri handler, otherwise, show menu
 	if (!g_str_has_prefix(gtk_imhtml_link_get_url(link), TWITTER_URI ":///" TWITTER_URI_ACTION_ACTIONS "?"))
