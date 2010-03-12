@@ -111,6 +111,16 @@ static const gchar *twitter_option_url_rt(PurpleAccount *account, long long id)
 	return result;
 }
 
+static const gchar *twitter_option_url_delete_status(PurpleAccount *account, long long id)
+{
+	gchar *url = g_strdup_printf("%s/%lld.xml",
+			TWITTER_PREF_URL_DELETE_STATUS,
+			id);
+	const gchar *result = twitter_api_create_url(account, url);
+	g_free(url);
+	return result;
+}
+
 void twitter_api_get_rate_limit_status(TwitterRequestor *r,
 		TwitterSendXmlRequestSuccessFunc success_func,
 		TwitterSendRequestErrorFunc error_func,
@@ -417,14 +427,22 @@ void twitter_api_send_rt(TwitterRequestor *r,
 {
 	g_return_if_fail(id > 0);
 
-	/* Unlike every other request made to twitter, retweets
-	 * don't take the id as a parameter. Instead they decided
-	 * to mess with us by sending it as part of the url
-	 * Thanks for the consistency
-	 */
-
 	twitter_send_xml_request(r, TRUE,
 			twitter_option_url_rt(r->account, id), NULL,
+			success_func, error_func, data);
+
+}
+
+void twitter_api_delete_status(TwitterRequestor *r,
+		long long id,
+		TwitterSendXmlRequestSuccessFunc success_func,
+		TwitterSendRequestErrorFunc error_func,
+		gpointer data)
+{
+	g_return_if_fail(id > 0);
+
+	twitter_send_xml_request(r, TRUE,
+			twitter_option_url_delete_status(r->account, id), NULL,
 			success_func, error_func, data);
 
 }

@@ -1595,23 +1595,29 @@ typedef struct
 	gchar *conv_name;
 } TwitterConversationId;
 
+static void twitter_conv_id_write_message(PurpleAccount *account, TwitterConversationId *conv_id,
+		PurpleMessageFlags flags, const gchar *message)
+{
+	PurpleConversation *conv;
+	g_return_if_fail(conv_id != NULL);
+
+	conv = purple_find_conversation_with_account(conv_id->type, conv_id->conv_name, account);
+
+	if (conv)
+	{
+		purple_conversation_write(conv, NULL, message, flags, time(NULL));
+	}
+
+	g_free(conv_id->conv_name);
+	g_free(conv_id);
+}
+
 static void twitter_send_rt_success_cb(TwitterRequestor *r,
 		xmlnode *node,
 		gpointer user_data)
 {
 	TwitterConversationId *conv_id = user_data;
-	PurpleConversation *conv;
-	g_return_if_fail(conv_id != NULL);
-
-	conv = purple_find_conversation_with_account(conv_id->type, conv_id->conv_name, r->account);
-
-	if (conv)
-	{
-		purple_conversation_write(conv, NULL, "Successfully retweeted", PURPLE_MESSAGE_SYSTEM, time(NULL));
-	}
-
-	g_free(conv_id->conv_name);
-	g_free(conv_id);
+	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_SYSTEM, "Successfully retweeted");
 }
 
 static void twitter_send_rt_error_cb(TwitterRequestor *r,
@@ -1619,22 +1625,31 @@ static void twitter_send_rt_error_cb(TwitterRequestor *r,
 		gpointer user_data)
 {
 	TwitterConversationId *conv_id = user_data;
-	PurpleConversation *conv;
-	g_return_if_fail(conv_id != NULL);
-
-	conv = purple_find_conversation_with_account(conv_id->type, conv_id->conv_name, r->account);
-
-	if (conv)
-	{
-		purple_conversation_write(conv, NULL, "Retweet failed", PURPLE_MESSAGE_ERROR, time(NULL));
-	}
-
-	g_free(conv_id->conv_name);
-	g_free(conv_id);
+	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_ERROR, "Retweet failed");
 }
+
+static void twitter_delete_tweet_success_cb(TwitterRequestor *r,
+		xmlnode *node,
+		gpointer user_data)
+{
+	TwitterConversationId *conv_id = user_data;
+	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_SYSTEM, "Successfully deleted");
+}
+
+static void twitter_delete_tweet_error_cb(TwitterRequestor *r,
+		const TwitterRequestErrorData *error_data,
+		gpointer user_data)
+{
+	TwitterConversationId *conv_id = user_data;
+	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_ERROR, "Delete failed");
+}
+
 
 static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHashTable *params)
 {
+	/* TODO: refactor all of this
+	 * I'll wait until I create the graphical tweet actions portion
+	 */
 	const char *text;
 	const char *username;
 	PurpleAccount *account;
@@ -1765,6 +1780,43 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 			purple_notify_uri(NULL, link);
 			g_free(link);
 		}
+	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_DELETE)) {
+		TwitterConversationId *conv_id;
+
+		const char *id_str;
+		long long id;
+
+		gchar *conv_type_str;
+		PurpleConversationType conv_type;
+
+		gchar *conv_name_encoded;
+
+		id_str = g_hash_table_lookup(params, "id");
+		conv_name_encoded = g_hash_table_lookup(params, "conv_name");
+		conv_type_str = g_hash_table_lookup(params, "conv_type");
+
+		if (id_str == NULL || id_str[0] == '\0')
+		{
+			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. Invalid id for rt\n");
+			return FALSE;
+		}
+		id = strtoll(id_str, NULL, 10);
+		if (id == 0)
+		{
+			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. Invalid id for rt\n");
+			return FALSE;
+		}
+
+		conv_type = atoi(conv_type_str);
+
+		conv_id = g_new0(TwitterConversationId, 1);
+		conv_id->conv_name = g_strdup(purple_url_decode(conv_name_encoded));
+		conv_id->type = conv_type;
+		twitter_api_delete_status(purple_account_get_requestor(account),
+				id,
+				twitter_delete_tweet_success_cb,
+				twitter_delete_tweet_error_cb,
+				conv_id);
 	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_SEARCH)) {
 		//join chat with default interval, open in conv window
 		GHashTable *components;
@@ -1808,7 +1860,7 @@ static void twitter_context_menu_link(GtkWidget *w, const gchar *url)
 
 static void twitter_context_menu_delete(GtkWidget *w, const gchar *url)
 {
-	//twitter_got_uri_action(url, TWITTER_URI_ACTION_DELETE);
+	twitter_got_uri_action(url, TWITTER_URI_ACTION_DELETE);
 }
 
 static const gchar *url_get_param_value(const gchar *url, const gchar *key, gsize *len)
