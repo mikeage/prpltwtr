@@ -92,9 +92,9 @@ static gint _twitter_search_results_sort(TwitterUserTweet *_a, TwitterUserTweet 
 	long long a = _a->status->id;
 	long long b = _b->status->id;
 	if (a < b)
-		return 1;
-	else if (a > b)
 		return -1;
+	else if (a > b)
+		return 1;
 	else
 		return 0;
 }
