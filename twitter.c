@@ -1806,9 +1806,58 @@ static void twitter_context_menu_link(GtkWidget *w, const gchar *url)
 	twitter_got_uri_action(url, TWITTER_URI_ACTION_LINK);
 }
 
+static void twitter_context_menu_delete(GtkWidget *w, const gchar *url)
+{
+	//twitter_got_uri_action(url, TWITTER_URI_ACTION_DELETE);
+}
+
+static const gchar *url_get_param_value(const gchar *url, const gchar *key, gsize *len)
+{
+	const gchar *start = strchr(url, '?');
+	const gchar *end;
+	int key_len;
+	*len = 0;
+	if (!start)
+		return NULL;
+	key_len = strlen(key);
+
+	do
+	{
+		start++;
+		if (g_str_has_prefix(start, key) && start[key_len] == '=')
+		{
+			start += key_len + 1;
+			end = strchr(start, '&');
+			if (!end)
+				*len = strlen(start);
+			else
+				*len = end - start;
+			return start;
+		}
+	} while ((start = strchr(start, '&')) != NULL);
+
+	return NULL;
+}
+
 static void twitter_url_menu_actions(GtkWidget *menu, const char *url)
 {
 	GtkWidget *img, *item;
+	int account_len;
+	int user_len;
+	PurpleAccount *account;
+
+	const gchar *account_name_tmp = url_get_param_value(url, "account", &account_len);
+	const gchar *user_name_tmp = url_get_param_value(url, "user", &user_len);
+	gchar *account_name, *user_name;
+	if (!account_name_tmp || !user_name_tmp)
+		return;
+	account_name_tmp++;
+	account_len--;
+
+	account_name = g_strndup(account_name_tmp, account_len);
+	user_name = g_strndup(user_name_tmp, user_len);
+
+	account = purple_accounts_find(account_name, TWITTER_PROTOCOL_ID);
 
 	img = gtk_image_new_from_stock(GTK_STOCK_REFRESH, GTK_ICON_SIZE_MENU);
 	item = gtk_image_menu_item_new_with_mnemonic(("Retweet"));
@@ -1827,6 +1876,19 @@ static void twitter_url_menu_actions(GtkWidget *menu, const char *url)
 	gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
 	g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_link), (gpointer)url);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
+
+	if (account && twitter_usernames_match(account, account_name, user_name))
+	{
+		img = gtk_image_new_from_stock(GTK_STOCK_DELETE, GTK_ICON_SIZE_MENU);
+		item = gtk_image_menu_item_new_with_mnemonic(("Delete"));
+		gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
+		g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_delete), (gpointer)url);
+		gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
+	}
+
+
+	g_free(account_name);
+	g_free(user_name);
 }
 
 static gboolean twitter_context_menu(GtkIMHtml *imhtml, GtkIMHtmlLink *link, GtkWidget *menu)
@@ -1857,7 +1919,6 @@ static gboolean twitter_url_clicked_cb(GtkIMHtml *imhtml, GtkIMHtmlLink *link)
 	url = g_strdup(gtk_imhtml_link_get_url(link));
 
 	menu = gtk_menu_new();
-	//TODO: verify this is freeing data
 	g_object_set_data_full(G_OBJECT(menu), "x-imhtml-url-data", url,
 			(GDestroyNotify)g_free);
 
