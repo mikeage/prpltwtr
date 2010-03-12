@@ -431,7 +431,8 @@ TwitterEndpointChat *twitter_endpoint_chat_find(PurpleAccount *account, const ch
 static void twitter_endpoint_chat_send_success_cb(PurpleAccount *account, xmlnode *node, gboolean last, gpointer _ctx_id)
 {
 	TwitterEndpointChatId *id = _ctx_id;
-	TwitterTweet *tweet = twitter_status_node_parse(node);
+	TwitterUserTweet *user_tweet = twitter_update_status_node_parse(node);
+	TwitterTweet *tweet = user_tweet ? user_tweet->status : NULL;
 
 #if !_HAZE_
 	TwitterEndpointChat *ctx = twitter_endpoint_chat_find_by_id(id);
@@ -439,15 +440,17 @@ static void twitter_endpoint_chat_send_success_cb(PurpleAccount *account, xmlnod
 
 	if (ctx && tweet && tweet->text && (conv = twitter_endpoint_chat_find_open_conv(ctx)))
 	{
-		twitter_chat_add_tweet(conv, account->username, tweet->text, 0, tweet->created_at);
+		twitter_conv_icon_got_user_icon(account,
+				user_tweet->screen_name, user_tweet->icon_url, user_tweet->status->created_at);
+		twitter_chat_add_tweet(conv, account->username, tweet->text, tweet->id, tweet->created_at);
 	}
 
 #endif
 	if (tweet && tweet->id)
 		twitter_add_sent_tweet_id(ctx, tweet->id);
 
-	if (tweet)
-		twitter_status_data_free(tweet);
+	if (user_tweet)
+		twitter_user_tweet_free(user_tweet);
 
 	if (last)
 		twitter_endpoint_chat_id_free(id);

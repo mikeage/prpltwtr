@@ -274,6 +274,21 @@ TwitterTweet *twitter_status_node_parse(xmlnode *status_node)
 
 }
 
+TwitterUserTweet *twitter_update_status_node_parse(xmlnode *update_status_node)
+{
+	TwitterTweet *tweet = twitter_status_node_parse(update_status_node);
+	TwitterUserData *user;
+	if (!tweet)
+		return NULL;
+	user = twitter_user_node_parse(xmlnode_get_child(update_status_node, "user"));
+	if (!user)
+	{
+		twitter_status_data_free(tweet);
+		return NULL;
+	}
+	return twitter_user_tweet_new(user->screen_name, user->profile_image_url, user, tweet);
+}
+
 TwitterUserTweet *twitter_verify_credentials_parse(xmlnode *node)
 {
 	TwitterUserData *user = twitter_user_node_parse(node);

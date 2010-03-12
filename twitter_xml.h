@@ -68,6 +68,7 @@ GList *twitter_dms_nodes_parse(GList *nodes);
 void twitter_user_data_free(TwitterUserData *user_data);
 void twitter_status_data_free(TwitterTweet *status);
 TwitterUserTweet *twitter_verify_credentials_parse(xmlnode *node);
+TwitterUserTweet *twitter_update_status_node_parse(xmlnode *update_status_node);
 
 TwitterSearchResults *twitter_search_results_node_parse(xmlnode *response_node);
 void twitter_search_results_free(TwitterSearchResults *results);
