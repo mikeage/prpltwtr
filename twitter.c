@@ -415,9 +415,10 @@ static void twitter_init_auto_open_contexts(PurpleAccount *account)
 }
 
 #if _HAZE_
-static void conversation_created_cb(PurpleConversation *conv, PurpleAccount *account)
+static void conversation_created_cb(PurpleConversation *conv, gpointer *unused)
 {
 	const char *name = purple_conversation_get_name(conv);
+	PurpleAccount *account = purple_conversation_get_account(conv);
 	g_return_if_fail(name != NULL && name[0] != '\0');
 
 	if (name[0] == '#')
@@ -440,16 +441,16 @@ static void conversation_created_cb(PurpleConversation *conv, PurpleAccount *acc
 	}
 }
 
-static void deleting_conversation_cb(PurpleConversation *conv, PurpleAccount *account)
+static void deleting_conversation_cb(PurpleConversation *conv, gpointer *unused)
 {
 	const char *name = purple_conversation_get_name(conv);
+	PurpleAccount *account = purple_conversation_get_account(conv);
 
 	g_return_if_fail(name != NULL && name[0] != '\0');
 
 	if (name[0] == '#' || twitter_usernames_match(account, name, "Timeline: Home"))
 	{
 		PurpleConnection *gc = purple_conversation_get_gc(conv);
-		PurpleAccount *account = purple_connection_get_account(gc);
 		TwitterConnectionData *twitter = gc->proto_data;
 		TwitterEndpointChat *ctx = twitter_endpoint_chat_find(account, purple_conversation_get_name(conv));
 		if (ctx)
@@ -492,14 +493,6 @@ static void twitter_connected(PurpleAccount *account)
 				twitter_option_get_history(account),
 				TWITTER_INITIAL_DMS_COUNT));
 
-#if _HAZE_
-	purple_signal_connect(purple_conversations_get_handle(), "conversation-created",
-			twitter, PURPLE_CALLBACK(conversation_created_cb), account);
-	purple_signal_connect(purple_conversations_get_handle(), "deleting-conversation",
-			twitter, PURPLE_CALLBACK(deleting_conversation_cb), account);
-
-#endif
-
 	/* Since protocol plugins are loaded before conversations_init is called
 	 * we cannot connect these signals in plugin->load.
 	 * So we have this here, with a global var that tells us to only run this
@@ -507,6 +500,14 @@ static void twitter_connected(PurpleAccount *account)
 	if (!TWITTER_SIGNALS_CONNECTED)
 	{
 		TWITTER_SIGNALS_CONNECTED = TRUE;
+#if _HAZE_
+		purple_signal_connect(purple_conversations_get_handle(), "conversation-created",
+				twitter, PURPLE_CALLBACK(conversation_created_cb), NULL);
+		purple_signal_connect(purple_conversations_get_handle(), "deleting-conversation",
+				twitter, PURPLE_CALLBACK(deleting_conversation_cb), NULL);
+
+#endif
+
 
 #if _HAVE_PIDGIN_
 		//FIXME: disconnect signals!
