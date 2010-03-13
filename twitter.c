@@ -1895,8 +1895,8 @@ static const gchar *url_get_param_value(const gchar *url, const gchar *key, gsiz
 static void twitter_url_menu_actions(GtkWidget *menu, const char *url)
 {
 	GtkWidget *img, *item;
-	int account_len;
-	int user_len;
+	gsize account_len;
+	gsize user_len;
 	PurpleAccount *account;
 
 	const gchar *account_name_tmp = url_get_param_value(url, "account", &account_len);
