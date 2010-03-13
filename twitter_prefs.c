@@ -24,6 +24,7 @@
 
 #include "twitter_prefs.h"
 #include <string.h>
+#include <version.h>
 
 GList *twitter_get_protocol_options()
 {
@@ -78,7 +79,7 @@ GList *twitter_get_protocol_options()
 			TWITTER_PREF_GET_FRIENDS_DEFAULT);
 	options = g_list_append (options, option);
 
-#if !_HAVE_PIDGIN_
+#if !_HAVE_PIDGIN_ || !PURPLE_VERSION_CHECK(2, 6, 0)
 	/* Add URL link to each tweet */
 	option = purple_account_option_bool_new (
 			("Add URL link to each tweet"),

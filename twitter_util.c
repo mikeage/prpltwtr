@@ -5,6 +5,78 @@
 
 #include "twitter_util.h"
 #include "twitter_conn.h"
+#include <version.h>
+
+#if !PURPLE_VERSION_CHECK(2, 6, 0)
+
+//from libpurple/util.c
+static void append_escaped_text(GString *str,
+		const gchar *text, gssize length)
+{
+	const gchar *p;
+	const gchar *end;
+	gunichar c;
+
+	p = text;
+	end = text + length;
+
+	while (p != end)
+	{
+		const gchar *next;
+		next = g_utf8_next_char (p);
+
+		switch (*p)
+		{
+			case '&':
+				g_string_append (str, "&amp;");
+				break;
+
+			case '<':
+				g_string_append (str, "&lt;");
+				break;
+
+			case '>':
+				g_string_append (str, "&gt;");
+				break;
+
+			case '"':
+				g_string_append (str, "&quot;");
+				break;
+
+			default:
+				c = g_utf8_get_char (p);
+				if ((0x1 <= c && c <= 0x8) ||
+						(0xb <= c && c <= 0xc) ||
+						(0xe <= c && c <= 0x1f) ||
+						(0x7f <= c && c <= 0x84) ||
+						(0x86 <= c && c <= 0x9f))
+					g_string_append_printf (str, "&#x%x;", c);
+				else
+					g_string_append_len (str, p, next - p);
+				break;
+		}
+
+		p = next;
+	}
+}
+
+//from libpurple/util.c
+static gchar *purple_markup_escape_text(const gchar *text, gssize length)
+{
+	GString *str;
+
+	g_return_val_if_fail(text != NULL, NULL);
+
+	if (length < 0)
+		length = strlen(text);
+
+	/* prealloc at least as long as original text */
+	str = g_string_sized_new(length);
+	append_escaped_text(str, text, length);
+
+	return g_string_free(str, FALSE);
+}
+#endif
 
 gboolean twitter_usernames_match(PurpleAccount *account, const gchar *u1, const gchar *u2)
 {
@@ -40,7 +112,7 @@ void purple_account_set_long_long(PurpleAccount *account, const gchar *key, long
 
 
 //TODO: move those
-#if _HAVE_PIDGIN_
+#if _HAVE_PIDGIN_ && PURPLE_VERSION_CHECK(2, 6, 0)
 static const char *_find_first_delimiter(const char *text, const char *delimiters, int *delim_id)
 {
 	const char *delimiter;
@@ -60,7 +132,6 @@ static const char *_find_first_delimiter(const char *text, const char *delimiter
 	} while (*++text != '\0');
 	return NULL;
 }
-#endif
 
 static void _g_string_append_escaped_len(GString *s, const gchar *txt, gssize len)
 {
@@ -72,7 +143,6 @@ static void _g_string_append_escaped_len(GString *s, const gchar *txt, gssize le
 //TODO: move those
 static char *twitter_linkify(PurpleAccount *account, const char *message)
 {
-#if _HAVE_PIDGIN_
 	GString *ret;
 	static char symbols[] = "#@";
 	static char *symbol_actions[] = {TWITTER_URI_ACTION_SEARCH, TWITTER_URI_ACTION_USER};
@@ -116,10 +186,8 @@ static char *twitter_linkify(PurpleAccount *account, const char *message)
 	}
 
 	return g_string_free(ret, FALSE);
-#else
-	return purple_markup_escape_text(message, -1);
-#endif
 }
+#endif
 
 //TODO: move those
 char *twitter_format_tweet(PurpleAccount *account,
@@ -130,15 +198,21 @@ char *twitter_format_tweet(PurpleAccount *account,
 		const gchar *conv_name,
 		gboolean is_tweet)
 {
-	char *linkified_message = twitter_linkify(account, message);
+	char *linkified_message;
 	GString *tweet;
+
+#if _HAVE_PIDGIN_ && PURPLE_VERSION_CHECK(2, 6, 0)
+	linkified_message = twitter_linkify(account, message);
+#else
+	linkified_message = purple_markup_escape_text(message, -1);
+#endif
 
 	g_return_val_if_fail(linkified_message != NULL, NULL);
 	g_return_val_if_fail(src_user != NULL, NULL);
 
 	tweet = g_string_new(linkified_message);
 
-#if _HAVE_PIDGIN_
+#if _HAVE_PIDGIN_ && PURPLE_VERSION_CHECK(2, 6, 0)
 	if (is_tweet && tweet_id && conv_type != PURPLE_CONV_TYPE_UNKNOWN && conv_name)
 	{
 		const gchar *account_name = purple_account_get_username(account);
@@ -154,6 +228,7 @@ char *twitter_format_tweet(PurpleAccount *account,
 				purple_url_encode(conv_name));
 	}
 #else
+
 	if (twitter_option_add_link_to_tweet(account) && is_tweet && tweet_id)
 	{
 		PurpleConnection *gc = purple_account_get_connection(account);
