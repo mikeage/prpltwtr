@@ -4,6 +4,7 @@
  */
 
 #include "twitter_util.h"
+#include "twitter_conn.h"
 
 gboolean twitter_usernames_match(PurpleAccount *account, const gchar *u1, const gchar *u2)
 {

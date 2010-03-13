@@ -433,9 +433,9 @@ static void twitter_endpoint_chat_send_success_cb(PurpleAccount *account, xmlnod
 	TwitterEndpointChatId *id = _ctx_id;
 	TwitterUserTweet *user_tweet = twitter_update_status_node_parse(node);
 	TwitterTweet *tweet = user_tweet ? user_tweet->status : NULL;
+	TwitterEndpointChat *ctx = twitter_endpoint_chat_find_by_id(id);
 
 #if !_HAZE_
-	TwitterEndpointChat *ctx = twitter_endpoint_chat_find_by_id(id);
 	PurpleConversation *conv;
 
 	if (ctx && tweet && tweet->text && (conv = twitter_endpoint_chat_find_open_conv(ctx)))
