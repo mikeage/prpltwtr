@@ -374,6 +374,20 @@ static void twitter_send_request_querystring(TwitterRequestor *r,
 	g_free(header_fields_text);
 }
 
+void twitter_requestor_send(TwitterRequestor *r,
+		gboolean post,
+		const char *url,
+		TwitterRequestParams *params,
+		char **header_fields,
+		TwitterSendRequestSuccessFunc success_callback,
+		TwitterSendRequestErrorFunc error_callback,
+		gpointer data)
+{
+	gchar *querystring = twitter_request_params_to_string(params);
+	twitter_send_request_querystring(r, post, url, querystring, header_fields, success_callback, error_callback, data);
+	g_free(querystring);
+}
+
 void twitter_send_request(TwitterRequestor *r,
 		gboolean post,
 		const char *url,
@@ -382,17 +396,15 @@ void twitter_send_request(TwitterRequestor *r,
 		TwitterSendRequestErrorFunc error_callback,
 		gpointer data)
 {
-	gchar *querystring;
 	gpointer requestor_data = NULL;
 	gchar **header_fields = NULL;
 
 	if (r->pre_send)
 		r->pre_send(r, &post, &url, &params, &header_fields, &requestor_data);
 
-	querystring = twitter_request_params_to_string(params);
-	twitter_send_request_querystring(r,
-			post,
-			url, querystring,
+	if (r->send)
+		r->send(r, post,
+			url, params,
 			header_fields,
 			success_callback,
 			error_callback,
@@ -400,8 +412,6 @@ void twitter_send_request(TwitterRequestor *r,
 
 	if (r->post_send)
 		r->post_send(r, &post, &url, &params, &header_fields, &requestor_data);
-
-	g_free(querystring);
 }
 
 static void twitter_xml_request_success_cb(TwitterRequestor *r, const gchar *response, gpointer user_data)

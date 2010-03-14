@@ -42,6 +42,10 @@ LIB_PATHS =
 LIBS = $(PIDGIN_LIBS)
 endif
 
+ifeq ($(PRPL_DEBUG), 1)
+CFLAGS := $(CFLAGS) -D_DEBUG_=1
+endif
+
 TWITTER_H_SRC = $(TWITTER_C_SRC:%.c=%.h) config.h
 TWITTER_OBJ = $(TWITTER_C_SRC:%.c=%.o)
 

@@ -1118,6 +1118,7 @@ static void twitter_login(PurpleAccount *account)
 	twitter->requestor = g_new0(TwitterRequestor, 1);
 	twitter->requestor->account = account;
 	twitter->requestor->post_failed = twitter_requestor_post_failed;
+	twitter->requestor->send = twitter_requestor_send;
 
 	if (!twitter_option_use_oauth(account))
 	{
