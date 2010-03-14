@@ -1181,7 +1181,9 @@ static void twitter_endpoint_im_free_foreach(TwitterConnectionData *conn, Twitte
 static void twitter_close(PurpleConnection *gc)
 {
 	/* notify other twitter accounts */
+#if _HAVE_PIDGIN_
 	PurpleAccount *account = purple_connection_get_account(gc);
+#endif
 	TwitterConnectionData *twitter = gc->proto_data;
 
 	twitter_connection_foreach_endpoint_im(twitter, twitter_endpoint_im_free_foreach, NULL);

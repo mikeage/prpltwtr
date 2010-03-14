@@ -440,8 +440,10 @@ static void twitter_endpoint_chat_send_success_cb(PurpleAccount *account, xmlnod
 
 	if (ctx && tweet && tweet->text && (conv = twitter_endpoint_chat_find_open_conv(ctx)))
 	{
+#if _HAVE_PIDGIN_
 		twitter_conv_icon_got_user_icon(account,
 				user_tweet->screen_name, user_tweet->icon_url, user_tweet->status->created_at);
+#endif
 		twitter_chat_add_tweet(conv, account->username, tweet->text, tweet->id, tweet->created_at);
 	}
 
