@@ -42,7 +42,7 @@ LIB_PATHS =
 LIBS = $(PIDGIN_LIBS)
 endif
 
-ifeq ($(PRPL_DEBUG), 1)
+ifeq ($(PRPLTWTR_DEBUG), 1)
 CFLAGS := $(CFLAGS) -D_DEBUG_=1
 endif
 
