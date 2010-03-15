@@ -1034,6 +1034,11 @@ void twitter_verify_credentials_success_cb(TwitterRequestor *r, xmlnode *node, g
 	twitter_user_tweet_free(user_tweet);
 }
 
+static void twitter_verify_credentials_error_cb(TwitterRequestor *r, const TwitterRequestErrorData *error_data, gpointer user_data)
+{
+	twitter_oauth_disconnect(r->account, "Error verifying credentials");
+}
+
 static void twitter_requestor_pre_send_auth_basic(TwitterRequestor *r, gboolean *post, const char **url, TwitterRequestParams **params, gchar ***header_fields, gpointer *requestor_data)
 {
 	const char *pass = purple_connection_get_password(purple_account_get_connection(r->account));
@@ -1118,6 +1123,7 @@ static void twitter_login(PurpleAccount *account)
 	twitter->requestor = g_new0(TwitterRequestor, 1);
 	twitter->requestor->account = account;
 	twitter->requestor->post_failed = twitter_requestor_post_failed;
+	twitter->requestor->do_send = twitter_requestor_send;
 
 	if (!twitter_option_use_oauth(account))
 	{
@@ -1159,7 +1165,7 @@ static void twitter_login(PurpleAccount *account)
 			twitter->oauth_token_secret = g_strdup(oauth_token_secret);
 			twitter_api_verify_credentials(purple_account_get_requestor(account),
 					twitter_verify_credentials_success_cb,
-					NULL,
+					twitter_verify_credentials_error_cb,
 					NULL);
 		} else {
 			twitter_api_oauth_request_token(purple_account_get_requestor(account),
