@@ -73,14 +73,7 @@ struct _TwitterRequestor
 {
 	PurpleAccount *account;
 	void (*pre_send)(TwitterRequestor *r, gboolean *post, const char **url, TwitterRequestParams **params, gchar ***header_fields, gpointer *requestor_data);
-	void (*send)(TwitterRequestor *r,
-		gboolean post,
-		const char *url,
-		TwitterRequestParams *params,
-		char **header_fields,
-		TwitterSendRequestSuccessFunc success_callback,
-		TwitterSendRequestErrorFunc error_callback,
-		gpointer data);
+	void (*do_send)(TwitterRequestor *r, gboolean post, const char *url, TwitterRequestParams *params, char **header_fields, TwitterSendRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback, gpointer data);
 	void (*post_send)(TwitterRequestor *r, gboolean *post, const char **url, TwitterRequestParams **params, gchar ***header_fields, gpointer *requestor_data);
 	gboolean (*pre_failed)(TwitterRequestor *r, const TwitterRequestErrorData **error_data);
 	void (*post_failed)(TwitterRequestor *r, const TwitterRequestErrorData **error_data);

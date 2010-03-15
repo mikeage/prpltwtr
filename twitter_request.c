@@ -402,8 +402,8 @@ void twitter_send_request(TwitterRequestor *r,
 	if (r->pre_send)
 		r->pre_send(r, &post, &url, &params, &header_fields, &requestor_data);
 
-	if (r->send)
-		r->send(r, post,
+	if (r->do_send)
+		r->do_send(r, post,
 			url, params,
 			header_fields,
 			success_callback,
