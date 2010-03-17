@@ -1997,9 +1997,16 @@ static void twitter_init_endpoint_chat_settings(TwitterEndpointChatSettings *set
 	TwitterEndpointChatSettingsLookup[settings->type] = settings;
 }
 
+void *twitter_get_handle()
+{
+	static int handle;
+	return &handle;
+}
+
 static void twitter_init(PurplePlugin *plugin)
 {
 
+	//void *handle = twitter_get_handle();
 	purple_debug_info(TWITTER_PROTOCOL_ID, "starting up\n");
 
 	prpl_info.protocol_options = twitter_get_protocol_options();

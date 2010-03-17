@@ -66,4 +66,6 @@
 #include "twitter_buddy.h"
 #include "twitter_conn.h"
 
+void *twitter_get_handle();
+
 #endif

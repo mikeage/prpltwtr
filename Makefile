@@ -8,7 +8,7 @@ IS_PIDGIN = $(shell pkg-config --atleast-version=2.0 pidgin && echo 1 || echo 0)
 
 include global.mak
 
-SUBDIRS = data
+SUBDIRS = data gtkprpltwtr
 
 TARGETS = prpltwtr$(PLUGIN_SUFFIX)
 
@@ -53,6 +53,9 @@ OBJECTS = $(TWITTER_OBJ)
 .PHONY: clean install build
 
 build: $(TARGETS)
+	for dir in $(SUBDIRS); do \
+		make -C "$$dir" $@ || exit 1; \
+	done
 
 test: test.c
 
@@ -76,6 +79,9 @@ uninstall:
 
 clean:
 	rm -f $(TARGETS) $(OBJECTS)
+	for dir in $(SUBDIRS); do \
+		make clean -C "$$dir" $@ || exit 1; \
+	done
 
 dist: $(DISTFILES)
 	mkdir -p $(PACKAGE)-$(VERSION)
