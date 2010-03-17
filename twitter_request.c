@@ -243,7 +243,14 @@ static void twitter_send_request_cb(PurpleUtilFetchUrlData *url_data, gpointer u
 	TwitterSendRequestData *request_data = user_data;
 	gchar *error_message = NULL;
 	TwitterRequestErrorType error_type = TWITTER_REQUEST_ERROR_NONE;
-	gint status_code = twitter_response_text_status_code(response_text);
+	gint status_code;
+
+#ifdef _DEBUG_
+	purple_debug_info(TWITTER_PROTOCOL_ID, "Received response: %s\n",
+			response_text ? response_text : "NULL");
+#endif
+	
+	status_code = twitter_response_text_status_code(response_text);
 
 	url_text = twitter_response_text_data(response_text, len);
 
@@ -364,6 +371,11 @@ static void twitter_send_request_querystring(TwitterRequestor *r,
 			post ? "Content-Type: application/x-www-form-urlencoded\r\n" : "",
 			query_string && post ? strlen(query_string) : 0,
 			query_string && post ? query_string : "");
+
+#ifdef _DEBUG_
+	purple_debug_info(TWITTER_PROTOCOL_ID, "Sending request: %s\n", request);
+#endif
+	
 
 	purple_util_fetch_url_request(full_url, TRUE,
 			USER_AGENT, TRUE, request, TRUE,
