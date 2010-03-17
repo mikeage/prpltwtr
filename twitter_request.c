@@ -301,7 +301,7 @@ static void twitter_send_request_cb(PurpleUtilFetchUrlData *url_data, gpointer u
 		}
 		if (error_type != TWITTER_REQUEST_ERROR_NONE)
 		{
-			error_message = twitter_xml_text_parse_error(response_text);
+			error_message = twitter_xml_text_parse_error(url_text);
 			if (!error_message)
 				error_message = g_strdup_printf("Status code: %d", status_code);
 		}

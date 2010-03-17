@@ -188,16 +188,13 @@ static void twitter_verify_connection_error_handler(PurpleAccount *account, cons
 			reason = PURPLE_CONNECTION_ERROR_NETWORK_ERROR;
 			error_message = "Received Invalid XML";
 			break;
+		case TWITTER_REQUEST_ERROR_UNAUTHORIZED:
+			reason = PURPLE_CONNECTION_ERROR_AUTHENTICATION_FAILED;
+			error_message = "Unauthorized";
+			break;
 		case TWITTER_REQUEST_ERROR_TWITTER_GENERAL:
-			if (!strcmp(error_data->message, "This method requires authentication."))
-			{
-				reason = PURPLE_CONNECTION_ERROR_AUTHENTICATION_FAILED;
-				error_message = "Invalid password";
-				break;
-			} else {
-				reason = PURPLE_CONNECTION_ERROR_NETWORK_ERROR;
-				error_message = error_data->message;
-			}
+			reason = PURPLE_CONNECTION_ERROR_NETWORK_ERROR;
+			error_message = error_data->message;
 			break;
 		default:
 			reason = PURPLE_CONNECTION_ERROR_OTHER_ERROR;
