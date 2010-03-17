@@ -1,20 +1,29 @@
 #define PLUGIN_ID "gtkprpltwtr"
 
 #include "../config.h"
-#include "../twitter.h"
+
 #include <gtkplugin.h>
+#include "../twitter.h"
+#include "../twitter_charcount.h"
 
 
 static PurplePlugin *gtkprpltwtr_plugin = NULL;
 
 static gboolean plugin_load(PurplePlugin *plugin) 
 {
-		
+	gtkprpltwtr_plugin = plugin;
+	purple_signal_connect(purple_conversations_get_handle(),
+			"conversation-created",
+			plugin, PURPLE_CALLBACK(twitter_charcount_conv_created_cb), NULL);
+	purple_signal_connect(purple_conversations_get_handle(),
+			"deleting-conversation",
+			plugin, PURPLE_CALLBACK(twitter_charcount_conv_destroyed_cb), NULL);
 	return TRUE;
 }
 
 static gboolean plugin_unload(PurplePlugin *plugin)
 {
+	purple_signals_disconnect_by_handle(plugin);
 	return TRUE;
 }
 

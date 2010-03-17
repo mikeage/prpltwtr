@@ -27,6 +27,7 @@ LIB_PATHS += -L$(GTK_TOP)/lib \
 			
 LIBS =	-lgtk-win32-2.0 \
 			-lglib-2.0 \
+			-lgdk_pixbuf-2.0 \
 			-lgdk-win32-2.0 \
 			-lgobject-2.0 \
 			-lintl \
@@ -39,7 +40,7 @@ LIB_PATHS =
 LIBS = $(PIDGIN_LIBS)
 endif
 
-GTKPRPLTWTR_C_SRC = gtkprpltwtr.c
+GTKPRPLTWTR_C_SRC = gtkprpltwtr.c $(TWITTER_LIB_SRC:%=../%)
 GTKPRPLTWTR_H_SRC = $(GTKPRPLTWTR_C_SRC:%.c=%.h)
 GTKPRPLTWTR_OBJ = $(GTKPRPLTWTR_C_SRC:%.c=%.o)
 
