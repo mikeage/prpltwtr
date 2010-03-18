@@ -2,7 +2,7 @@
 # Global header for all makefile
 #
 
--include version.mak
+-include $(TOPLEVEL)version.mak
 
 # PIDGIN_TREE_TOP is only meaningful on Windows, point it to top directory of Pidgin. IT MUST BE A RELATIVE PATH
 PIDGIN_TREE_TOP := $(TOPLEVEL)../pidgin-2.6.4
