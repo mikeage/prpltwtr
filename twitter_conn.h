@@ -47,6 +47,8 @@ typedef struct
 	gchar *oauth_token_secret;
 
 	TwitterMbPrefs *mb_prefs;
+
+	int chat_id;
 } TwitterConnectionData;
 
 void twitter_connection_foreach_endpoint_im(TwitterConnectionData *twitter,
