@@ -31,8 +31,6 @@
 #include <gtkimhtml.h>
 #endif
 
-#include "twitter_charcount.h"
-#include "twitter_convicon.h"
 #include "twitter_mbprefs.h"
 
 #if !PURPLE_VERSION_CHECK(2, 6, 0)
@@ -1127,10 +1125,9 @@ static void twitter_login(PurpleAccount *account)
 	twitter->user_reply_id_table = g_hash_table_new_full (
 			g_str_hash, g_str_equal, g_free, g_free);
 
-#if _HAVE_PIDGIN_
-	if (twitter_option_enable_conv_icon(account))
-		twitter_conv_icon_account_load(account);
-#endif
+	purple_signal_emit(purple_accounts_get_handle(),
+			"prpltwtr-connecting",
+			account);
 
 	/* purple wants a minimum of 2 steps */
 	purple_connection_update_progress(gc, ("Connecting"),
@@ -1192,9 +1189,9 @@ static void twitter_close(PurpleConnection *gc)
 		g_hash_table_destroy (twitter->user_reply_id_table);
 	twitter->user_reply_id_table = NULL;
 
-#if _HAVE_PIDGIN_
-	twitter_conv_icon_account_unload(account);
-#endif
+	purple_signal_emit(purple_accounts_get_handle(),
+			"prpltwtr-disconnected",
+			account);
 
 	if (twitter->mb_prefs)
 		twitter_mb_prefs_free(twitter->mb_prefs);
@@ -1987,22 +1984,22 @@ static void twitter_init_endpoint_chat_settings(TwitterEndpointChatSettings *set
 	TwitterEndpointChatSettingsLookup[settings->type] = settings;
 }
 
-void *twitter_get_handle()
-{
-	static int handle;
-	return &handle;
-}
-
 static void twitter_init(PurplePlugin *plugin)
 {
 
-	//void *handle = twitter_get_handle();
 	purple_debug_info(TWITTER_PROTOCOL_ID, "starting up\n");
 
 	prpl_info.protocol_options = twitter_get_protocol_options();
 
+	purple_signal_register(purple_accounts_get_handle(), "prpltwtr-connecting", purple_marshal_VOID__POINTER,
+			NULL, 1,
+			purple_value_new(PURPLE_TYPE_SUBTYPE, PURPLE_SUBTYPE_ACCOUNT));
+
+	purple_signal_register(purple_accounts_get_handle(), "prpltwtr-disconnected", purple_marshal_VOID__POINTER,
+			NULL, 1,
+			purple_value_new(PURPLE_TYPE_SUBTYPE, PURPLE_SUBTYPE_ACCOUNT));
+
 #if _HAVE_PIDGIN_
-	twitter_charcount_attach_to_all_windows();
 
 #if PURPLE_VERSION_CHECK(2, 6, 0)
 	purple_signal_connect(purple_get_core(), "uri-handler", plugin,
@@ -2021,9 +2018,8 @@ static void twitter_init(PurplePlugin *plugin)
 static void twitter_destroy(PurplePlugin *plugin) 
 {
 	purple_debug_info(TWITTER_PROTOCOL_ID, "shutting down\n");
-#if _HAVE_PIDGIN_
-	twitter_charcount_detach_from_all_windows();
-#endif
+	purple_signal_unregister(purple_accounts_get_handle(), "prpltwtr-connecting");
+	purple_signal_unregister(purple_accounts_get_handle(), "prpltwtr-disconnected");
 	purple_signals_disconnect_by_handle(plugin);
 }
 

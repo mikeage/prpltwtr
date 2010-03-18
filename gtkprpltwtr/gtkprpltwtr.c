@@ -5,10 +5,21 @@
 #include <gtkplugin.h>
 #include "../twitter.h"
 #include "../twitter_charcount.h"
+#include "../twitter_convicon.h"
 
 
 static PurplePlugin *gtkprpltwtr_plugin = NULL;
 
+static void gtkprpltwtr_connecting_cb(PurpleAccount *account)
+{
+	if (twitter_option_enable_conv_icon(account))
+		twitter_conv_icon_account_load(account);
+}
+
+static void gtkprpltwtr_disconnected_cb(PurpleAccount *account)
+{
+	twitter_conv_icon_account_unload(account);
+}
 static gboolean plugin_load(PurplePlugin *plugin) 
 {
 	gtkprpltwtr_plugin = plugin;
@@ -18,12 +29,25 @@ static gboolean plugin_load(PurplePlugin *plugin)
 	purple_signal_connect(purple_conversations_get_handle(),
 			"deleting-conversation",
 			plugin, PURPLE_CALLBACK(twitter_charcount_conv_destroyed_cb), NULL);
+
+	purple_signal_connect(purple_accounts_get_handle(),
+			"prpltwtr-connecting",
+			plugin, PURPLE_CALLBACK(gtkprpltwtr_connecting_cb), NULL);
+
+	purple_signal_connect(purple_accounts_get_handle(),
+			"prpltwtr-disconnected",
+			plugin, PURPLE_CALLBACK(gtkprpltwtr_disconnected_cb), NULL);
+
+	twitter_charcount_attach_to_all_windows();
+
 	return TRUE;
 }
 
 static gboolean plugin_unload(PurplePlugin *plugin)
 {
 	purple_signals_disconnect_by_handle(plugin);
+
+	twitter_charcount_detach_from_all_windows();
 	return TRUE;
 }
 
