@@ -53,6 +53,7 @@ typedef enum
 	TWITTER_REQUEST_ERROR_TWITTER_GENERAL,
 	TWITTER_REQUEST_ERROR_INVALID_XML,
 	TWITTER_REQUEST_ERROR_NO_OAUTH,
+	TWITTER_REQUEST_ERROR_CANCELED,
 	
 	TWITTER_REQUEST_ERROR_UNAUTHORIZED
 } TwitterRequestErrorType;
@@ -72,12 +73,16 @@ typedef void (*TwitterSendRequestErrorFunc)(TwitterRequestor *r, const TwitterRe
 struct _TwitterRequestor
 {
 	PurpleAccount *account;
+	GList *pending_requests;
+
 	void (*pre_send)(TwitterRequestor *r, gboolean *post, const char **url, TwitterRequestParams **params, gchar ***header_fields, gpointer *requestor_data);
-	void (*do_send)(TwitterRequestor *r, gboolean post, const char *url, TwitterRequestParams *params, char **header_fields, TwitterSendRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback, gpointer data);
+	gpointer (*do_send)(TwitterRequestor *r, gboolean post, const char *url, TwitterRequestParams *params, char **header_fields, TwitterSendRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback, gpointer data);
 	void (*post_send)(TwitterRequestor *r, gboolean *post, const char **url, TwitterRequestParams **params, gchar ***header_fields, gpointer *requestor_data);
 	gboolean (*pre_failed)(TwitterRequestor *r, const TwitterRequestErrorData **error_data);
 	void (*post_failed)(TwitterRequestor *r, const TwitterRequestErrorData **error_data);
 };
+
+void twitter_requestor_free(TwitterRequestor *requestor);
 
 
 typedef struct _TwitterMultiPageRequestData TwitterMultiPageRequestData;
@@ -101,7 +106,7 @@ struct _TwitterMultiPageRequestData
 typedef void (*TwitterSendRequestMultiPageAllSuccessFunc)(TwitterRequestor *r, GList *nodes, gpointer user_data);
 typedef gboolean (*TwitterSendRequestMultiPageAllErrorFunc)(TwitterRequestor *r, const TwitterRequestErrorData *error_data, gpointer user_data);
 
-void twitter_requestor_send(TwitterRequestor *r,
+gpointer twitter_requestor_send(TwitterRequestor *r,
 		gboolean post,
 		const char *url,
 		TwitterRequestParams *params,
@@ -109,6 +114,7 @@ void twitter_requestor_send(TwitterRequestor *r,
 		TwitterSendRequestSuccessFunc success_callback,
 		TwitterSendRequestErrorFunc error_callback,
 		gpointer data);
+
 void twitter_send_request(TwitterRequestor *r,
 		gboolean post,
 		const char *url,

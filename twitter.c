@@ -1095,7 +1095,7 @@ static void twitter_requestor_post_failed(TwitterRequestor *r, const TwitterRequ
 			"post_failed called for account %s, error %d, message %s\n",
 			r->account->username,
 			(*error_data)->type,
-			(*error_data)->message);
+			(*error_data)->message ? (*error_data)->message : "");
 	switch ((*error_data)->type)
 	{
 		case TWITTER_REQUEST_ERROR_UNAUTHORIZED:
@@ -1189,6 +1189,9 @@ static void twitter_close(PurpleConnection *gc)
 #endif
 	TwitterConnectionData *twitter = gc->proto_data;
 
+	if (twitter->requestor)
+		twitter_requestor_free(twitter->requestor);
+
 	twitter_connection_foreach_endpoint_im(twitter, twitter_endpoint_im_free_foreach, NULL);
 
 	if (twitter->get_friends_timer)
@@ -1217,8 +1220,6 @@ static void twitter_close(PurpleConnection *gc)
 
 	if (twitter->oauth_token_secret)
 		g_free(twitter->oauth_token_secret);
-
-	g_free(twitter->requestor);
 
 	g_free(twitter);
 }

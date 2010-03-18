@@ -78,13 +78,16 @@ static void twitter_get_replies_timeout_error_cb (PurpleAccount *account,
 		const TwitterRequestErrorData *error_data,
 		gpointer user_data)
 {
-	PurpleConnection *gc = purple_account_get_connection(account);
-	TwitterConnectionData *twitter = gc->proto_data;
-	twitter->failed_get_replies_count++;
-
-	if (twitter->failed_get_replies_count >= 3)
+	if (error_data->type != TWITTER_REQUEST_ERROR_CANCELED)
 	{
-		purple_connection_error_reason(gc, PURPLE_CONNECTION_ERROR_NETWORK_ERROR, "Could not retrieve replies, giving up trying");
+		PurpleConnection *gc = purple_account_get_connection(account);
+		TwitterConnectionData *twitter = gc->proto_data;
+		twitter->failed_get_replies_count++;
+
+		if (twitter->failed_get_replies_count >= 3)
+		{
+			purple_connection_error_reason(gc, PURPLE_CONNECTION_ERROR_NETWORK_ERROR, "Could not retrieve replies, giving up trying");
+		}
 	}
 }
 
@@ -93,7 +96,7 @@ static gboolean twitter_get_replies_all_timeout_error_cb(TwitterRequestor *r,
 		gpointer user_data)
 {
 	twitter_get_replies_timeout_error_cb(r->account, error_data, user_data);
-	return TRUE; //restart timer and try again
+	return error_data->type != TWITTER_REQUEST_ERROR_CANCELED; //restart timer and try again
 }
 
 static void _process_replies (PurpleAccount *account,
