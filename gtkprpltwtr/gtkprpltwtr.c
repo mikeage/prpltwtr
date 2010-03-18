@@ -420,6 +420,12 @@ static void gtkprpltwtr_disconnected_cb(PurpleAccount *account)
 {
 	twitter_conv_icon_account_unload(account);
 }
+
+static void gtkprpltwtr_update_buddyicon_cb(PurpleAccount *account, const gchar *buddy_name, PurpleBuddyIcon *buddy_icon)
+{
+	twitter_conv_icon_got_buddy_icon(account, buddy_name, buddy_icon);
+}
+
 static gboolean plugin_load(PurplePlugin *plugin) 
 {
 	gtkprpltwtr_plugin = plugin;
@@ -437,6 +443,10 @@ static gboolean plugin_load(PurplePlugin *plugin)
 	purple_signal_connect(purple_accounts_get_handle(),
 			"prpltwtr-disconnected",
 			plugin, PURPLE_CALLBACK(gtkprpltwtr_disconnected_cb), NULL);
+
+	purple_signal_connect(purple_buddy_icons_get_handle(),
+			"prpltwtr-update-buddyicon",
+			plugin, PURPLE_CALLBACK(gtkprpltwtr_update_buddyicon_cb), NULL);
 
 #if PURPLE_VERSION_CHECK(2, 6, 0)
 	purple_signal_connect(purple_get_core(), "uri-handler", plugin,

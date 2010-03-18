@@ -1,6 +1,5 @@
 #include "twitter_buddy.h"
 #include "twitter_util.h"
-#include "twitter_convicon.h"
 
 //TODO this should be TwitterBuddy
 TwitterUserTweet *twitter_buddy_get_buddy_data(PurpleBuddy *b)
@@ -220,18 +219,19 @@ typedef struct
 static void twitter_buddy_update_icon_cb(PurpleUtilFetchUrlData *url_data, gpointer user_data, const gchar *url_text, gsize len, const gchar *error_message)
 {
 	BuddyIconContext *b = user_data;
-#if _HAVE_PIDGIN_
 	PurpleBuddyIcon *buddy_icon;
-#endif
 	purple_buddy_icons_set_for_user(b->account, b->buddy_name,
 			g_memdup(url_text, len), len, b->url);
-#if _HAVE_PIDGIN_
+
 	if ((buddy_icon = purple_buddy_icons_find(b->account, b->buddy_name)))
 	{
-		twitter_conv_icon_got_buddy_icon(b->account, b->buddy_name, buddy_icon);
+		purple_signal_emit(purple_buddy_icons_get_handle(),
+				"prpltwtr-update-buddyicon",
+				b->account, b->buddy_name,
+				buddy_icon);
 		purple_buddy_icon_unref(buddy_icon);
 	}
-#endif
+
 	g_free(b->buddy_name);
 	g_free(b->url);
 	g_free(b);
@@ -266,9 +266,10 @@ void twitter_buddy_update_icon_from_username(PurpleAccount *account, const gchar
 		purple_buddy_icons_set_for_user(account, username,
 				NULL, 0, url);
 
-#if _HAVE_PIDGIN_
-		twitter_conv_icon_got_buddy_icon(account, username, NULL);
-#endif
+		purple_signal_emit(purple_buddy_icons_get_handle(),
+				"prpltwtr-update-buddyicon",
+				account, username,
+				NULL);
 
 		purple_util_fetch_url(url, TRUE, NULL, FALSE, twitter_buddy_update_icon_cb, b);
 

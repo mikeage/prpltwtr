@@ -1579,6 +1579,14 @@ static void twitter_init(PurplePlugin *plugin)
 			NULL, 1,
 			purple_value_new(PURPLE_TYPE_SUBTYPE, PURPLE_SUBTYPE_ACCOUNT));
 
+	purple_signal_register(purple_buddy_icons_get_handle(), "prpltwtr-update-buddyicon",
+			purple_marshal_VOID__POINTER_POINTER_POINTER,
+			NULL, 3,
+			purple_value_new(PURPLE_TYPE_SUBTYPE, PURPLE_SUBTYPE_ACCOUNT),
+			purple_value_new(PURPLE_TYPE_STRING),
+			purple_value_new(PURPLE_TYPE_SUBTYPE, PURPLE_SUBTYPE_BUDDY_ICON));
+
+
 	twitter_endpoint_chat_init();
 
 	_twitter_protocol = plugin;
@@ -1589,6 +1597,7 @@ static void twitter_destroy(PurplePlugin *plugin)
 	purple_debug_info(TWITTER_PROTOCOL_ID, "shutting down\n");
 	purple_signal_unregister(purple_accounts_get_handle(), "prpltwtr-connecting");
 	purple_signal_unregister(purple_accounts_get_handle(), "prpltwtr-disconnected");
+	purple_signal_unregister(purple_buddy_icons_get_handle(), "prpltwtr-update-buddyicon");
 	purple_signals_disconnect_by_handle(plugin);
 }
 
