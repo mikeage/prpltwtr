@@ -1,5 +1,4 @@
 #include "twitter_endpoint_chat.h"
-#include "twitter_convicon.h"
 #include "twitter_buddy.h"
 
 #include "twitter_endpoint_search.h"
@@ -285,11 +284,13 @@ void twitter_chat_got_tweet(TwitterEndpointChat *endpoint_chat, TwitterUserTweet
 	g_return_if_fail(tweet->screen_name != NULL);
 	g_return_if_fail(tweet->status != NULL);
 
-#if _HAVE_PIDGIN_
-	//TODO: make this into a signal?
-	twitter_conv_icon_got_user_icon(purple_conversation_get_account(conv),
-			tweet->screen_name, tweet->icon_url, tweet->status->created_at);
-#endif
+	purple_signal_emit(purple_buddy_icons_get_handle(),
+			"prpltwtr-update-iconurl",
+			purple_conversation_get_account(conv),
+			tweet->screen_name,
+			tweet->icon_url,
+			tweet->status->created_at);
+
 	twitter_chat_add_tweet(conv, tweet->screen_name, tweet->status->text, tweet->status->id, tweet->status->created_at);
 }
 
@@ -464,10 +465,12 @@ static void twitter_endpoint_chat_send_success_cb(PurpleAccount *account, xmlnod
 
 	if (ctx && tweet && tweet->text && (conv = twitter_endpoint_chat_find_open_conv(ctx)))
 	{
-#if _HAVE_PIDGIN_
-		twitter_conv_icon_got_user_icon(account,
-				user_tweet->screen_name, user_tweet->icon_url, user_tweet->status->created_at);
-#endif
+		purple_signal_emit(purple_buddy_icons_get_handle(),
+				"prpltwtr-update-iconurl",
+				account,
+				user_tweet->screen_name,
+				user_tweet->icon_url,
+				user_tweet->status->created_at);
 		twitter_chat_add_tweet(conv, account->username, tweet->text, tweet->id, tweet->created_at);
 	}
 

@@ -426,6 +426,11 @@ static void gtkprpltwtr_update_buddyicon_cb(PurpleAccount *account, const gchar 
 	twitter_conv_icon_got_buddy_icon(account, buddy_name, buddy_icon);
 }
 
+static void gtkprpltwtr_update_iconurl_cb(PurpleAccount *account, const gchar *buddy_name, const gchar *icon_url, time_t created_at)
+{
+	twitter_conv_icon_got_user_icon(account, buddy_name, icon_url, created_at);
+}
+
 static gboolean plugin_load(PurplePlugin *plugin) 
 {
 	gtkprpltwtr_plugin = plugin;
@@ -447,6 +452,9 @@ static gboolean plugin_load(PurplePlugin *plugin)
 	purple_signal_connect(purple_buddy_icons_get_handle(),
 			"prpltwtr-update-buddyicon",
 			plugin, PURPLE_CALLBACK(gtkprpltwtr_update_buddyicon_cb), NULL);
+	purple_signal_connect(purple_buddy_icons_get_handle(),
+			"prpltwtr-update-iconurl",
+			plugin, PURPLE_CALLBACK(gtkprpltwtr_update_iconurl_cb), NULL);
 
 #if PURPLE_VERSION_CHECK(2, 6, 0)
 	purple_signal_connect(purple_get_core(), "uri-handler", plugin,
