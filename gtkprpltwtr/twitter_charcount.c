@@ -23,8 +23,6 @@
  * 02111-1301, USA.
  */
 
-#if _HAVE_PIDGIN_
-
 #include "string.h"
 #include <gdk/gdk.h>
 #include <glib.h>
@@ -305,5 +303,3 @@ void twitter_charcount_conv_destroyed_cb(PurpleConversation *conv, gpointer null
 
 	detach_from_gtkconv(gtkconv, NULL);
 }
-
-#endif

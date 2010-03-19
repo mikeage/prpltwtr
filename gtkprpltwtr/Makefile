@@ -13,12 +13,14 @@ TARGETS = gtkprpltwtr$(PLUGIN_SUFFIX)
 LD = $(CC)
 
 ifeq ($(strip $(IS_WIN32)), 1)
+
 GTKPRPLTWTR_INC_PATHS += -I$(GTK_TOP)/include/gtk-2.0 \
 			-I$(GTK_TOP)/include/pango-1.0 \
 			-I$(GTK_TOP)/include/atk-1.0 \
 			-I$(GTK_TOP)/include/cairo \
 			-I$(GTK_TOP)/lib/gtk-2.0/include \
-			-I$(PIDGIN_TOP)/win32
+			-I$(PIDGIN_TOP)/win32 \
+			-I$(PIDGIN_TOP)
 
 
 LIB_PATHS += -L$(GTK_TOP)/lib \

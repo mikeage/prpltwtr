@@ -8,7 +8,15 @@ IS_PIDGIN = $(shell pkg-config --atleast-version=2.0 pidgin && echo 1 || echo 0)
 
 include global.mak
 
-SUBDIRS = data gtkprpltwtr
+ifeq ($(strip $(IS_WIN32)), 1)
+IS_PIDGIN := 1
+endif
+
+SUBDIRS = data
+
+ifeq ($(strip $(IS_PIDGIN)), 1)
+SUBDIRS += gtkprpltwtr
+endif
 
 TARGETS = prpltwtr$(PLUGIN_SUFFIX)
 
@@ -19,27 +27,19 @@ TWITTER_INC_PATHS += -I$(GTK_TOP)/include/gtk-2.0 \
 			-I$(GTK_TOP)/include/pango-1.0 \
 			-I$(GTK_TOP)/include/atk-1.0 \
 			-I$(GTK_TOP)/include/cairo \
-			-I$(GTK_TOP)/lib/gtk-2.0/include \
-			-I$(PIDGIN_TOP)/win32
+			-I$(GTK_TOP)/lib/gtk-2.0/include
 
 
 LIB_PATHS += -L$(GTK_TOP)/lib \
-			-L$(PURPLE_TOP) \
-			-L$(PIDGIN_TOP)
+			-L$(PURPLE_TOP)
 			
-LIBS =	-lgtk-win32-2.0 \
-			-lglib-2.0 \
-			-lgdk_pixbuf-2.0 \
-			-lgdk-win32-2.0 \
-			-lgobject-2.0 \
+LIBS =	-lglib-2.0 \
 			-lintl \
-			-lpurple \
-			-lpidgin
+			-lpurple
 CFLAGS := $(PURPLE_CFLAGS) $(TWITTER_INC_PATHS)
 else
-CFLAGS := $(PURPLE_CFLAGS) $(PIDGIN_CFLAGS)
+CFLAGS := $(PURPLE_CFLAGS)
 LIB_PATHS = 
-LIBS = $(PIDGIN_LIBS)
 endif
 
 TWITTER_H_SRC = $(TWITTER_C_SRC:%.c=%.h) config.h
