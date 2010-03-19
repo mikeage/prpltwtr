@@ -1564,6 +1564,26 @@ static PurplePluginProtocolInfo prpl_info =
 	NULL
 };
 
+//borrowed from signals.c
+void twitter_marshal_format_tweet(PurpleCallback cb, va_list args, void *data,
+		void **return_val)
+{
+	gpointer ret_val;
+	void *arg1 = va_arg(args, void *); //account
+	void *arg2 = va_arg(args, void *); //user
+	void *arg3 = va_arg(args, void *); //message
+	long long arg4 = va_arg(args, gint64); //tweet_id
+	gint arg5 = va_arg(args, gint); //conv type
+	void* arg6 = va_arg(args, void *); //conv name
+	gboolean arg7 = va_arg(args, gboolean); //is_tweet
+
+	ret_val = ((gpointer(*)(void *, void *, void *, gint64, gint, void *, gboolean, void *))cb)(arg1, arg2, arg3, arg4, arg5, arg6, arg7, data);
+
+	if (return_val != NULL)
+		*return_val = ret_val;
+}
+
+
 static void twitter_init(PurplePlugin *plugin)
 {
 
@@ -1594,6 +1614,17 @@ static void twitter_init(PurplePlugin *plugin)
 			purple_value_new(PURPLE_TYPE_STRING),
 			purple_value_new(PURPLE_TYPE_UINT));
 
+	purple_signal_register(purple_conversations_get_handle(), "prpltwtr-format-tweet",
+			twitter_marshal_format_tweet, //uint, should be safe for a few decades
+			purple_value_new(PURPLE_TYPE_STRING), 7,
+			purple_value_new(PURPLE_TYPE_SUBTYPE, PURPLE_SUBTYPE_ACCOUNT), //account
+			purple_value_new(PURPLE_TYPE_STRING), //user
+			purple_value_new(PURPLE_TYPE_STRING), //message
+			purple_value_new(PURPLE_TYPE_INT64), //tweet_id
+			purple_value_new(PURPLE_TYPE_INT), //conv type
+			purple_value_new(PURPLE_TYPE_STRING), //conv_name
+			purple_value_new(PURPLE_TYPE_BOOLEAN)); //is_tweet
+
 
 	twitter_endpoint_chat_init();
 
@@ -1607,6 +1638,7 @@ static void twitter_destroy(PurplePlugin *plugin)
 	purple_signal_unregister(purple_accounts_get_handle(), "prpltwtr-disconnected");
 	purple_signal_unregister(purple_buddy_icons_get_handle(), "prpltwtr-update-buddyicon");
 	purple_signal_unregister(purple_buddy_icons_get_handle(), "prpltwtr-update-iconurl");
+	purple_signal_unregister(purple_conversations_get_handle(), "prpltwtr-format-tweet");
 	purple_signals_disconnect_by_handle(plugin);
 }
 
