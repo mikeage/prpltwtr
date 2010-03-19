@@ -6,7 +6,7 @@
 #include <gtkconv.h>
 #include <gtkimhtml.h>
 #include "../twitter.h"
-#include "../twitter_charcount.h"
+#include "twitter_charcount.h"
 #include "../twitter_convicon.h"
 
 static PurplePlugin *gtkprpltwtr_plugin = NULL;

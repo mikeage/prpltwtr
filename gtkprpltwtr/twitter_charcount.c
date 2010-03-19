@@ -35,8 +35,8 @@
 #include <gtkplugin.h>
 #include <version.h>
 
-#include "twitter_endpoint_chat.h"
-#include "twitter_endpoint_im.h"
+#include "../twitter_endpoint_chat.h"
+#include "../twitter_endpoint_im.h"
 
 /* data to get passed each time a character is typed
  * this should be faster than having multiple hash
