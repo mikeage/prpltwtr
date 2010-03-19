@@ -22,11 +22,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
  * 02111-1301, USA.
  */
-
-#if _HAVE_PIDGIN_
-
-#include "twitter_conn.h"
-#include "twitter_request.h"
+#include "../twitter_conn.h"
+#include "../twitter_request.h"
 
 typedef struct
 {
@@ -616,4 +613,3 @@ void twitter_conv_icon_account_unload(PurpleAccount *account)
 	}
 	twitter->icons = NULL;
 }
-#endif

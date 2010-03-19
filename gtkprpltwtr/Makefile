@@ -45,7 +45,7 @@ LIB_PATHS =
 LIBS = $(PIDGIN_LIBS)
 endif
 
-GTKPRPLTWTR_C_SRC = gtkprpltwtr.c twitter_charcount.c $(TWITTER_LIB_SRC:%=../%)
+GTKPRPLTWTR_C_SRC = gtkprpltwtr.c twitter_convicon.c twitter_charcount.c $(TWITTER_LIB_SRC:%=../%)
 GTKPRPLTWTR_H_SRC = $(GTKPRPLTWTR_C_SRC:%.c=%.h)
 GTKPRPLTWTR_OBJ = $(GTKPRPLTWTR_C_SRC:%.c=%.o)
 
