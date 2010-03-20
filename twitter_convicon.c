@@ -557,23 +557,35 @@ static void twitter_conv_icon_displayed_chat_cb(PurpleAccount *account, const ch
 	purple_debug_info(TWITTER_PROTOCOL_ID, "end %s\n", G_STRFUNC);
 }
 
-static void twitter_conv_icon_deleting_conversation_cb(PurpleConversation *conv, PurpleAccount *account)
+static void twitter_conv_icon_remove_conversation_conv_icons(PurpleConversation *conv)
 {
 	GList **conv_icons;
 	GList *l;
-	if (purple_conversation_get_account(conv) != account)
-		return;
+	g_return_if_fail(conv != NULL);
+	purple_debug_info(TWITTER_PROTOCOL_ID, "%s conv %s\n", G_STRFUNC, purple_conversation_get_name(conv));
 
 	conv_icons = purple_conversation_get_data(conv, TWITTER_PROTOCOL_ID "-conv-icons");
 
-	for (l = *conv_icons; l; l = l->next)
+	if (conv_icons)
 	{
-		TwitterConvIcon *conv_icon = l->data;
-		twitter_conv_icon_remove_conv(conv_icon, conv);
-	}
-	g_list_free(*conv_icons);
+		for (l = *conv_icons; l; l = l->next)
+		{
+			TwitterConvIcon *conv_icon = l->data;
+			twitter_conv_icon_remove_conv(conv_icon, conv);
+		}
+		g_list_free(*conv_icons);
 
-	g_free(conv_icons);
+		g_free(conv_icons);
+		purple_conversation_set_data(conv, TWITTER_PROTOCOL_ID "-conv-icons", NULL);
+	}
+}
+
+static void twitter_conv_icon_deleting_conversation_cb(PurpleConversation *conv, PurpleAccount *account)
+{
+	if (purple_conversation_get_account(conv) != account)
+		return;
+
+	twitter_conv_icon_remove_conversation_conv_icons(conv);
 }
 
 static void twitter_conv_icon_conversation_created_cb(PurpleConversation *conv, PurpleAccount *account)
@@ -609,6 +621,14 @@ void twitter_conv_icon_account_unload(PurpleAccount *account)
 {
 	PurpleConnection *gc = purple_account_get_connection(account);
 	TwitterConnectionData *twitter = gc->proto_data;
+	GList *l;
+
+	/* Remove icons from all conversations */
+	for (l = purple_get_chats(); l; l = l->next)
+	{
+		if (purple_conversation_get_account(l->data) == account)
+			twitter_conv_icon_remove_conversation_conv_icons(l->data);
+	}
 	if (twitter->icons)
 	{
 		purple_signals_disconnect_by_handle(twitter->icons);
