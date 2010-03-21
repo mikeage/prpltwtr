@@ -106,5 +106,7 @@ void twitter_chat_got_tweet(TwitterEndpointChat *endpoint_chat, TwitterUserTweet
 void twitter_chat_got_user_tweets(TwitterEndpointChat *endpoint_chat, GList *user_tweets);
 int twitter_endpoint_chat_send(TwitterEndpointChat *ctx, const gchar *message);
 
+TwitterEndpointChatSettings *twitter_get_endpoint_chat_settings(TwitterChatType type);
+void twitter_endpoint_chat_init();
 
 #endif

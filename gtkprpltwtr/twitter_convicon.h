@@ -1,8 +1,7 @@
 #ifndef _TWITTER_CONVICON_H_
 #define _TWITTER_CONVICON_H_
 
-#if _HAVE_PIDGIN_
-#include "config.h"
+#include "../config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -45,7 +44,5 @@ void twitter_conv_icon_account_unload(PurpleAccount *account);
 void twitter_conv_icon_got_user_icon(PurpleAccount *account, const char *user_name, const gchar *url, time_t icon_time);
 void twitter_conv_icon_got_buddy_icon(PurpleAccount *account, const char *user_name, PurpleBuddyIcon *buddy_icon);
 
-
-#endif
 
 #endif
