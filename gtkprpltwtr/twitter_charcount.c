@@ -198,18 +198,18 @@ static void detach_from_gtkconv(PidginConversation *gtkconv, gpointer null)
 			(GFunc)insert_text_cb, gtkconv);
 	g_signal_handlers_disconnect_by_func(G_OBJECT(gtkconv->entry_buffer),
 			(GFunc)delete_text_cb, gtkconv);*/
-	g_signal_handlers_disconnect_by_func(G_OBJECT(gtkconv->entry_buffer),
-			(GFunc)changed_cb, gtkconv);
 
 	box = gtkconv->toolbar;
-	counter = g_object_get_data(G_OBJECT(box), TWITTER_PROTOCOL_ID "-counter");
+	counter = g_object_steal_data(G_OBJECT(box), TWITTER_PROTOCOL_ID "-counter");
 	if (counter)
 		gtk_container_remove(GTK_CONTAINER(box), counter);
-	sep = g_object_get_data(G_OBJECT(box), TWITTER_PROTOCOL_ID "-sep");
+	sep = g_object_steal_data(G_OBJECT(box), TWITTER_PROTOCOL_ID "-sep");
 	if (sep)
 		gtk_container_remove(GTK_CONTAINER(box), sep);
 
-	ccc = g_object_get_data(G_OBJECT(box), TWITTER_PROTOCOL_ID "-ccc");
+	ccc = g_object_steal_data(G_OBJECT(box), TWITTER_PROTOCOL_ID "-ccc");
+	g_signal_handlers_disconnect_by_func(G_OBJECT(gtkconv->entry_buffer),
+			G_CALLBACK(changed_cb), ccc);
 	if (ccc)
 	{
 		conv_char_count_free(ccc);
