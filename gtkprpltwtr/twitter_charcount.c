@@ -260,6 +260,9 @@ static void attach_to_gtkconv(PidginConversation *gtkconv, gpointer null)
 	g_signal_connect(G_OBJECT(gtkconv->entry_buffer), "changed",
 			G_CALLBACK(changed_cb), ccc);
 
+	//Call right away, in case there's already text in the buffer
+	changed_cb(gtkconv->entry_buffer, ccc);
+
 	gtk_widget_queue_draw(pidgin_conv_get_window(gtkconv)->window);
 }
 
