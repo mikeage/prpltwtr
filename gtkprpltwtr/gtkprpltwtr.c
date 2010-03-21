@@ -1,5 +1,3 @@
-#define PLUGIN_ID "gtkprpltwtr"
-
 #include "../config.h"
 
 #include <gtkplugin.h>
@@ -8,6 +6,7 @@
 #include "../twitter.h"
 #include "twitter_charcount.h"
 #include "twitter_convicon.h"
+#include "gtkprpltwtr.h"
 
 static PurplePlugin *gtkprpltwtr_plugin = NULL;
 
@@ -78,7 +77,7 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 	const char *username;
 	PurpleAccount *account;
 	const gchar *action;
-	purple_debug_info(TWITTER_PROTOCOL_ID, "%s PROTO %s CMD_ARG %s\n", G_STRFUNC, proto, cmd_arg);
+	purple_debug_info(DEBUG_ID, "%s PROTO %s CMD_ARG %s\n", G_STRFUNC, proto, cmd_arg);
 
 	g_return_val_if_fail(proto != NULL, FALSE);
 	g_return_val_if_fail(cmd_arg != NULL, FALSE);
@@ -91,7 +90,7 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 
 	if (username == NULL || username[0] == '\0')
 	{
-		purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. No account username\n");
+		purple_debug_info(DEBUG_ID, "malformed uri. No account username\n");
 		return FALSE;
 	}
 
@@ -100,7 +99,7 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 
 	if (account == NULL)
 	{
-		purple_debug_info(TWITTER_PROTOCOL_ID, "could not find account %s\n", username);
+		purple_debug_info(DEBUG_ID, "could not find account %s\n", username);
 		return FALSE;
 	}
 
@@ -110,7 +109,7 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 	action = g_hash_table_lookup(params, "action");
 	if (action)
 		cmd_arg = action;
-	purple_debug_info(TWITTER_PROTOCOL_ID, "Account %s got action %s\n", username, cmd_arg);
+	purple_debug_info(DEBUG_ID, "Account %s got action %s\n", username, cmd_arg);
 	if (!strcmp(cmd_arg, TWITTER_URI_ACTION_USER))
 	{
 		purple_notify_info(purple_account_get_connection(account),
@@ -125,13 +124,13 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 		user = g_hash_table_lookup(params, "user");
 		if (id_str == NULL || user == NULL || id_str[0] == '\0' || user[0] == '\0')
 		{
-			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. Invalid id/user for reply\n");
+			purple_debug_info(DEBUG_ID, "malformed uri. Invalid id/user for reply\n");
 			return FALSE;
 		}
 		id = strtoll(id_str, NULL, 10);
 		if (id == 0)
 		{
-			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. Invalid id for reply\n");
+			purple_debug_info(DEBUG_ID, "malformed uri. Invalid id for reply\n");
 			return FALSE;
 		}
 		conv = twitter_endpoint_reply_conversation_new(twitter_endpoint_im_find(account, TWITTER_IM_TYPE_AT_MSG),
@@ -159,13 +158,13 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 
 		if (id_str == NULL || id_str[0] == '\0')
 		{
-			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. Invalid id for rt\n");
+			purple_debug_info(DEBUG_ID, "malformed uri. Invalid id for rt\n");
 			return FALSE;
 		}
 		id = strtoll(id_str, NULL, 10);
 		if (id == 0)
 		{
-			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. Invalid id for rt\n");
+			purple_debug_info(DEBUG_ID, "malformed uri. Invalid id for rt\n");
 			return FALSE;
 		}
 
@@ -189,13 +188,13 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 		user = g_hash_table_lookup(params, "user");
 		if (id_str == NULL || user == NULL || id_str[0] == '\0' || user[0] == '\0')
 		{
-			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. Invalid id/user for link\n");
+			purple_debug_info(DEBUG_ID, "malformed uri. Invalid id/user for link\n");
 			return FALSE;
 		}
 		id = strtoll(id_str, NULL, 10);
 		if (id == 0)
 		{
-			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. Invalid id for link\n");
+			purple_debug_info(DEBUG_ID, "malformed uri. Invalid id for link\n");
 			return FALSE;
 		}
 		link = twitter_mb_prefs_get_status_url(twitter->mb_prefs, user, id);
@@ -221,13 +220,13 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 
 		if (id_str == NULL || id_str[0] == '\0')
 		{
-			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. Invalid id for rt\n");
+			purple_debug_info(DEBUG_ID, "malformed uri. Invalid id for rt\n");
 			return FALSE;
 		}
 		id = strtoll(id_str, NULL, 10);
 		if (id == 0)
 		{
-			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. Invalid id for rt\n");
+			purple_debug_info(DEBUG_ID, "malformed uri. Invalid id for rt\n");
 			return FALSE;
 		}
 
@@ -248,7 +247,7 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 
 		if (text == NULL || text[0] == '\0')
 		{
-			purple_debug_info(TWITTER_PROTOCOL_ID, "malformed uri. No text for search\n");
+			purple_debug_info(DEBUG_ID, "malformed uri. No text for search\n");
 			return FALSE;
 		}
 		components = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, g_free);
@@ -377,7 +376,7 @@ static gboolean twitter_url_clicked_cb(GtkIMHtml *imhtml, GtkIMHtmlLink *link)
 {
 	static GtkWidget *menu = NULL;
 	gchar *url;
-	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+	purple_debug_info(DEBUG_ID, "%s\n", G_STRFUNC);
 
 	if (menu)
 	{
