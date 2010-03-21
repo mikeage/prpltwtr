@@ -574,18 +574,20 @@ static void twitter_conv_icon_remove_conversation_conv_icons(PurpleConversation 
 			twitter_conv_icon_remove_conv(conv_icon, conv);
 		}
 		g_list_free(*conv_icons);
-
-		g_free(conv_icons);
-		purple_conversation_set_data(conv, TWITTER_PROTOCOL_ID "-conv-icons", NULL);
+		*conv_icons = NULL;
 	}
 }
 
 static void twitter_conv_icon_deleting_conversation_cb(PurpleConversation *conv, PurpleAccount *account)
 {
+	GList **conv_icons;
 	if (purple_conversation_get_account(conv) != account)
 		return;
 
 	twitter_conv_icon_remove_conversation_conv_icons(conv);
+
+	conv_icons = purple_conversation_get_data(conv, TWITTER_PROTOCOL_ID "-conv-icons");
+	g_free(conv_icons);
 }
 
 static void twitter_conv_icon_conversation_created_cb(PurpleConversation *conv, PurpleAccount *account)
