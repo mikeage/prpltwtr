@@ -479,23 +479,6 @@ static void twitter_connected(PurpleAccount *account)
 				twitter_option_get_history(account),
 				TWITTER_INITIAL_DMS_COUNT));
 
-	/* Since protocol plugins are loaded before conversations_init is called
-	 * we cannot connect these signals in plugin->load.
-	 * So we have this here, with a global var that tells us to only run this
-	 * once, regardless of number of accounts connecting */
-	if (!TWITTER_SIGNALS_CONNECTED)
-	{
-		TWITTER_SIGNALS_CONNECTED = TRUE;
-#if _HAZE_
-		purple_signal_connect(purple_conversations_get_handle(), "conversation-created",
-				twitter, PURPLE_CALLBACK(conversation_created_cb), NULL);
-		purple_signal_connect(purple_conversations_get_handle(), "deleting-conversation",
-				twitter, PURPLE_CALLBACK(deleting_conversation_cb), NULL);
-
-#endif
-
-	}
-
 	purple_connection_update_progress(gc, "Connected",
 			2,   /* which connection step this is */
 			3);  /* total number of steps */
@@ -1084,6 +1067,41 @@ static void twitter_login(PurpleAccount *account)
 	PurpleConnection *gc = purple_account_get_connection(account);
 	TwitterConnectionData *twitter = g_new0(TwitterConnectionData, 1);
 	gc->proto_data = twitter;
+
+	/* Since protocol plugins are loaded before conversations_init is called
+	 * we cannot connect these signals in plugin->load.
+	 * So we have this here, with a global var that tells us to only run this
+	 * once, regardless of number of accounts connecting 
+	 * There HAS to be a better way to do this. Need to do some research
+	 * this is an awful hack (tm)
+	 */
+	if (!TWITTER_SIGNALS_CONNECTED)
+	{
+		TWITTER_SIGNALS_CONNECTED = TRUE;
+#if _HAZE_
+		purple_debug_info(TWITTER_PROTOCOL_ID, "Connecting conv signals for first time\n");
+		purple_signal_connect(purple_conversations_get_handle(), "conversation-created",
+				twitter, PURPLE_CALLBACK(conversation_created_cb), NULL);
+		purple_signal_connect(purple_conversations_get_handle(), "deleting-conversation",
+				twitter, PURPLE_CALLBACK(deleting_conversation_cb), NULL);
+
+#endif
+		purple_prefs_add_none("/prpltwtr");
+		purple_prefs_add_bool("/prpltwtr/first-load-complete", FALSE);
+		if (!purple_prefs_get_bool("/prpltwtr/first-load-complete"))
+		{
+			PurplePlugin *plugin = purple_plugins_find_with_id("gtkprpltwtr");
+			if (plugin)
+			{
+				purple_debug_info(TWITTER_PROTOCOL_ID, "Loading gtk plugin\n");
+				purple_plugin_load(plugin);
+			}
+			purple_prefs_set_bool("/prpltwtr/first-load-complete", TRUE);
+		}
+
+
+	}
+
 
 	purple_debug_info(TWITTER_PROTOCOL_ID, "logging in %s\n", account->username);
 
