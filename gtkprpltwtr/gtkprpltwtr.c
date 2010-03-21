@@ -438,7 +438,7 @@ static void gtkprpltwtr_disable_conv_icon_all_accounts()
 	for (l = accounts; l; l = l->next)
 	{
 		PurpleAccount *account = l->data;
-		if (!strcmp(TWITTER_PROTOCOL_ID, purple_account_get_protocol_id(account)))
+		if (purple_account_is_connected(account) && !strcmp(TWITTER_PROTOCOL_ID, purple_account_get_protocol_id(account)))
 		{
 			twitter_conv_icon_account_unload(account);
 		}

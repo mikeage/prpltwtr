@@ -620,7 +620,7 @@ void twitter_conv_icon_account_load(PurpleAccount *account)
 void twitter_conv_icon_account_unload(PurpleAccount *account)
 {
 	PurpleConnection *gc = purple_account_get_connection(account);
-	TwitterConnectionData *twitter = gc->proto_data;
+	TwitterConnectionData *twitter;
 	GList *l;
 
 	/* Remove icons from all conversations */
@@ -629,10 +629,13 @@ void twitter_conv_icon_account_unload(PurpleAccount *account)
 		if (purple_conversation_get_account(l->data) == account)
 			twitter_conv_icon_remove_conversation_conv_icons(l->data);
 	}
-	if (twitter->icons)
+	if (gc && (twitter = gc->proto_data))
 	{
-		purple_signals_disconnect_by_handle(twitter->icons);
-		g_hash_table_destroy(twitter->icons);
+		if (twitter->icons)
+		{
+			purple_signals_disconnect_by_handle(twitter->icons);
+			g_hash_table_destroy(twitter->icons);
+		}
+		twitter->icons = NULL;
 	}
-	twitter->icons = NULL;
 }
