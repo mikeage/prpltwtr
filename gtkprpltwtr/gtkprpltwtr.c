@@ -418,23 +418,24 @@ static void gtkprpltwtr_connecting_cb(PurpleAccount *account)
 
 static void gtkprpltwtr_enable_conv_icon_all_accounts()
 {
-	GList *accounts = purple_accounts_get_all_active();
-	GList *l;
-	for (l = accounts; l; l = l->next)
+	if (purple_prefs_get_bool(TWITTER_PREF_ENABLE_CONV_ICON))
 	{
-		PurpleAccount *account = l->data;
-		if (purple_account_is_connected(account) && !strcmp(TWITTER_PROTOCOL_ID, purple_account_get_protocol_id(account)))
+		GList *accounts = purple_accounts_get_all();
+		GList *l;
+		for (l = accounts; l; l = l->next)
 		{
-			if (purple_prefs_get_bool(TWITTER_PREF_ENABLE_CONV_ICON))
+			PurpleAccount *account = l->data;
+			if (purple_account_is_connected(account) && !strcmp(TWITTER_PROTOCOL_ID, purple_account_get_protocol_id(account)))
+			{
 				twitter_conv_icon_account_load(account);
+			}
 		}
 	}
-	g_list_free(accounts);
 }
 
 static void gtkprpltwtr_disable_conv_icon_all_accounts()
 {
-	GList *accounts = purple_accounts_get_all_active();
+	GList *accounts = purple_accounts_get_all();
 	GList *l;
 	for (l = accounts; l; l = l->next)
 	{
@@ -444,7 +445,6 @@ static void gtkprpltwtr_disable_conv_icon_all_accounts()
 			twitter_conv_icon_account_unload(account);
 		}
 	}
-	g_list_free(accounts);
 }
 
 static void gtkprpltwtr_disconnected_cb(PurpleAccount *account)
