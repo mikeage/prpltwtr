@@ -4,6 +4,7 @@
 #include <gtkconv.h>
 #include <gtkimhtml.h>
 #include "../twitter.h"
+#include "gtkprpltwtr_prefs.h"
 #include "twitter_charcount.h"
 #include "twitter_convicon.h"
 #include "gtkprpltwtr.h"
@@ -411,7 +412,7 @@ static gboolean twitter_url_clicked_cb(GtkIMHtml *imhtml, GtkIMHtmlLink *link)
 
 static void gtkprpltwtr_connecting_cb(PurpleAccount *account)
 {
-	if (twitter_option_enable_conv_icon(account))
+	if (purple_prefs_get_bool(TWITTER_PREF_ENABLE_CONV_ICON))
 		twitter_conv_icon_account_load(account);
 }
 
@@ -424,7 +425,7 @@ static void gtkprpltwtr_enable_conv_icon_all_accounts()
 		PurpleAccount *account = l->data;
 		if (purple_account_is_connected(account) && !strcmp(TWITTER_PROTOCOL_ID, purple_account_get_protocol_id(account)))
 		{
-			if (twitter_option_enable_conv_icon(account))
+			if (purple_prefs_get_bool(TWITTER_PREF_ENABLE_CONV_ICON))
 				twitter_conv_icon_account_load(account);
 		}
 	}
@@ -574,6 +575,39 @@ static gchar *gtkprpltwtr_format_tweet_cb(PurpleAccount *account,
 }
 #endif
 
+static void gtkprpltwtr_enable_conv_icon()
+{
+	purple_signal_connect(purple_buddy_icons_get_handle(),
+			"prpltwtr-update-buddyicon",
+			gtkprpltwtr_plugin, PURPLE_CALLBACK(gtkprpltwtr_update_buddyicon_cb), NULL);
+	purple_signal_connect(purple_buddy_icons_get_handle(),
+			"prpltwtr-update-iconurl",
+			gtkprpltwtr_plugin, PURPLE_CALLBACK(gtkprpltwtr_update_iconurl_cb), NULL);
+	gtkprpltwtr_enable_conv_icon_all_accounts();
+}
+
+static void gtkprpltwtr_disable_conv_icon()
+{
+	purple_signal_disconnect(purple_buddy_icons_get_handle(),
+			"prpltwtr-update-buddyicon",
+			gtkprpltwtr_plugin, PURPLE_CALLBACK(gtkprpltwtr_update_buddyicon_cb));
+	purple_signal_disconnect(purple_buddy_icons_get_handle(),
+			"prpltwtr-update-iconurl",
+			gtkprpltwtr_plugin, PURPLE_CALLBACK(gtkprpltwtr_update_iconurl_cb));
+	gtkprpltwtr_disable_conv_icon_all_accounts();
+}
+
+static void gtkprpltwtr_pref_enable_conv_icon_change(const char *name, PurplePrefType type,
+		gconstpointer val, gpointer data)
+{
+	if (purple_prefs_get_bool(TWITTER_PREF_ENABLE_CONV_ICON))
+	{
+		gtkprpltwtr_enable_conv_icon();
+	} else {
+		gtkprpltwtr_disable_conv_icon();
+	}
+}
+
 static gboolean plugin_load(PurplePlugin *plugin) 
 {
 	gtkprpltwtr_plugin = plugin;
@@ -592,12 +626,8 @@ static gboolean plugin_load(PurplePlugin *plugin)
 			"prpltwtr-disconnected",
 			plugin, PURPLE_CALLBACK(gtkprpltwtr_disconnected_cb), NULL);
 
-	purple_signal_connect(purple_buddy_icons_get_handle(),
-			"prpltwtr-update-buddyicon",
-			plugin, PURPLE_CALLBACK(gtkprpltwtr_update_buddyicon_cb), NULL);
-	purple_signal_connect(purple_buddy_icons_get_handle(),
-			"prpltwtr-update-iconurl",
-			plugin, PURPLE_CALLBACK(gtkprpltwtr_update_iconurl_cb), NULL);
+	if (purple_prefs_get_bool(TWITTER_PREF_ENABLE_CONV_ICON))
+		gtkprpltwtr_enable_conv_icon();
 
 #if PURPLE_VERSION_CHECK(2, 6, 0)
 	purple_signal_connect(purple_conversations_get_handle(),
@@ -611,24 +641,36 @@ static gboolean plugin_load(PurplePlugin *plugin)
 #endif
 
 	twitter_charcount_attach_to_all_windows();
-	gtkprpltwtr_enable_conv_icon_all_accounts();
+
+	purple_prefs_connect_callback(plugin,
+			TWITTER_PREF_ENABLE_CONV_ICON,
+			gtkprpltwtr_pref_enable_conv_icon_change,
+			NULL);
 
 	return TRUE;
 }
 
 static gboolean plugin_unload(PurplePlugin *plugin)
 {
+	purple_prefs_disconnect_by_handle(plugin);
 	purple_signals_disconnect_by_handle(plugin);
 
 	twitter_charcount_detach_from_all_windows();
-	gtkprpltwtr_disable_conv_icon_all_accounts();
+	gtkprpltwtr_disable_conv_icon();
 	return TRUE;
 }
 
 static PurplePluginPrefFrame *get_plugin_pref_frame(PurplePlugin *plugin) 
 {
 	PurplePluginPrefFrame *frame;
+	PurplePluginPref *ppref;
+
 	frame = purple_plugin_pref_frame_new();
+
+	ppref = purple_plugin_pref_new_with_name_and_label(
+			TWITTER_PREF_ENABLE_CONV_ICON, "Enable Icons in Chat");
+	purple_plugin_pref_frame_add(frame, ppref);
+
 	return frame;
 }
 
@@ -681,6 +723,7 @@ static void plugin_init(PurplePlugin *plugin)
 {	
 	gtkprpltwtr_plugin = plugin;
 	twitter_endpoint_chat_init();
+	gtkprpltwtr_prefs_init(plugin);
 }
 
 PURPLE_INIT_PLUGIN(gtkprpltwtr, plugin_init, info)
