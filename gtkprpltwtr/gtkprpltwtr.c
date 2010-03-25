@@ -701,7 +701,7 @@ static PurplePluginInfo info =
 	PURPLE_PRIORITY_DEFAULT,                        /**< priority */
 	PLUGIN_ID,                                   /**< id */
 	"GtkPrplTwtr",                                      /**< name */
-	"0.5.0",                               /**< version */
+	"0.5.1",                               /**< version */
 	"PrplTwtr Pidgin Support",                        /**< summary */
 	"PrplTwtr Pidgin Support",               /**< description */
 	"neaveru <neaveru@gmail.com>",		     /* author */
