@@ -1,11 +1,34 @@
 #include "twitter_endpoint_chat.h"
-#include "twitter_convicon.h"
 #include "twitter_buddy.h"
 
-static gint twitter_get_next_chat_id()
+#include "twitter_endpoint_search.h"
+#include "twitter_endpoint_timeline.h"
+
+static TwitterEndpointChatSettings *TwitterEndpointChatSettingsLookup[TWITTER_CHAT_UNKNOWN];
+
+static void twitter_init_endpoint_chat_settings(TwitterEndpointChatSettings *settings)
 {
-	static gint chat_id = 1;
-	return chat_id++;
+	TwitterEndpointChatSettingsLookup[settings->type] = settings;
+}
+
+TwitterEndpointChatSettings *twitter_get_endpoint_chat_settings(TwitterChatType type)
+{
+	if (type >= 0 && type < TWITTER_CHAT_UNKNOWN)
+		return TwitterEndpointChatSettingsLookup[type];
+	return NULL;
+}
+
+static gint twitter_get_next_chat_id(PurpleAccount *account)
+{
+	PurpleConnection *gc = purple_account_get_connection(account);
+	TwitterConnectionData *twitter = gc->proto_data;
+	return ++twitter->chat_id;
+}
+
+void twitter_endpoint_chat_init()
+{
+	twitter_init_endpoint_chat_settings(twitter_endpoint_search_get_settings());
+	twitter_init_endpoint_chat_settings(twitter_endpoint_timeline_get_settings());
 }
 
 void twitter_endpoint_chat_free(TwitterEndpointChat *ctx)
@@ -244,7 +267,7 @@ static PurpleConversation *twitter_endpoint_chat_get_conv(TwitterEndpointChat *e
 		if (twitter_blist_chat_is_auto_open(blist_chat))
 		{
 			purple_debug_info(TWITTER_PROTOCOL_ID, "%s, recreated conv for auto open chat (%s)\n", G_STRFUNC, endpoint_chat->chat_name);
-			guint chat_id = twitter_get_next_chat_id();
+			guint chat_id = twitter_get_next_chat_id(endpoint_chat->account);
 			conv = serv_got_joined_chat(purple_account_get_connection(endpoint_chat->account), chat_id, endpoint_chat->chat_name);
 		}
 	}
@@ -261,11 +284,13 @@ void twitter_chat_got_tweet(TwitterEndpointChat *endpoint_chat, TwitterUserTweet
 	g_return_if_fail(tweet->screen_name != NULL);
 	g_return_if_fail(tweet->status != NULL);
 
-#if _HAVE_PIDGIN_
-	//TODO: make this into a signal?
-	twitter_conv_icon_got_user_icon(purple_conversation_get_account(conv),
-			tweet->screen_name, tweet->icon_url, tweet->status->created_at);
-#endif
+	purple_signal_emit(purple_buddy_icons_get_handle(),
+			"prpltwtr-update-iconurl",
+			purple_conversation_get_account(conv),
+			tweet->screen_name,
+			tweet->icon_url,
+			tweet->status->created_at);
+
 	twitter_chat_add_tweet(conv, tweet->screen_name, tweet->status->text, tweet->status->id, tweet->status->created_at);
 }
 
@@ -411,7 +436,7 @@ void twitter_endpoint_chat_start(PurpleConnection *gc, TwitterEndpointChatSettin
 #if !_HAZE_
 		if (open_conv)
 		{
-			guint chat_id = twitter_get_next_chat_id();
+			guint chat_id = twitter_get_next_chat_id(account);
 			serv_got_joined_chat(gc, chat_id, chat_name);
 		}
 #endif
@@ -440,10 +465,12 @@ static void twitter_endpoint_chat_send_success_cb(PurpleAccount *account, xmlnod
 
 	if (ctx && tweet && tweet->text && (conv = twitter_endpoint_chat_find_open_conv(ctx)))
 	{
-#if _HAVE_PIDGIN_
-		twitter_conv_icon_got_user_icon(account,
-				user_tweet->screen_name, user_tweet->icon_url, user_tweet->status->created_at);
-#endif
+		purple_signal_emit(purple_buddy_icons_get_handle(),
+				"prpltwtr-update-iconurl",
+				account,
+				user_tweet->screen_name,
+				user_tweet->icon_url,
+				user_tweet->status->created_at);
 		twitter_chat_add_tweet(conv, account->username, tweet->text, tweet->id, tweet->created_at);
 	}
 
