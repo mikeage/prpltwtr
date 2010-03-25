@@ -382,12 +382,11 @@ static gboolean twitter_endpoint_chat_interval_timeout(gpointer data)
 	return FALSE;
 }
 
-
 void twitter_endpoint_chat_start(PurpleConnection *gc, TwitterEndpointChatSettings *settings,
 		GHashTable *components, gboolean open_conv) 
 {
-        const char *interval_str = g_hash_table_lookup(components, "interval");
-        int interval = 0;
+	const char *interval_str = g_hash_table_lookup(components, "interval");
+	int interval = 0;
 
 	g_return_if_fail(settings != NULL);
 
@@ -415,34 +414,49 @@ void twitter_endpoint_chat_start(PurpleConnection *gc, TwitterEndpointChatSettin
 #if _HAZE_
 	//HAZE only works when the conv has already been created
 	//as opposed to right before the conversation has been created
-        if (purple_find_conversation_with_account(PURPLE_CONV_TYPE_IM, chat_name, account)) {
-#else
-        if (!purple_find_conversation_with_account(PURPLE_CONV_TYPE_CHAT, chat_name, account)) {
+        if (!purple_find_conversation_with_account(PURPLE_CONV_TYPE_IM, chat_name, account)) {
+                purple_debug_info(TWITTER_PROTOCOL_ID, "Could not find chat %s\n", chat_name);
+		g_free(chat_name);
+		return;
+	}
 #endif
-		if (!twitter_endpoint_chat_find(account, chat_name))
-		{
-			TwitterConnectionData *twitter = gc->proto_data;
-			TwitterEndpointChat *endpoint_chat = twitter_endpoint_chat_new(
-					settings, settings->type, account, chat_name, components);
-			g_hash_table_insert(twitter->chat_contexts,
-					g_strdup(purple_normalize(account, chat_name)),
-					endpoint_chat);
-			settings->on_start(endpoint_chat);
+	if (!twitter_endpoint_chat_find(account, chat_name))
+	{
+		TwitterConnectionData *twitter = gc->proto_data;
+		TwitterEndpointChat *endpoint_chat = twitter_endpoint_chat_new(
+				settings, settings->type, account, chat_name, components);
+		g_hash_table_insert(twitter->chat_contexts,
+				g_strdup(purple_normalize(account, chat_name)),
+				endpoint_chat);
+		settings->on_start(endpoint_chat);
 
-			endpoint_chat->timer_handle = purple_timeout_add_seconds(
-					60 * interval,
-					twitter_endpoint_chat_interval_timeout, endpoint_chat);
+		endpoint_chat->timer_handle = purple_timeout_add_seconds(
+				60 * interval,
+				twitter_endpoint_chat_interval_timeout, endpoint_chat);
+
+		if (purple_find_conversation_with_account(PURPLE_CONV_TYPE_CHAT, chat_name, account))
+		{
+			//We'd only get here if the chat was open already before the connection was established
+			//eg, search was open, but user disconnected and reconnected
+
+			//we need to tell the client that the server accepted the chat
+			guint chat_id = twitter_get_next_chat_id(account);
+			serv_got_joined_chat(gc, chat_id, chat_name);
 		}
+	}
+
 #if !_HAZE_
+	if (!purple_find_conversation_with_account(PURPLE_CONV_TYPE_CHAT, chat_name, account)) {
 		if (open_conv)
 		{
 			guint chat_id = twitter_get_next_chat_id(account);
 			serv_got_joined_chat(gc, chat_id, chat_name);
 		}
-#endif
         } else {
-                purple_debug_info(TWITTER_PROTOCOL_ID, "Chat %s is already open.", chat_name);
+                purple_debug_info(TWITTER_PROTOCOL_ID, "Chat %s is already open.\n", chat_name);
         }
+#endif
+
 	g_free(chat_name);
 }
 
