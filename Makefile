@@ -101,5 +101,5 @@ prpltwtr.tar.gz: dist
 prpltwtr$(PLUGIN_SUFFIX): $(TWITTER_OBJ)
 	$(LD) $(LDFLAGS) -shared $(TWITTER_OBJ) $(LIB_PATHS) $(LIBS) $(DLL_LD_FLAGS) -o prpltwtr$(PLUGIN_SUFFIX)
 
-prpltwtr.exe: prpltwtr.dll
+prpltwtr.exe: build
 	makensis twitter.nsi > /dev/null
