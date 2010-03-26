@@ -67,7 +67,8 @@ Section "MainSection" SEC01
 		Delete "$PidginDir\plugins\prpltwtr.dll"
 		IfErrors dllbusy
 		SetOutPath "$PidginDir\plugins"
-	    File "prpltwtr.dll"
+		File "prpltwtr.dll"
+		File "gtkprpltwtr\gtkprpltwtr.dll"
 		Goto after_copy
 	dllbusy:
 		MessageBox MB_RETRYCANCEL "prpltwtr.dll is busy. Please close Pidgin (including tray icon) and try again" IDCANCEL cancel
