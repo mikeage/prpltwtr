@@ -6,7 +6,7 @@ SetCompress off
 ; todo: SetBrandingImage
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "prpltwtr"
-!define PRODUCT_VERSION "0.5.0"
+!define PRODUCT_VERSION "0.5.1"
 !define PRODUCT_PUBLISHER "Neaveru"
 !define PRODUCT_WEB_SITE "http://code.google.com/p/prpltwtr/"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
@@ -67,7 +67,8 @@ Section "MainSection" SEC01
 		Delete "$PidginDir\plugins\prpltwtr.dll"
 		IfErrors dllbusy
 		SetOutPath "$PidginDir\plugins"
-	    File "prpltwtr.dll"
+		File "prpltwtr.dll"
+		File "gtkprpltwtr\gtkprpltwtr.dll"
 		Goto after_copy
 	dllbusy:
 		MessageBox MB_RETRYCANCEL "prpltwtr.dll is busy. Please close Pidgin (including tray icon) and try again" IDCANCEL cancel

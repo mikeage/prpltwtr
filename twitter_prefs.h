@@ -71,9 +71,6 @@
 #define TWITTER_PREF_API_BASE "twitter_api_base_url"
 #define TWITTER_PREF_API_BASE_DEFAULT "api.twitter.com/1/"
 
-#define TWITTER_PREF_ENABLE_CONV_ICON "enable_conv_icon"
-#define TWITTER_PREF_ENABLE_CONV_ICON_DEFAULT TRUE
-
 #define TWITTER_PREF_SEARCH_API_BASE "twitter_search_api_base_url"
 #define TWITTER_PREF_SEARCH_API_BASE_DEFAULT "search.twitter.com/"
 

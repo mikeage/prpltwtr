@@ -6,6 +6,7 @@
 #include "twitter_util.h"
 #include "twitter_conn.h"
 #include <version.h>
+#include <signals.h>
 
 #if !PURPLE_VERSION_CHECK(2, 6, 0)
 
@@ -112,84 +113,6 @@ void purple_account_set_long_long(PurpleAccount *account, const gchar *key, long
 
 
 //TODO: move those
-#if _HAVE_PIDGIN_ && PURPLE_VERSION_CHECK(2, 6, 0)
-static const char *_find_first_delimiter(const char *text, const char *delimiters, int *delim_id)
-{
-	const char *delimiter;
-	if (text == NULL || text[0] == '\0')
-		return NULL;
-	do
-	{
-		for (delimiter = delimiters; *delimiter != '\0'; delimiter++)
-		{
-			if (*text == *delimiter)
-			{
-				if (delim_id != NULL)
-					*delim_id = delimiter - delimiters;
-				return text;
-			}
-		}
-	} while (*++text != '\0');
-	return NULL;
-}
-
-static void _g_string_append_escaped_len(GString *s, const gchar *txt, gssize len)
-{
-	gchar *tmp = purple_markup_escape_text(txt, len);
-	g_string_append(s, tmp);
-	g_free(tmp);
-}
-
-//TODO: move those
-static char *twitter_linkify(PurpleAccount *account, const char *message)
-{
-	GString *ret;
-	static char symbols[] = "#@";
-	static char *symbol_actions[] = {TWITTER_URI_ACTION_SEARCH, TWITTER_URI_ACTION_USER};
-	static char delims[] = " :"; //I don't know if this is how I want to do this...
-	const char *ptr = message;
-	const char *end = message + strlen(message);
-	const char *delim = NULL;
-	g_return_val_if_fail(message != NULL, NULL);
-
-	ret = g_string_new("");
-
-	while (ptr != NULL && ptr < end)
-	{
-		const char *first_token;
-		char *current_action;
-		char *link_text;
-		int symbol_index = 0;
-		first_token = _find_first_delimiter(ptr, symbols, &symbol_index);
-		if (first_token == NULL)
-		{
-			_g_string_append_escaped_len(ret, ptr, -1);
-			break;
-		}
-		current_action = symbol_actions[symbol_index];
-		_g_string_append_escaped_len(ret, ptr, first_token - ptr);
-		ptr = first_token;
-		delim = _find_first_delimiter(ptr, delims, NULL);
-		if (delim == NULL)
-			delim = end;
-		link_text = g_strndup(ptr, delim - ptr);
-		//Added the 'a' before the account name because of a highlighting issue... ugly hack
-		g_string_append_printf(ret, "<a href=\"" TWITTER_URI ":///%s?account=a%s&text=%s\">",
-				current_action,
-				purple_account_get_username(account),
-				purple_url_encode(link_text));
-		_g_string_append_escaped_len(ret, link_text, -1);
-		g_string_append(ret, "</a>");
-		ptr = delim;
-
-		g_free(link_text);
-	}
-
-	return g_string_free(ret, FALSE);
-}
-#endif
-
-//TODO: move those
 char *twitter_format_tweet(PurpleAccount *account,
 		const char *src_user,
 		const char *message,
@@ -198,36 +121,28 @@ char *twitter_format_tweet(PurpleAccount *account,
 		const gchar *conv_name,
 		gboolean is_tweet)
 {
-	char *linkified_message;
+	char *linkified_message = NULL;
 	GString *tweet;
-
-#if _HAVE_PIDGIN_ && PURPLE_VERSION_CHECK(2, 6, 0)
-	linkified_message = twitter_linkify(account, message);
-#else
-	linkified_message = purple_markup_escape_text(message, -1);
-#endif
-
-	g_return_val_if_fail(linkified_message != NULL, NULL);
 	g_return_val_if_fail(src_user != NULL, NULL);
 
-	tweet = g_string_new(linkified_message);
+	linkified_message = purple_signal_emit_return_1(purple_conversations_get_handle(),
+			"prpltwtr-format-tweet",
+			account,
+			src_user,
+			message,
+			tweet_id,
+			conv_type,
+			conv_name,
+			is_tweet);
 
-#if _HAVE_PIDGIN_ && PURPLE_VERSION_CHECK(2, 6, 0)
-	if (is_tweet && tweet_id && conv_type != PURPLE_CONV_TYPE_UNKNOWN && conv_name)
-	{
-		const gchar *account_name = purple_account_get_username(account);
-		//TODO: make this an image
-		g_string_append_printf(tweet,
-				" <a href=\"" TWITTER_URI ":///" TWITTER_URI_ACTION_ACTIONS "?account=a%s&user=%s&id=%lld",
-				account_name,
-				purple_url_encode(src_user),
-				tweet_id);
-		g_string_append_printf(tweet,
-				"&conv_type=%d&conv_name=%s\">*</a>",
-				conv_type,
-				purple_url_encode(conv_name));
-	}
-#else
+	if (linkified_message)
+		return linkified_message;
+
+	linkified_message = purple_markup_escape_text(message, -1);
+
+	g_return_val_if_fail(linkified_message != NULL, NULL);
+
+	tweet = g_string_new(linkified_message);
 
 	if (twitter_option_add_link_to_tweet(account) && is_tweet && tweet_id)
 	{
@@ -240,7 +155,6 @@ char *twitter_format_tweet(PurpleAccount *account,
 			g_free(url);
 		}
 	}
-#endif
 
 	g_free(linkified_message);
 	return g_string_free(tweet, FALSE);

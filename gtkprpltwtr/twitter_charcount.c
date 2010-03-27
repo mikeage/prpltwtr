@@ -23,8 +23,6 @@
  * 02111-1301, USA.
  */
 
-#if _HAVE_PIDGIN_
-
 #include "string.h"
 #include <gdk/gdk.h>
 #include <glib.h>
@@ -35,8 +33,9 @@
 #include <gtkplugin.h>
 #include <version.h>
 
-#include "twitter_endpoint_chat.h"
-#include "twitter_endpoint_im.h"
+#include "../twitter_endpoint_chat.h"
+#include "../twitter_endpoint_im.h"
+#include "gtkprpltwtr.h"
 
 /* data to get passed each time a character is typed
  * this should be faster than having multiple hash
@@ -200,18 +199,18 @@ static void detach_from_gtkconv(PidginConversation *gtkconv, gpointer null)
 			(GFunc)insert_text_cb, gtkconv);
 	g_signal_handlers_disconnect_by_func(G_OBJECT(gtkconv->entry_buffer),
 			(GFunc)delete_text_cb, gtkconv);*/
-	g_signal_handlers_disconnect_by_func(G_OBJECT(gtkconv->entry_buffer),
-			(GFunc)changed_cb, gtkconv);
 
 	box = gtkconv->toolbar;
-	counter = g_object_get_data(G_OBJECT(box), TWITTER_PROTOCOL_ID "-counter");
+	counter = g_object_steal_data(G_OBJECT(box), TWITTER_PROTOCOL_ID "-counter");
 	if (counter)
 		gtk_container_remove(GTK_CONTAINER(box), counter);
-	sep = g_object_get_data(G_OBJECT(box), TWITTER_PROTOCOL_ID "-sep");
+	sep = g_object_steal_data(G_OBJECT(box), TWITTER_PROTOCOL_ID "-sep");
 	if (sep)
 		gtk_container_remove(GTK_CONTAINER(box), sep);
 
-	ccc = g_object_get_data(G_OBJECT(box), TWITTER_PROTOCOL_ID "-ccc");
+	ccc = g_object_steal_data(G_OBJECT(box), TWITTER_PROTOCOL_ID "-ccc");
+	g_signal_handlers_disconnect_by_func(G_OBJECT(gtkconv->entry_buffer),
+			G_CALLBACK(changed_cb), ccc);
 	if (ccc)
 	{
 		conv_char_count_free(ccc);
@@ -261,6 +260,9 @@ static void attach_to_gtkconv(PidginConversation *gtkconv, gpointer null)
 	g_signal_connect(G_OBJECT(gtkconv->entry_buffer), "changed",
 			G_CALLBACK(changed_cb), ccc);
 
+	//Call right away, in case there's already text in the buffer
+	changed_cb(gtkconv->entry_buffer, ccc);
+
 	gtk_widget_queue_draw(pidgin_conv_get_window(gtkconv)->window);
 }
 
@@ -305,5 +307,3 @@ void twitter_charcount_conv_destroyed_cb(PurpleConversation *conv, gpointer null
 
 	detach_from_gtkconv(gtkconv, NULL);
 }
-
-#endif

@@ -49,6 +49,8 @@ typedef struct {
 	TwitterRequestor *requestor;
 	TwitterSendRequestSuccessFunc success_func;
 	TwitterSendRequestErrorFunc error_func;
+
+	gpointer request_id;
 	gpointer user_data;
 } TwitterSendRequestData;
 
@@ -243,7 +245,17 @@ static void twitter_send_request_cb(PurpleUtilFetchUrlData *url_data, gpointer u
 	TwitterSendRequestData *request_data = user_data;
 	gchar *error_message = NULL;
 	TwitterRequestErrorType error_type = TWITTER_REQUEST_ERROR_NONE;
-	gint status_code = twitter_response_text_status_code(response_text);
+	gint status_code;
+
+	request_data->requestor->pending_requests =
+		g_list_remove(request_data->requestor->pending_requests, request_data);
+
+#ifdef _DEBUG_
+	purple_debug_info(TWITTER_PROTOCOL_ID, "Received response: %s\n",
+			response_text ? response_text : "NULL");
+#endif
+	
+	status_code = twitter_response_text_status_code(response_text);
 
 	url_text = twitter_response_text_data(response_text, len);
 
@@ -294,7 +306,7 @@ static void twitter_send_request_cb(PurpleUtilFetchUrlData *url_data, gpointer u
 		}
 		if (error_type != TWITTER_REQUEST_ERROR_NONE)
 		{
-			error_message = twitter_xml_text_parse_error(response_text);
+			error_message = twitter_xml_text_parse_error(url_text);
 			if (!error_message)
 				error_message = g_strdup_printf("Status code: %d", status_code);
 		}
@@ -318,7 +330,7 @@ static void twitter_send_request_cb(PurpleUtilFetchUrlData *url_data, gpointer u
 	g_free(request_data);
 }
 
-static void twitter_send_request_querystring(TwitterRequestor *r,
+static gpointer twitter_send_request_querystring(TwitterRequestor *r,
 		gboolean post,
 		const char *url,
 		const char *query_string,
@@ -365,13 +377,35 @@ static void twitter_send_request_querystring(TwitterRequestor *r,
 			query_string && post ? strlen(query_string) : 0,
 			query_string && post ? query_string : "");
 
-	purple_util_fetch_url_request(full_url, TRUE,
+#ifdef _DEBUG_
+	purple_debug_info(TWITTER_PROTOCOL_ID, "Sending request: %s\n", request);
+#endif
+	
+	request_data->request_id = purple_util_fetch_url_request(full_url, TRUE,
 			USER_AGENT, TRUE, request, TRUE,
 			twitter_send_request_cb, request_data);
 	g_free(full_url);
 	g_free(request);
 	g_free(host);
 	g_free(header_fields_text);
+
+	return request_data;
+}
+
+gpointer twitter_requestor_send(TwitterRequestor *r,
+		gboolean post,
+		const char *url,
+		TwitterRequestParams *params,
+		char **header_fields,
+		TwitterSendRequestSuccessFunc success_callback,
+		TwitterSendRequestErrorFunc error_callback,
+		gpointer data)
+{
+	gpointer request;
+	gchar *querystring = twitter_request_params_to_string(params);
+	request = twitter_send_request_querystring(r, post, url, querystring, header_fields, success_callback, error_callback, data);
+	g_free(querystring);
+	return request;
 }
 
 void twitter_send_request(TwitterRequestor *r,
@@ -382,26 +416,26 @@ void twitter_send_request(TwitterRequestor *r,
 		TwitterSendRequestErrorFunc error_callback,
 		gpointer data)
 {
-	gchar *querystring;
 	gpointer requestor_data = NULL;
+	gpointer request = NULL;
 	gchar **header_fields = NULL;
 
 	if (r->pre_send)
 		r->pre_send(r, &post, &url, &params, &header_fields, &requestor_data);
 
-	querystring = twitter_request_params_to_string(params);
-	twitter_send_request_querystring(r,
-			post,
-			url, querystring,
+	if (r->do_send)
+		request = r->do_send(r, post,
+			url, params,
 			header_fields,
 			success_callback,
 			error_callback,
 			data);
 
+	if (request)
+		r->pending_requests = g_list_append(r->pending_requests, request);
+
 	if (r->post_send)
 		r->post_send(r, &post, &url, &params, &header_fields, &requestor_data);
-
-	g_free(querystring);
 }
 
 static void twitter_xml_request_success_cb(TwitterRequestor *r, const gchar *response, gpointer user_data)
@@ -781,6 +815,9 @@ static void twitter_request_with_cursor_data_free (
 	twitter_request_params_free(request_data->params);
 	g_slice_free (TwitterRequestWithCursorData, request_data);
 }
+static void twitter_send_xml_request_with_cursor_error_cb(TwitterRequestor *r,
+		const TwitterRequestErrorData *error_data,
+		gpointer user_data);
 
 static void twitter_send_xml_request_with_cursor_cb(TwitterRequestor *r,
 		xmlnode *node,
@@ -820,7 +857,7 @@ static void twitter_send_xml_request_with_cursor_cb(TwitterRequestor *r,
 		twitter_send_xml_request(r, FALSE,
 				request_data->url, request_data->params,
 				twitter_send_xml_request_with_cursor_cb,
-				NULL,
+				twitter_send_xml_request_with_cursor_error_cb,
 				request_data);
 
 		twitter_request_params_set_size(request_data->params, len);
@@ -831,6 +868,23 @@ static void twitter_send_xml_request_with_cursor_cb(TwitterRequestor *r,
 				request_data->user_data);
 		twitter_request_with_cursor_data_free (request_data);
 	}
+}
+
+static void twitter_send_xml_request_with_cursor_error_cb(TwitterRequestor *r,
+		const TwitterRequestErrorData *error_data,
+		gpointer user_data)
+{
+	TwitterRequestWithCursorData *request_data = user_data;
+	if (request_data->error_callback && request_data->error_callback(r, error_data, request_data->user_data))
+	{
+		twitter_send_xml_request(r, FALSE,
+				request_data->url, request_data->params,
+				twitter_send_xml_request_with_cursor_cb,
+				twitter_send_xml_request_with_cursor_error_cb,
+				request_data);
+		return;
+	}
+	twitter_request_with_cursor_data_free(request_data);
 }
 
 void twitter_send_xml_request_with_cursor(TwitterRequestor *r,
@@ -857,8 +911,36 @@ void twitter_send_xml_request_with_cursor(TwitterRequestor *r,
 	twitter_send_xml_request(r, FALSE,
 			url, request_data->params,
 			twitter_send_xml_request_with_cursor_cb,
-			NULL,
+			twitter_send_xml_request_with_cursor_error_cb,
 			request_data);
 
 	twitter_request_params_set_size(request_data->params, len);
+}
+
+void twitter_requestor_free(TwitterRequestor *requestor)
+{
+	GList *l;
+	purple_debug_info(TWITTER_PROTOCOL_ID, "Freeing requestor\n");
+	if (requestor->pending_requests)
+	{
+		TwitterRequestErrorData *error_data;
+		error_data = g_new0(TwitterRequestErrorData, 1);
+		error_data->type = TWITTER_REQUEST_ERROR_CANCELED;
+		error_data->message = NULL;
+		for (l = requestor->pending_requests; l; l = l->next)
+		{
+			TwitterSendRequestData *request_data = l->data;
+			//TODO: move this to a ->cancel function
+			purple_util_fetch_url_cancel(request_data->request_id);
+			//TODO: created a ->free callback
+			twitter_requestor_on_error(request_data->requestor,
+					error_data,
+					request_data->error_func,
+					request_data->user_data);
+			g_free(request_data);
+		}
+		g_list_free(requestor->pending_requests);
+		g_free(error_data);
+	}
+	g_free(requestor);
 }

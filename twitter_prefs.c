@@ -37,14 +37,6 @@ GList *twitter_get_protocol_options()
 			TWITTER_PREF_USE_HTTPS_DEFAULT);                        /* default value */
 	options = g_list_append(NULL, option);
 
-	/* Enable icons in conversations */
-	option = purple_account_option_bool_new(
-			("Enable Icons in Chat"),      /* text shown to user */
-			TWITTER_PREF_ENABLE_CONV_ICON ,                         /* pref name */
-			TWITTER_PREF_ENABLE_CONV_ICON_DEFAULT);                        /* default value */
-	options = g_list_append(NULL, option);
-
-
 	option = purple_account_option_bool_new(
 			("Enable OAuth (more secure, higher rate limit)"),
 			TWITTER_PREF_USE_OAUTH,
@@ -79,14 +71,12 @@ GList *twitter_get_protocol_options()
 			TWITTER_PREF_GET_FRIENDS_DEFAULT);
 	options = g_list_append (options, option);
 
-#if !_HAVE_PIDGIN_ || !PURPLE_VERSION_CHECK(2, 6, 0)
 	/* Add URL link to each tweet */
 	option = purple_account_option_bool_new (
 			("Add URL link to each tweet"),
 			TWITTER_PREF_ADD_URL_TO_TWEET,
 			TWITTER_PREF_ADD_URL_TO_TWEET_DEFAULT);
 	options = g_list_append (options, option);
-#endif
 
 	/* Idle cutoff time */
 	option = purple_account_option_int_new(
@@ -147,12 +137,6 @@ GList *twitter_get_protocol_options()
 	return options;
 }
 
-gboolean twitter_option_enable_conv_icon(PurpleAccount *account)
-{
-	return purple_account_get_bool(account,
-			TWITTER_PREF_ENABLE_CONV_ICON,
-			TWITTER_PREF_ENABLE_CONV_ICON_DEFAULT);
-}
 gboolean twitter_option_add_link_to_tweet(PurpleAccount *account)
 {
 	return purple_account_get_bool(account,
