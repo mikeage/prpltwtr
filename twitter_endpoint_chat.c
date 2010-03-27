@@ -199,18 +199,24 @@ PurpleChat *twitter_blist_chat_find(PurpleAccount *account, const char *name)
 //TODO should be static?
 gboolean twitter_blist_chat_is_auto_open(PurpleChat *chat)
 {
+	GHashTable *components;
+	char *auto_open;
 	g_return_val_if_fail(chat != NULL, FALSE);
-	GHashTable *components = purple_chat_get_components(chat);
-	char *auto_open = g_hash_table_lookup(components, "auto_open");
+	components = purple_chat_get_components(chat);
+	auto_open = g_hash_table_lookup(components, "auto_open");
 	return (auto_open != NULL && auto_open[0] != '0');
 }
 
 static void twitter_chat_add_tweet(PurpleConversation *conv, const char *who, const char *message, long long id, time_t time)
 {
 	gchar *tweet;
-	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
 #if !_HAZE_
 	PurpleConvChat *chat;
+#endif
+
+	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+
+#if !_HAZE_
 	chat = purple_conversation_get_chat_data(conv);
 	g_return_if_fail(chat != NULL);
 #endif
@@ -266,8 +272,9 @@ static PurpleConversation *twitter_endpoint_chat_get_conv(TwitterEndpointChat *e
 	{
 		if (twitter_blist_chat_is_auto_open(blist_chat))
 		{
+			guint chat_id;
 			purple_debug_info(TWITTER_PROTOCOL_ID, "%s, recreated conv for auto open chat (%s)\n", G_STRFUNC, endpoint_chat->chat_name);
-			guint chat_id = twitter_get_next_chat_id(endpoint_chat->account);
+			chat_id = twitter_get_next_chat_id(endpoint_chat->account);
 			conv = serv_got_joined_chat(purple_account_get_connection(endpoint_chat->account), chat_id, endpoint_chat->chat_name);
 		}
 	}
@@ -387,14 +394,18 @@ void twitter_endpoint_chat_start(PurpleConnection *gc, TwitterEndpointChatSettin
 {
 	const char *interval_str = g_hash_table_lookup(components, "interval");
 	int interval = 0;
+	PurpleAccount *account;
+        int default_interval;
+	gchar *error;
+	char *chat_name;
 
 	g_return_if_fail(settings != NULL);
 
         interval = interval_str == NULL ? 0 : strtol(interval_str, NULL, 10);
 
-	PurpleAccount *account = purple_connection_get_account(gc);
-        int default_interval = settings->get_default_interval(account);
-	gchar *error = NULL;
+	account = purple_connection_get_account(gc);
+        default_interval = settings->get_default_interval(account);
+	error = NULL;
 
 	if (settings->verify_components && (error = settings->verify_components(components)))
 	{
@@ -409,7 +420,7 @@ void twitter_endpoint_chat_start(PurpleConnection *gc, TwitterEndpointChatSettin
         if (interval < 1)
                 interval = default_interval;
 
-	char *chat_name = settings->get_name(components);
+	chat_name = settings->get_name(components);
 
 #if _HAZE_
 	//HAZE only works when the conv has already been created
@@ -524,11 +535,12 @@ int twitter_endpoint_chat_send(TwitterEndpointChat *ctx, const gchar *message)
 	PurpleAccount *account = ctx->account;
 	TwitterEndpointChatId *id;
 	gchar *added_text = NULL;
+	GArray *statuses;
 
 	if (ctx->settings->get_status_added_text)
 		added_text = ctx->settings->get_status_added_text(ctx);
 
-	GArray *statuses = twitter_utf8_get_segments(message, MAX_TWEET_LENGTH, added_text);
+	statuses = twitter_utf8_get_segments(message, MAX_TWEET_LENGTH, added_text);
 	id = twitter_endpoint_chat_id_new(ctx);
 	twitter_api_set_statuses(purple_account_get_requestor(account),
 			statuses,

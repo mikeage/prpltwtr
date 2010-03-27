@@ -48,7 +48,7 @@ LIBS += -lglib-2.0 \
 			-lpurple
 			
 PURPLE_LIBS = -L$(GTK_TOP)/lib -L$(PURPLE_TOP) $(LIBS)
-PURPLE_CFLAGS = -DPURPLE_PLUGINS -DENABLE_NLS -Wall -DPRPL_TWITTER_VERSION=\"$(VERSION)\" $(INCLUDE_PATHS)
+PURPLE_CFLAGS = -DPURPLE_PLUGINS -DENABLE_NLS -Wdeclaration-after-statement -Wall -DPRPL_TWITTER_VERSION=\"$(VERSION)\" $(INCLUDE_PATHS)
 
 PURPLE_PROTOCOL_PIXMAP_DIR = $(PURPLE_INSTALL_DIR)/pixmaps/pidgin/protocols
 PURPLE_PLUGIN_DIR = $(PURPLE_INSTALL_PLUGINS_DIR)
@@ -62,7 +62,7 @@ LIBDIR := $(PREFIX)/lib
 PURPLE_LIBS = $(shell pkg-config --libs purple)
 PURPLE_CFLAGS = $(CFLAGS) -DPURPLE_PLUGINS -DENABLE_NLS -DPRPL_TWITTER_VERSION=\"$(VERSION)\" 
 PURPLE_CFLAGS += $(shell pkg-config --cflags purple)
-PURPLE_CFLAGS += -Wall -pthread -I. -g -O2 -pipe -fPIC -DPIC 
+PURPLE_CFLAGS += -Wdeclaration-after-statement -Wall -pthread -I. -g -O2 -pipe -fPIC -DPIC 
 PLUGIN_SUFFIX := .so
 EXE_SUFFIX := 
 

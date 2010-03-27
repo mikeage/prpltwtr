@@ -311,11 +311,12 @@ static void twitter_chat_leave(PurpleConnection *gc, int id) {
 	TwitterConnectionData *twitter = gc->proto_data;
 	PurpleAccount *account = purple_connection_get_account(gc);
 	TwitterEndpointChat *ctx = twitter_endpoint_chat_find(account, purple_conversation_get_name(conv));
+	PurpleChat *blist_chat;
 
 	g_return_if_fail(ctx != NULL);
 	//TODO move me to twitter_endpoint_chat
 
-	PurpleChat *blist_chat = twitter_blist_chat_find(account, ctx->chat_name);
+	blist_chat = twitter_blist_chat_find(account, ctx->chat_name);
 	if (blist_chat != NULL && twitter_blist_chat_is_auto_open(blist_chat))
 	{
 		return;
@@ -458,6 +459,7 @@ static void twitter_connected(PurpleAccount *account)
 {
 	PurpleConnection *gc = purple_account_get_connection(account);
 	TwitterConnectionData *twitter = gc->proto_data;
+	int get_friends_timer_timeout;
 
 	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
 
@@ -497,7 +499,7 @@ static void twitter_connected(PurpleAccount *account)
 
 	/* Immediately retrieve replies */
 
-	int get_friends_timer_timeout = twitter_option_user_status_timeout(account);
+	get_friends_timer_timeout = twitter_option_user_status_timeout(account);
 
 	//We will try to get all our friends' statuses, whether they're in the buddylist or not
 	if (get_friends_timer_timeout > 0)
@@ -751,6 +753,7 @@ typedef struct
 static void twitter_verify_connection(PurpleAccount *account)
 {
 	gboolean retrieve_history;
+	PurpleConnection *gc;
 
 	//To verify the connection, we get the user's friends.
 	//With that we'll update the buddy list and set the last known reply id
@@ -760,7 +763,7 @@ static void twitter_verify_connection(PurpleAccount *account)
 	retrieve_history = twitter_option_get_history(account);
 
 	//If we don't have a stored last reply id, we don't want to get the entire history (EVERY reply)
-	PurpleConnection *gc = purple_account_get_connection(account);
+	gc = purple_account_get_connection(account);
 
 	if (purple_connection_get_state(gc) == PURPLE_CONNECTING) {
 
@@ -1324,11 +1327,12 @@ static void twitter_get_info(PurpleConnection *gc, const char *username) {
 
 static void twitter_set_status(PurpleAccount *account, PurpleStatus *status) {
 	gboolean sync_status = twitter_option_sync_status(account);
+	const char *msg;
 	if (!sync_status)
 		return ;
 
 	//TODO: I'm pretty sure this is broken
-	const char *msg = purple_status_get_attr_string(status, "message");
+	msg = purple_status_get_attr_string(status, "message");
 	purple_debug_info(TWITTER_PROTOCOL_ID, "setting %s's status to %s: %s\n",
 			account->username, purple_status_get_name(status), msg);
 

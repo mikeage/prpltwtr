@@ -37,8 +37,9 @@ static gpointer twitter_timeline_timeout_context_new(GHashTable *components)
 
 static void twitter_timeline_timeout_context_free(gpointer _ctx)
 {
+	TwitterTimelineTimeoutContext *ctx;
 	g_return_if_fail(_ctx != NULL);
-	TwitterTimelineTimeoutContext *ctx = _ctx;
+	ctx = _ctx;
 
 	g_slice_free (TwitterTimelineTimeoutContext, ctx);
 } 
@@ -80,6 +81,7 @@ static void twitter_get_home_timeline_cb(TwitterRequestor *r, xmlnode *node, gpo
 {
 	TwitterEndpointChatId *chat_id = (TwitterEndpointChatId *)user_data;
 	TwitterEndpointChat *endpoint_chat;
+	GList *statuses;
 
 	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
 
@@ -90,7 +92,7 @@ static void twitter_get_home_timeline_cb(TwitterRequestor *r, xmlnode *node, gpo
 	if (endpoint_chat == NULL)
 		return;
 
-	GList *statuses = twitter_statuses_node_parse(node);
+	statuses = twitter_statuses_node_parse(node);
 	twitter_get_home_timeline_parse_statuses(endpoint_chat, statuses);
 
 }
@@ -101,6 +103,7 @@ static void twitter_get_home_timeline_all_cb(TwitterRequestor *r,
 {
 	TwitterEndpointChatId *chat_id = (TwitterEndpointChatId *)user_data;
 	TwitterEndpointChat *endpoint_chat;
+	GList *statuses;
 
 	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
 
@@ -111,7 +114,7 @@ static void twitter_get_home_timeline_all_cb(TwitterRequestor *r,
 	if (endpoint_chat == NULL)
 		return;
 
-	GList *statuses = twitter_statuses_nodes_parse(nodes);
+	statuses = twitter_statuses_nodes_parse(nodes);
 	twitter_get_home_timeline_parse_statuses(endpoint_chat, statuses);
 }
 static gboolean twitter_endpoint_timeline_interval_start(TwitterEndpointChat *endpoint)

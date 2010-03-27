@@ -11,9 +11,10 @@ static gpointer twitter_search_timeout_context_new(GHashTable *components)
 
 static void twitter_search_timeout_context_free(gpointer _ctx)
 {
+	TwitterSearchTimeoutContext *ctx;
 	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
 	g_return_if_fail(_ctx != NULL);
-	TwitterSearchTimeoutContext *ctx = _ctx;
+	ctx = _ctx;
 
 	ctx->last_tweet_id = 0;
 
