@@ -6,7 +6,7 @@ SetCompress off
 ; todo: SetBrandingImage
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "prpltwtr"
-!define PRODUCT_VERSION "0.5.1"
+!define PRODUCT_VERSION "0.5.2"
 !define PRODUCT_PUBLISHER "Neaveru"
 !define PRODUCT_WEB_SITE "http://code.google.com/p/prpltwtr/"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
@@ -40,7 +40,7 @@ SetCompress off
 ; MUI end ------
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "${PRODUCT_NAME}.exe"
+OutFile "${PRODUCT_NAME}-${PRODUCT_VERSION}.exe"
 
 Var "PidginDir"
 

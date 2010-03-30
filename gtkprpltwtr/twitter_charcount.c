@@ -226,12 +226,13 @@ static void attach_to_gtkconv(PidginConversation *gtkconv, gpointer null)
 	gchar count[20];
 	PurpleAccount *account;
 
-	ccc = conv_char_count_new(gtkconv);
-
-	g_snprintf(count, sizeof(count) - 1, "%u", ccc->append_text_len);
 	account = purple_conversation_get_account(gtkconv->active_conv);
 	if (strcmp(purple_account_get_protocol_id(account), TWITTER_PROTOCOL_ID))
 		return;
+
+	ccc = conv_char_count_new(gtkconv);
+
+	g_snprintf(count, sizeof(count) - 1, "%u", ccc->append_text_len);
 
 	box = gtkconv->toolbar;
 	counter = g_object_get_data(G_OBJECT(box), TWITTER_PROTOCOL_ID "-counter");
