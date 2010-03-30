@@ -40,7 +40,7 @@ SetCompress off
 ; MUI end ------
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "${PRODUCT_NAME}.exe"
+OutFile "${PRODUCT_NAME}-${PRODUCT_VERSION}.exe"
 
 Var "PidginDir"
 
