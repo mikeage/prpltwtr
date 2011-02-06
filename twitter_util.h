@@ -19,6 +19,8 @@
 #define TWITTER_URI_ACTION_SEARCH	"search" //TODO: move?
 #define TWITTER_URI_ACTION_ACTIONS	"actions" //TODO: move?
 #define TWITTER_URI_ACTION_REPLY	"reply" //TODO: move?
+#define TWITTER_URI_ACTION_REPLYALL	"replyall" //TODO: move?
+#define TWITTER_URI_ACTION_ORT		"ort" //TODO: move?
 #define TWITTER_URI_ACTION_RT		"rt" //TODO: move?
 #define TWITTER_URI_ACTION_LINK		"link" //TODO: move?
 #define TWITTER_URI_ACTION_DELETE	"delete" //TODO: move?

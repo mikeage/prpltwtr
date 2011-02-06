@@ -8,6 +8,7 @@
 #include "twitter_charcount.h"
 #include "twitter_convicon.h"
 #include "gtkprpltwtr.h"
+#include <ctype.h>
 
 static PurplePlugin *gtkprpltwtr_plugin = NULL;
 
@@ -78,6 +79,7 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 	const char *username;
 	PurpleAccount *account;
 	const gchar *action;
+	PidginConversation *gtkconv;
 	purple_debug_info(DEBUG_ID, "%s PROTO %s CMD_ARG %s\n", G_STRFUNC, proto, cmd_arg);
 
 	g_return_val_if_fail(proto != NULL, FALSE);
@@ -117,6 +119,59 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 				"Clicked URI",
 				"@name clicked",
 				"Sorry, this has not been implemented yet");
+	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_REPLYALL)) {
+		const char *id_str, *user, *text;
+		char others[140];
+		int i,j;
+		long long id;
+		PurpleConversation *conv;
+		id_str = g_hash_table_lookup(params, "id");
+		user = g_hash_table_lookup(params, "user");
+		text =  purple_url_decode(g_hash_table_lookup(params, "text"));
+		memset(others, 0, sizeof(others));
+
+		if (id_str == NULL || user == NULL || id_str[0] == '\0' || user[0] == '\0' || text == NULL || text[0] == '\0')
+		{
+			purple_debug_info(DEBUG_ID, "malformed uri. Invalid id/user for reply\n");
+			purple_debug_info(DEBUG_ID, "id_str: 0x%X. user: 0x%X. text: 0x%X", (int) id_str,(int) user,(int) text);
+			return FALSE;
+		}
+		id = strtoll(id_str, NULL, 10);
+		if (id == 0)
+		{
+			purple_debug_info(DEBUG_ID, "malformed uri. Invalid id for reply\n");
+			return FALSE;
+		}
+		conv = twitter_endpoint_reply_conversation_new(twitter_endpoint_im_find(account, TWITTER_IM_TYPE_AT_MSG), user, id);
+		if (!conv)
+		{
+			return FALSE;
+		}
+
+		i=0;
+		while(text[i] != '\0') {
+			if (text[i] == '@') {
+				j=i;
+				do {
+					j++;
+				} while((text[j] != '\0') && (!isspace(text[j]) && !strchr("!@#$%^&*()-=+[]{};:'\"<>?,./`~", text[j])));
+
+				if((i+1) == j) {
+					// empty string
+					continue;
+				}
+				if (memcmp(&text[i+1], username+1, j-(i+1)) && memcmp(&text[i+1], user, j-(i+1))) {
+					memcpy(&others[strlen(others)], &text[i], j-(i));
+					others[strlen(others)]=' ';
+				}
+				i = j;
+			}
+			i++;
+		}
+		purple_conversation_present(conv);
+		gtkconv = PIDGIN_CONVERSATION(conv);
+		gtk_text_buffer_insert_at_cursor(gtkconv->entry_buffer, others, -1);
+		gtk_widget_grab_focus(GTK_WIDGET(gtkconv->entry));
 	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_REPLY)) {
 		const char *id_str, *user;
 		long long id;
@@ -142,6 +197,40 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 			return FALSE;
 		}
 		purple_conversation_present(conv);
+	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_ORT)) {
+		const char *user;
+		gchar * str, *text;
+		PurpleConversation *conv = NULL;
+		user = g_hash_table_lookup(params, "user");
+		text =  purple_unescape_html(purple_url_decode(g_hash_table_lookup(params, "text")));
+
+		if (user == NULL || user[0] == '\0' || text == NULL || text[0] == '\0')
+		{
+			purple_debug_info(DEBUG_ID, "malformed uri. Invalid id/user for reply\n");
+			return FALSE;
+		}
+		purple_debug_info(DEBUG_ID, "text is %s\n", text);
+		str = g_strdup_printf("RT @%s: %s", user, text);
+		conv = purple_find_conversation_with_account(PURPLE_CONV_TYPE_CHAT, "Timeline: Home", account);
+		if (!conv) {
+			if (twitter_blist_chat_find(account, "Timeline: Home")) {
+				PurpleConnection *gc = purple_account_get_connection(account);
+				if (gc) {
+					TwitterConnectionData *twitter = gc->proto_data;
+					if (twitter) {
+						conv = serv_got_joined_chat(purple_account_get_connection(account), ++twitter->chat_id, "Timeline: Home");
+					}
+				}
+			}
+		}
+		if (conv) {
+			purple_conversation_present(conv);
+			gtkconv = PIDGIN_CONVERSATION(conv);
+			gtk_text_buffer_insert_at_cursor(gtkconv->entry_buffer, str, -1);
+			gtk_widget_grab_focus(GTK_WIDGET(gtkconv->entry));
+		}
+		g_free(str);
+		g_free(text);
 	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_RT)) {
 		TwitterConversationId *conv_id;
 
@@ -272,6 +361,16 @@ static void twitter_context_menu_retweet(GtkWidget *w, const gchar *url)
 	twitter_got_uri_action(url, TWITTER_URI_ACTION_RT);
 }
 
+static void twitter_context_menu_old_retweet(GtkWidget *w, const gchar *url)
+{
+	twitter_got_uri_action(url, TWITTER_URI_ACTION_ORT);
+}
+
+static void twitter_context_menu_replyall(GtkWidget *w, const gchar *url)
+{
+	twitter_got_uri_action(url, TWITTER_URI_ACTION_REPLYALL);
+}
+
 static void twitter_context_menu_reply(GtkWidget *w, const gchar *url)
 {
 	twitter_got_uri_action(url, TWITTER_URI_ACTION_REPLY);
@@ -341,11 +440,25 @@ static void twitter_url_menu_actions(GtkWidget *menu, const char *url)
 	g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_retweet), (gpointer)url);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
 
+	img = gtk_image_new_from_stock(GTK_STOCK_REFRESH, GTK_ICON_SIZE_MENU);
+	item = gtk_image_menu_item_new_with_mnemonic(("Old Retweet"));
+	gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
+	g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_old_retweet), (gpointer)url);
+	gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
+
+
 	img = gtk_image_new_from_stock(GTK_STOCK_REDO, GTK_ICON_SIZE_MENU);
 	item = gtk_image_menu_item_new_with_mnemonic(("Reply"));
 	gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
 	g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_reply), (gpointer)url);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
+
+	img = gtk_image_new_from_stock(GTK_STOCK_REDO, GTK_ICON_SIZE_MENU);
+	item = gtk_image_menu_item_new_with_mnemonic(("Reply All"));
+	gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
+	g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_replyall), (gpointer)url);
+	gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
+
 
 	img = gtk_image_new_from_stock(GTK_STOCK_HOME, GTK_ICON_SIZE_MENU);
 	item = gtk_image_menu_item_new_with_mnemonic(("Goto Site"));
@@ -559,11 +672,13 @@ static gchar *gtkprpltwtr_format_tweet_cb(PurpleAccount *account,
 	{
 		const gchar *account_name = purple_account_get_username(account);
 		//TODO: make this an image
+		/* purple_url_encode uses a static array (!) */
 		g_string_append_printf(tweet,
 				" <a href=\"" TWITTER_URI ":///" TWITTER_URI_ACTION_ACTIONS "?account=a%s&user=%s&id=%lld",
 				account_name,
 				purple_url_encode(src_user),
 				tweet_id);
+		g_string_append_printf(tweet, "&text=%s", purple_url_encode(message));
 		g_string_append_printf(tweet,
 				"&conv_type=%d&conv_name=%s\">*</a>",
 				conv_type,
