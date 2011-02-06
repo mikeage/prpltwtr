@@ -204,16 +204,21 @@ PurpleConversation *twitter_endpoint_reply_conversation_new(TwitterEndpointIm *i
 		const gchar *buddy_name,
 		long long reply_id)
 {
-	gchar *conv_name = twitter_endpoint_im_buddy_name_to_conv_name(im, buddy_name);
-	PurpleConversation *conv = purple_conversation_new(PURPLE_CONV_TYPE_IM, im->account, conv_name);
-
-	if (conv && reply_id)
+	if (im)
 	{
-		purple_conversation_set_data(conv, "twitter_conv_last_reply_id", g_memdup(&reply_id, sizeof(reply_id)));
-	}
+		gchar *conv_name = twitter_endpoint_im_buddy_name_to_conv_name(im, buddy_name);
+		PurpleConversation *conv = purple_conversation_new(PURPLE_CONV_TYPE_IM, im->account, conv_name);
 
-	g_free(conv_name);
-	return conv;
+		if (conv && reply_id)
+		{
+			purple_conversation_set_data(conv, "twitter_conv_last_reply_id", g_memdup(&reply_id, sizeof(reply_id)));
+		}
+
+		g_free(conv_name);
+		return conv;
+	}
+	return NULL;
+
 }
 
 static TwitterEndpointImSettings TwitterEndpointReplySettings =

@@ -227,7 +227,7 @@ static gchar *twitter_xml_node_parse_error(const xmlnode *node)
 static gchar *twitter_xml_text_parse_error(const gchar *response)
 {
 	xmlnode *response_node;
-	if ((response_node = xmlnode_from_str(response, strlen(response))))
+	if (response && (response_node = xmlnode_from_str(response, strlen(response))))
 	{
 		gchar *message = twitter_xml_node_parse_error(response_node);
 		xmlnode_free(response_node);
@@ -374,7 +374,7 @@ static gpointer twitter_send_request_querystring(TwitterRequestor *r,
 			header_fields_text ? header_fields_text : "",
 			header_fields_text ? "\r\n" : "",
 			post ? "Content-Type: application/x-www-form-urlencoded\r\n" : "",
-			query_string && post ? strlen(query_string) : 0,
+			query_string && post ? (unsigned long) strlen(query_string) : 0,
 			query_string && post ? query_string : "");
 
 #ifdef _DEBUG_

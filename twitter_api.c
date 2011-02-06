@@ -358,6 +358,7 @@ static void twitter_api_set_statuses_success_cb(TwitterRequestor *r, xmlnode *no
 		//TODO: verify this doesn't leak
 		g_array_free(ctx->statuses, TRUE);
 		g_free(ctx);
+		return;
 	}
 
 	if (ctx->success_func)
@@ -485,6 +486,7 @@ static void twitter_api_send_dms_success_cb(TwitterRequestor *r, xmlnode *node, 
 		g_free(ctx->dm_who);
 		g_free(ctx);
 		last = TRUE;
+		return;
 	}
 
 	if (ctx->success_func)

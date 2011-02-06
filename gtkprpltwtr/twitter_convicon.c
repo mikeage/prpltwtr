@@ -136,8 +136,19 @@ static TwitterConvIcon *buddy_icon_to_conv_icon(PurpleBuddyIcon *buddy_icon)
 void twitter_conv_icon_got_buddy_icon(PurpleAccount *account, const char *user_name, PurpleBuddyIcon *buddy_icon)
 {
 	PurpleConnection *gc = purple_account_get_connection(account);
-	TwitterConnectionData *twitter = gc->proto_data;
-	TwitterConvIcon *conv_icon = g_hash_table_lookup(twitter->icons, purple_normalize(account, user_name));
+	TwitterConnectionData *twitter;
+	TwitterConvIcon *conv_icon;
+
+	if (!gc) {
+		return;
+	}
+
+	twitter	= gc->proto_data;
+
+	if (!twitter) {
+		return;
+	}
+	conv_icon = g_hash_table_lookup(twitter->icons, purple_normalize(account, user_name));
 
 	if (!conv_icon)
 	{
@@ -160,7 +171,16 @@ static TwitterConvIcon *twitter_conv_icon_find(PurpleAccount *account, const cha
 	PurpleConnection *gc = purple_account_get_connection(account);
 	PurpleBuddyIcon *buddy_icon;
 	TwitterConvIcon *conv_icon;
-	TwitterConnectionData *twitter = gc->proto_data;
+	TwitterConnectionData *twitter;
+
+	if (!gc) {
+		return NULL;
+	}
+	twitter = gc->proto_data;
+
+	if (!twitter) {
+		return NULL;
+	}
 
 	purple_debug_info(DEBUG_ID, "Looking up %s\n", who);
 	conv_icon = g_hash_table_lookup(twitter->icons, purple_normalize(account, who));

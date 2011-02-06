@@ -273,7 +273,12 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 		long long id;
 		gchar *link;
 		PurpleConnection *gc = purple_account_get_connection(account);
-		TwitterConnectionData *twitter = gc->proto_data;
+		TwitterConnectionData *twitter;
+		if (!gc) {
+			purple_debug_info(DEBUG_ID, "disconnected. Exiting\n.");
+			return FALSE;
+		}
+		twitter = gc->proto_data;
 		id_str = g_hash_table_lookup(params, "id");
 		user = g_hash_table_lookup(params, "user");
 		if (id_str == NULL || user == NULL || id_str[0] == '\0' || user[0] == '\0')

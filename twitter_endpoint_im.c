@@ -18,9 +18,13 @@ TwitterEndpointIm *twitter_endpoint_im_find(PurpleAccount *account, TwitterImTyp
 	g_return_val_if_fail(type >= 0 && type < TWITTER_IM_TYPE_UNKNOWN, NULL);
 
 	gc = purple_account_get_connection(account);
-	twitter = gc->proto_data;
-
-	return twitter->endpoint_ims[type];
+	if (gc) {
+		twitter = gc->proto_data;
+		return twitter->endpoint_ims[type];
+	} else {
+		purple_debug_info(TWITTER_PROTOCOL_ID, "No gc available. Disconnected?");
+		return NULL;
+	}
 }
 
 char *twitter_endpoint_im_buddy_name_to_conv_name(TwitterEndpointIm *im, const char *name)
