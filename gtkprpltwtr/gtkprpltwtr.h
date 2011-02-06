@@ -4,4 +4,6 @@
 #define PLUGIN_ID "gtkprpltwtr"
 #define DEBUG_ID PLUGIN_ID
 
+#define ICON_SIZE 32
+
 #endif

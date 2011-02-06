@@ -67,7 +67,6 @@ static GdkPixbuf *make_scaled_pixbuf(const guchar *url_text, gsize len)
 	/* make pixbuf */
 	GdkPixbufLoader *loader;
 	GdkPixbuf *src = NULL, *dest = NULL;
-	gint size;
 
 	g_return_val_if_fail(url_text != NULL, NULL);
 	g_return_val_if_fail(len > 0, NULL);
@@ -80,8 +79,7 @@ static GdkPixbuf *make_scaled_pixbuf(const guchar *url_text, gsize len)
 
 	if(src)
 	{
-		size = 48;
-		dest = gdk_pixbuf_scale_simple(src, size, size, GDK_INTERP_HYPER);
+		dest = gdk_pixbuf_scale_simple(src, ICON_SIZE, ICON_SIZE, GDK_INTERP_HYPER);
 	} else {
 		dest = NULL;
 	}
