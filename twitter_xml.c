@@ -242,6 +242,7 @@ TwitterTweet *twitter_status_node_parse(xmlnode *status_node)
 {
 	TwitterTweet *status;
 	char *data;
+	xmlnode * retweeted_status = NULL;
 
 	if (status_node == NULL)
 		return NULL;
@@ -270,8 +271,23 @@ TwitterTweet *twitter_status_node_parse(xmlnode *status_node)
 	status->in_reply_to_screen_name =
 		xmlnode_get_child_data(status_node, "in_reply_to_screen_name");
 
+	if ((retweeted_status = xmlnode_get_child(status_node, "retweeted_status")))
+	{
+		gchar * rt_text;
+		xmlnode * rt_user;
+		gchar * rt_user_name;
+		rt_text = xmlnode_get_child_data(retweeted_status, "text");
+		if ((rt_user = xmlnode_get_child(retweeted_status, "user")))
+		{
+			rt_user_name = xmlnode_get_child_data(rt_user, "screen_name");
+			// We don't need the original text, since it's cut off
+			g_free(status->text);
+			status->text = g_strconcat("RT @" , rt_user_name, ": ", rt_text, NULL);
+			g_free(rt_user_name);
+		}
+		g_free(rt_text);
+	}
 	return status;
-
 }
 
 TwitterUserTweet *twitter_update_status_node_parse(xmlnode *update_status_node)
