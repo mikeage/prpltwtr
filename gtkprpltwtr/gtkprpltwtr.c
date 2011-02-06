@@ -149,6 +149,7 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 		}
 
 		i=0;
+		memset(others, 0, sizeof(others));
 		while(text[i] != '\0') {
 			if (text[i] == '@') {
 				j=i;
