@@ -5,7 +5,7 @@
 -include $(TOPLEVEL)version.mak
 
 # PIDGIN_TREE_TOP is only meaningful on Windows, point it to top directory of Pidgin. IT MUST BE A RELATIVE PATH
-PIDGIN_TREE_TOP := $(TOPLEVEL)../pidgin-2.6.4
+PIDGIN_TREE_TOP := $(TOPLEVEL)../pidgin-2.7.9
 
 TWITTER_LIB_SRC = twitter_prefs.c twitter_request.c twitter_api.c twitter_search.c twitter_util.c twitter_xml.c twitter_endpoint_chat.c twitter_endpoint_search.c twitter_endpoint_timeline.c twitter_buddy.c twitter_conn.c twitter_endpoint_im.c twitter_endpoint_dm.c twitter_endpoint_reply.c twitter_mbprefs.c
 TWITTER_C_SRC = twitter.c $(TWITTER_LIB_SRC)
@@ -15,6 +15,7 @@ TWITTER_OBJ = $(TWITTER_C_SRC:%.c=%.o)
 DESTDIR := 
 
 # Is this WIN32?
+# This must be overwritten in local.mak for cross-compiling
 IS_WIN32 = $(shell (uname -a | grep -q -i cygwin) && echo 1 || echo 0)
 
 # for override those attributes
