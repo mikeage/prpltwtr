@@ -1,7 +1,7 @@
 ; Script based on the facebook-chat nsi file
+; Updated to support PortablePidgin
 
-
-SetCompress off
+SetCompress auto
 
 ; todo: SetBrandingImage
 ; HM NIS Edit Wizard helper defines
@@ -24,11 +24,10 @@ SetCompress off
 !insertmacro MUI_PAGE_WELCOME
 ; License page
 !insertmacro MUI_PAGE_LICENSE "COPYING"
+!define MUI_PAGE_CUSTOMFUNCTION_PRE GetPidginInstPath
+!insertmacro MUI_PAGE_DIRECTORY
 ; Instfiles page
 !insertmacro MUI_PAGE_INSTFILES
-!define MUI_FINISHPAGE_RUN
-!define MUI_FINISHPAGE_RUN_TEXT "Run Pidgin"
-!define MUI_FINISHPAGE_RUN_FUNCTION "RunPidgin"
 !insertmacro MUI_PAGE_FINISH
 
 ; Uninstaller pages
@@ -42,31 +41,23 @@ SetCompress off
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 OutFile "${PRODUCT_NAME}-${PRODUCT_VERSION}.exe"
 
-Var "PidginDir"
-
 ShowInstDetails show
 ShowUnInstDetails show
 
 Section "MainSection" SEC01
-    ;Check for pidgin installation
-    Call GetPidginInstPath
-    
     SetOverwrite try
     
-	SetOutPath "$PidginDir\pixmaps\pidgin"
+	SetOutPath "$INSTDIR\pixmaps\pidgin"
 	File "/oname=protocols\16\prpltwtr.png" "data\prpltwtr16.png"
 	File "/oname=protocols\22\prpltwtr.png" "data\prpltwtr22.png"
 	File "/oname=protocols\48\prpltwtr.png" "data\prpltwtr48.png"
 
-	;SetOutPath "$PidginDir\ca-certs"
-	;File "login.facebook.com.pem"
-
     SetOverwrite try
 	copy:
 		ClearErrors
-		Delete "$PidginDir\plugins\prpltwtr.dll"
+		Delete "$INSTDIR\plugins\prpltwtr.dll"
 		IfErrors dllbusy
-		SetOutPath "$PidginDir\plugins"
+		SetOutPath "$INSTDIR\plugins"
 		File "prpltwtr.dll"
 		File "gtkprpltwtr\gtkprpltwtr.dll"
 		Goto after_copy
@@ -76,10 +67,6 @@ Section "MainSection" SEC01
 	cancel:
 		Abort "Installation of prpltwtr aborted"
 	after_copy:
-	
-	;SetOutPath "$PidginDir"
-	;File "libjson-glib-1.0.dll"
-	
 SectionEnd
 
 Function GetPidginInstPath
@@ -88,12 +75,10 @@ Function GetPidginInstPath
 	IfFileExists "$0\pidgin.exe" cont
 	ReadRegStr $0 HKCU "Software\pidgin" ""
 	IfFileExists "$0\pidgin.exe" cont
-		MessageBox MB_OK|MB_ICONINFORMATION "Failed to find Pidgin installation."
-		Abort "Failed to find Pidgin installation. Please install Pidgin first."
+	MessageBox MB_OK|MB_ICONINFORMATION "Failed to automatically find a Pidgin installation [based on the registry]. Please select your Pidgin directory directly [if you are using PortablePidgin, please select the App\Pidgin subdirectory"
+	Goto done
   cont:
-	StrCpy $PidginDir $0
-FunctionEnd
-
-Function RunPidgin
-	ExecShell "" "$PidginDir\pidgin.exe"
+	StrCpy $INSTDIR $0
+	Abort 
+  done:
 FunctionEnd
