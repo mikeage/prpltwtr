@@ -792,6 +792,10 @@ static PurplePluginPrefFrame *get_plugin_pref_frame(PurplePlugin *plugin)
 			TWITTER_PREF_ENABLE_CONV_ICON, "Enable Icons in Chat");
 	purple_plugin_pref_frame_add(frame, ppref);
 
+	ppref = purple_plugin_pref_new_with_name_and_label(TWITTER_PREF_CONV_ICON_SIZE, "Icon Size");
+	purple_plugin_pref_set_bounds(ppref, 16, 64);
+	purple_plugin_pref_frame_add(frame, ppref);
+
 	return frame;
 }
 

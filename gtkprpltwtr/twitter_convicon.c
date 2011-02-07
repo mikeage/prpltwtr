@@ -25,6 +25,7 @@
 #include "../twitter_conn.h"
 #include "../twitter_request.h"
 #include "gtkprpltwtr.h"
+#include "gtkprpltwtr_prefs.h"
 
 typedef struct
 {
@@ -79,7 +80,7 @@ static GdkPixbuf *make_scaled_pixbuf(const guchar *url_text, gsize len)
 
 	if(src)
 	{
-		dest = gdk_pixbuf_scale_simple(src, ICON_SIZE, ICON_SIZE, GDK_INTERP_HYPER);
+		dest = gdk_pixbuf_scale_simple(src, purple_prefs_get_int(TWITTER_PREF_CONV_ICON_SIZE), purple_prefs_get_int(TWITTER_PREF_CONV_ICON_SIZE), GDK_INTERP_HYPER);
 	} else {
 		dest = NULL;
 	}
