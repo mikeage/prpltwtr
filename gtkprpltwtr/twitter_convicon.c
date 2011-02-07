@@ -295,10 +295,13 @@ static void insert_icon_at_mark(GtkTextMark *requested_mark, gpointer user_data)
 		return;
 	}
 
-	/* insert icon actually */
-	gtk_text_buffer_insert_pixbuf(target_buffer,
-			&insertion_point,
-			conv_icon->pixbuf);
+/* We only want to add the icon if the mark is still on screen. If the user cleared the screen with a ctrl-L, this won't be true. TODO -- can we get a callback at the clear and just delete the mark there? */
+	if(TRUE == gtk_text_iter_is_end(&insertion_point)) {
+		purple_debug_info(DEBUG_ID, "Not adding the icon, since the insertion point is no longer in the buffer\n");
+	} else {
+		/* insert icon actually */
+		gtk_text_buffer_insert_pixbuf(target_buffer, &insertion_point, conv_icon->pixbuf);
+	}
 
 	gtk_text_buffer_delete_mark(target_buffer, requested_mark);
 	requested_mark = NULL;
@@ -528,6 +531,10 @@ static void twitter_conv_icon_displayed_chat_cb(PurpleAccount *account, const ch
 		return;
 
 	gc = purple_account_get_connection(account);
+	if (!gc) {
+		return;
+	}
+
 	twitter = gc->proto_data;
 
 	purple_debug_info(DEBUG_ID, "%s\n", G_STRFUNC);
