@@ -128,7 +128,6 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 		id_str = g_hash_table_lookup(params, "id");
 		user = g_hash_table_lookup(params, "user");
 		text =  purple_url_decode(g_hash_table_lookup(params, "text"));
-		memset(others, 0, sizeof(others));
 
 		if (id_str == NULL || user == NULL || id_str[0] == '\0' || user[0] == '\0' || text == NULL || text[0] == '\0')
 		{
@@ -165,7 +164,7 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 					memcpy(&others[strlen(others)], &text[i], j-(i));
 					others[strlen(others)]=' ';
 				}
-				i = j;
+				i = j - 1; // We always increment by 1, so stop before the null [all other cases are OK]
 			}
 			i++;
 		}
