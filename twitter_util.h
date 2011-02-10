@@ -49,5 +49,6 @@ char *twitter_format_tweet(PurpleAccount *account,
 		long long tweet_id,
 		PurpleConversationType conv_type,
 		const gchar *conv_name,
-		gboolean is_tweet);
+		gboolean is_tweet,
+		long long in_reply_to_status_id);
 #endif /* UTIL_H_ */

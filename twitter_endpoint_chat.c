@@ -207,7 +207,7 @@ gboolean twitter_blist_chat_is_auto_open(PurpleChat *chat)
 	return (auto_open != NULL && auto_open[0] != '0');
 }
 
-static void twitter_chat_add_tweet(PurpleConversation *conv, const char *who, const char *message, long long id, time_t time)
+static void twitter_chat_add_tweet(PurpleConversation *conv, const char *who, const char *message, long long id, time_t time, long long in_reply_to_status_id)
 {
 	gchar *tweet;
 #if !_HAZE_
@@ -231,7 +231,8 @@ static void twitter_chat_add_tweet(PurpleConversation *conv, const char *who, co
 			id,
 			PURPLE_CONV_TYPE_CHAT,
 			purple_conversation_get_name(conv),
-			TRUE);
+			TRUE,
+			in_reply_to_status_id);
 #if _HAZE_
 	//This isn't in twitter_Format_tweet because we can't distinguish between a im and a chat
 	gchar *tweet2 = g_strdup_printf("%s: %s", who, tweet);
@@ -298,7 +299,7 @@ void twitter_chat_got_tweet(TwitterEndpointChat *endpoint_chat, TwitterUserTweet
 			tweet->icon_url,
 			tweet->status->created_at);
 
-	twitter_chat_add_tweet(conv, tweet->screen_name, tweet->status->text, tweet->status->id, tweet->status->created_at);
+	twitter_chat_add_tweet(conv, tweet->screen_name, tweet->status->text, tweet->status->id, tweet->status->created_at, tweet->status->in_reply_to_status_id);
 }
 
 static gboolean twitter_sent_tweets_contains_id(TwitterEndpointChat *ctx, long long id)
@@ -496,7 +497,7 @@ static void twitter_endpoint_chat_send_success_cb(PurpleAccount *account, xmlnod
 				user_tweet->screen_name,
 				user_tweet->icon_url,
 				user_tweet->status->created_at);
-		twitter_chat_add_tweet(conv, account->username, tweet->text, tweet->id, tweet->created_at);
+		twitter_chat_add_tweet(conv, account->username, tweet->text, tweet->id, tweet->created_at, tweet->in_reply_to_status_id);
 	}
 
 #endif

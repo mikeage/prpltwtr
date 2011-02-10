@@ -424,15 +424,20 @@ static void twitter_url_menu_actions(GtkWidget *menu, const char *url)
 	GtkWidget *img, *item;
 	gsize account_len;
 	gsize user_len;
+	gsize in_reply_to_status_id_len;
 	PurpleAccount *account;
 
 	const gchar *account_name_tmp = url_get_param_value(url, "account", &account_len);
 	const gchar *user_name_tmp = url_get_param_value(url, "user", &user_len);
+	const gchar *in_reply_to_status_id_tmp = url_get_param_value(url, "in_reply_to_status_id", &in_reply_to_status_id_len);
+	long long in_reply_to_status_id;
 	gchar *account_name, *user_name;
 	if (!account_name_tmp || !user_name_tmp)
 		return;
 	account_name_tmp++;
 	account_len--;
+
+	in_reply_to_status_id = strtoll(in_reply_to_status_id_tmp, NULL, 10);
 
 	account_name = g_strndup(account_name_tmp, account_len);
 	user_name = g_strndup(user_name_tmp, user_len);
@@ -480,6 +485,16 @@ static void twitter_url_menu_actions(GtkWidget *menu, const char *url)
 		gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
 	}
 
+#if 0 /* TBD: write code to handle this */
+	if(in_reply_to_status_id)
+	{
+		img = gtk_image_new_from_stock(GTK_STOCK_HOME, GTK_ICON_SIZE_MENU);
+		item = gtk_image_menu_item_new_with_mnemonic(("Get Original"));
+		gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
+//		g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_delete), (gpointer)url);
+		gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
+	}
+#endif /* 0 */
 
 	g_free(account_name);
 	g_free(user_name);
@@ -662,7 +677,8 @@ static gchar *gtkprpltwtr_format_tweet_cb(PurpleAccount *account,
 		long long tweet_id,
 		PurpleConversationType conv_type,
 		const gchar *conv_name,
-		gboolean is_tweet)
+		gboolean is_tweet,
+		long long in_reply_to_status_id)
 {
 	gchar *linkified_message;
 	GString *tweet;
@@ -685,9 +701,10 @@ static gchar *gtkprpltwtr_format_tweet_cb(PurpleAccount *account,
 				tweet_id);
 		g_string_append_printf(tweet, "&text=%s", purple_url_encode(message));
 		g_string_append_printf(tweet,
-				"&conv_type=%d&conv_name=%s\">*</a>",
+				"&conv_type=%d&conv_name=%s&in_reply_to_status_id=%lld\">*</a>",
 				conv_type,
-				purple_url_encode(conv_name));
+				purple_url_encode(conv_name),
+				in_reply_to_status_id);
 	}
 
 	g_free(linkified_message);

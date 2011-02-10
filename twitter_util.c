@@ -119,7 +119,8 @@ char *twitter_format_tweet(PurpleAccount *account,
 		long long tweet_id,
 		PurpleConversationType conv_type,
 		const gchar *conv_name,
-		gboolean is_tweet)
+		gboolean is_tweet,
+		long long in_reply_to_status_id)
 {
 	char *linkified_message = NULL;
 	GString *tweet;
@@ -133,7 +134,8 @@ char *twitter_format_tweet(PurpleAccount *account,
 			tweet_id,
 			conv_type,
 			conv_name,
-			is_tweet);
+			is_tweet,
+			in_reply_to_status_id);
 
 	if (linkified_message)
 		return linkified_message;
