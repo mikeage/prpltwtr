@@ -49,11 +49,11 @@ LIBS += -lglib-2.0 \
 			-lpurple
 			
 PURPLE_LIBS = -L$(GTK_TOP)/lib -L$(PURPLE_TOP) $(LIBS)
-PURPLE_CFLAGS = -DPURPLE_PLUGINS -DENABLE_NLS -Wdeclaration-after-statement -Wall -DPRPL_TWITTER_VERSION=\"$(VERSION)\" $(INCLUDE_PATHS)
+PURPLE_CFLAGS = -DPURPLE_PLUGINS -DENABLE_NLS -Wdeclaration-after-statement -Wall -DPRPL_TWITTER_VERSION=\"$(VERSION)\" $(INCLUDE_PATHS) -g
 
 PURPLE_PROTOCOL_PIXMAP_DIR = $(PURPLE_INSTALL_DIR)/pixmaps/pidgin/protocols
 PURPLE_PLUGIN_DIR = $(PURPLE_INSTALL_PLUGINS_DIR)
-
+LDFLAGS := -g
 else #LINUX
 
 PREFIX := $(shell pkg-config --variable=prefix purple 2> /dev/null || echo /usr)

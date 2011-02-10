@@ -26,6 +26,7 @@ SetCompress auto
 !insertmacro MUI_PAGE_LICENSE "COPYING"
 !define MUI_PAGE_CUSTOMFUNCTION_PRE GetPidginInstPath
 !insertmacro MUI_PAGE_DIRECTORY
+!insertmacro MUI_PAGE_COMPONENTS
 ; Instfiles page
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
@@ -44,7 +45,8 @@ OutFile "${PRODUCT_NAME}-${PRODUCT_VERSION}.exe"
 ShowInstDetails show
 ShowUnInstDetails show
 
-Section "MainSection" SEC01
+Section "${PRODUCT_NAME} core" SEC01
+SectionIn RO
     SetOverwrite try
     
 	SetOutPath "$INSTDIR\pixmaps\pidgin"
@@ -69,16 +71,26 @@ Section "MainSection" SEC01
 	after_copy:
 SectionEnd
 
+Section "${PRODUCT_NAME} dbgsym" SEC02
+		File "prpltwtr.dll.dbgsym"
+		File "gtkprpltwtr\gtkprpltwtr.dll.dbgsym"
+SectionEnd
+
 Function GetPidginInstPath
   Push $0
   ReadRegStr $0 HKLM "Software\pidgin" ""
 	IfFileExists "$0\pidgin.exe" cont
 	ReadRegStr $0 HKCU "Software\pidgin" ""
 	IfFileExists "$0\pidgin.exe" cont
-	MessageBox MB_OK|MB_ICONINFORMATION "Failed to automatically find a Pidgin installation [based on the registry]. Please select your Pidgin directory directly [if you are using PortablePidgin, please select the App\Pidgin subdirectory"
+	StrCpy $0 "C:\PortableApps\PidginPortable\App\Pidgin"	
+	IfFileExists "$0\pidgin-portable.exe" cont
+	StrCpy $0 "$PROGRAMFILES\PortableApps\PidginPortable\App\Pidgin"	
+	IfFileExists "$0\pidgin-portable.exe" cont
+	StrCpy $0 "$PROGRAMFILES\PortableApps\PortableApps\PidginPortable\App\Pidgin"	
+	IfFileExists "$0\pidgin-portable.exe" cont
+	MessageBox MB_OK|MB_ICONINFORMATION "Failed to automatically find a Pidgin installation. Please select your Pidgin directory directly [if you are using PortablePidgin, please select the App\Pidgin subdirectory]"
 	Goto done
   cont:
 	StrCpy $INSTDIR $0
-	Abort 
   done:
 FunctionEnd

@@ -71,5 +71,7 @@ clean:
 	rm -f $(TARGETS) $(OBJECTS)
 
 gtkprpltwtr$(PLUGIN_SUFFIX): $(GTKPRPLTWTR_OBJ)
-	$(LD) $(LDFLAGS) -shared $(GTKPRPLTWTR_OBJ) $(LIB_PATHS) $(LIBS) $(DLL_LD_FLAGS) -o gtkprpltwtr$(PLUGIN_SUFFIX)
+	$(LD) $(LDFLAGS) -shared $(GTKPRPLTWTR_OBJ) $(LIB_PATHS) $(LIBS) $(DLL_LD_FLAGS) -o gtkprpltwtr$(PLUGIN_SUFFIX).dbgsym
+	$(STRIP) -g gtkprpltwtr$(PLUGIN_SUFFIX).dbgsym -o gtkprpltwtr$(PLUGIN_SUFFIX)
+
 
