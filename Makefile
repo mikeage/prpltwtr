@@ -49,7 +49,7 @@ endif
 TWITTER_H_SRC = $(TWITTER_C_SRC:%.c=%.h) config.h
 TWITTER_OBJ = $(TWITTER_C_SRC:%.c=%.o)
 
-DISTFILES = $(TWITTER_C_SRC) $(TWITTER_H_SRC) Makefile Makefile.telepathy global.mak version.mak
+DISTFILES = $(TWITTER_C_SRC) $(TWITTER_H_SRC) Makefile Makefile.telepathy global.mak version.mak twitter.nsi COPYING local.mak.mingw
 DISTDIRS = $(SUBDIRS)
 
 OBJECTS = $(TWITTER_OBJ)
