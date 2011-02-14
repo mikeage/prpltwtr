@@ -68,7 +68,7 @@ uninstall:
 	rm -f $(PURPLE_PLUGIN_DIR)/gtkprpltwtr$(PLUGIN_SUFFIX)
 
 clean:
-	rm -f $(TARGETS) $(OBJECTS)
+	rm -f $(TARGETS) $(OBJECTS) *.dbgsym
 
 gtkprpltwtr$(PLUGIN_SUFFIX): $(GTKPRPLTWTR_OBJ)
 	$(LD) $(LDFLAGS) -shared $(GTKPRPLTWTR_OBJ) $(LIB_PATHS) $(LIBS) $(DLL_LD_FLAGS) -o gtkprpltwtr$(PLUGIN_SUFFIX).dbgsym

@@ -56,8 +56,14 @@ PURPLE_PLUGIN_DIR = $(PURPLE_INSTALL_PLUGINS_DIR)
 LDFLAGS := -g
 else #LINUX
 
+LBITS := $(shell getconf LONG_BIT)
+
 PREFIX := $(shell pkg-config --variable=prefix purple 2> /dev/null || echo /usr)
+ifeq ($(LBITS),64)
+LIBDIR := $(PREFIX)/lib64
+else
 LIBDIR := $(PREFIX)/lib
+endif
 
 # LINUX and others, use pkg-config
 PURPLE_LIBS = $(shell pkg-config --libs purple)

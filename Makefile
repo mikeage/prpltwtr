@@ -82,7 +82,7 @@ uninstall:
 	done
 
 clean:
-	rm -f $(TARGETS) $(OBJECTS)
+	rm -f $(TARGETS) $(OBJECTS) *.dbgsym
 	for dir in $(SUBDIRS); do \
 		make clean -C "$$dir" $@ || exit 1; \
 	done
