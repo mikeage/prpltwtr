@@ -10,6 +10,7 @@
 TwitterEndpointImSettings *twitter_endpoint_reply_get_settings();
 PurpleConversation *twitter_endpoint_reply_conversation_new(TwitterEndpointIm *im,
 		const gchar *buddy_name,
-		long long reply_id);
+		long long reply_id,
+		gboolean force);
 
 #endif

@@ -1442,6 +1442,27 @@ static void twitter_blist_buddy_at_msg(PurpleBlistNode *node, gpointer userdata)
 	g_free(name);
 }
 
+static void twitter_blist_buddy_clear_reply(PurpleBlistNode *node, gpointer userdata)
+{
+	PurpleBuddy *buddy = PURPLE_BUDDY(node);
+	gchar *conv_name = twitter_endpoint_im_buddy_name_to_conv_name(twitter_endpoint_im_find(purple_buddy_get_account(buddy), TWITTER_IM_TYPE_AT_MSG), buddy->name);
+	PurpleConversation *conv = purple_find_conversation_with_account(PURPLE_CONV_TYPE_IM, conv_name, purple_buddy_get_account(buddy));
+	purple_conversation_present(conv);
+	g_free(conv_name);
+	{
+		long long *p = purple_conversation_get_data(conv, "twitter_conv_last_reply_id");
+		if (p)
+		{
+			g_free(p);
+			purple_conversation_set_data(conv, "twitter_conv_last_reply_id", NULL);
+		}
+	}
+	purple_conversation_set_data(conv, "twitter_conv_last_reply_id_manual", NULL);
+
+	purple_debug_info(TWITTER_PROTOCOL_ID, "Cleared reply marker for %p\n", conv);
+	purple_signal_emit(purple_conversations_get_handle(), "prpltwtr-set-reply", conv, NULL);
+}
+
 //TODO should be handled in twitter_endpoint_dm
 static void twitter_blist_buddy_dm(PurpleBlistNode *node, gpointer userdata)
 {
@@ -1455,6 +1476,7 @@ static void twitter_blist_buddy_dm(PurpleBlistNode *node, gpointer userdata)
 
 
 static GList *twitter_blist_node_menu(PurpleBlistNode *node) {
+	GList * menu = NULL;
 	purple_debug_info(TWITTER_PROTOCOL_ID, "providing buddy list context menu item\n");
 
 	if (PURPLE_BLIST_NODE_IS_CHAT(node)) {
@@ -1468,9 +1490,8 @@ static GList *twitter_blist_node_menu(PurpleBlistNode *node) {
 				NULL,   /* userdata passed to the callback */
 				NULL);  /* child menu items */
 		g_free(label);
-		return g_list_append(NULL, action);
+		menu = g_list_append(menu, action);
 	} else if (PURPLE_BLIST_NODE_IS_BUDDY(node)) {
-
 		PurpleMenuAction *action;
 		if (twitter_option_default_dm(purple_buddy_get_account(PURPLE_BUDDY(node))))
 		{
@@ -1486,10 +1507,12 @@ static GList *twitter_blist_node_menu(PurpleBlistNode *node) {
 					NULL,   /* userdata passed to the callback */
 					NULL);  /* child menu items */
 		}
-		return g_list_append(NULL, action);
+		menu =  g_list_append(menu, action);
+		action = purple_menu_action_new("Clear Reply Marker", PURPLE_CALLBACK(twitter_blist_buddy_clear_reply), NULL, NULL);
+		menu =  g_list_append(menu, action);
 	} else {
-		return NULL;
 	}
+	return menu;
 }
 
 static void twitter_set_buddy_icon(PurpleConnection *gc,
@@ -1610,6 +1633,30 @@ void twitter_marshal_format_tweet(PurpleCallback cb, va_list args, void *data,
 		*return_val = ret_val;
 }
 
+void twitter_marshal_received_im(PurpleCallback cb, va_list args, void *data,
+		void **return_val)
+{
+	void *arg1 = va_arg(args, void *); //account
+	long long arg2 = va_arg(args, gint64); //tweet_id
+	void* arg3 = va_arg(args, void *); //conv name
+
+	((gpointer(*)(void *, gint64, void *, void *))cb)(arg1, arg2, arg3, data);
+
+	if (return_val != NULL)
+		*return_val = NULL;
+}
+
+void twitter_marshal_set_reply(PurpleCallback cb, va_list args, void *data,
+		void **return_val)
+{
+	void *arg1 = va_arg(args, void *); // conversation
+	void *arg2 = va_arg(args, void *); // id_str
+
+	((gpointer(*)(void *, void*, void *))cb)(arg1,arg2,data);
+
+	if (return_val != NULL)
+		*return_val = NULL;
+}
 
 static void twitter_init(PurplePlugin *plugin)
 {
@@ -1643,7 +1690,7 @@ static void twitter_init(PurplePlugin *plugin)
 
 	purple_signal_register(purple_conversations_get_handle(), "prpltwtr-format-tweet",
 			twitter_marshal_format_tweet, //uint, should be safe for a few decades
-			purple_value_new(PURPLE_TYPE_STRING), 7,
+			purple_value_new(PURPLE_TYPE_STRING), 8,
 			purple_value_new(PURPLE_TYPE_SUBTYPE, PURPLE_SUBTYPE_ACCOUNT), //account
 			purple_value_new(PURPLE_TYPE_STRING), //user
 			purple_value_new(PURPLE_TYPE_STRING), //message
@@ -1654,6 +1701,19 @@ static void twitter_init(PurplePlugin *plugin)
 			purple_value_new(PURPLE_TYPE_INT64) // in_reply_to_status_id
 			);
 
+	purple_signal_register(purple_conversations_get_handle(), "prpltwtr-received-im", 
+			twitter_marshal_received_im,
+			NULL, 3,
+			purple_value_new(PURPLE_TYPE_SUBTYPE, PURPLE_SUBTYPE_ACCOUNT), // account
+			purple_value_new(PURPLE_TYPE_INT64), // tweet_id
+			purple_value_new(PURPLE_TYPE_STRING) // buddy_name
+			);
+	purple_signal_register(purple_conversations_get_handle(), "prpltwtr-set-reply",
+			twitter_marshal_set_reply,
+			NULL, 2,
+			purple_value_new(PURPLE_TYPE_SUBTYPE, PURPLE_SUBTYPE_CONVERSATION), // conv
+			purple_value_new(PURPLE_TYPE_STRING) // id_str
+			);
 
 	twitter_endpoint_chat_init();
 
@@ -1668,6 +1728,7 @@ static void twitter_destroy(PurplePlugin *plugin)
 	purple_signal_unregister(purple_buddy_icons_get_handle(), "prpltwtr-update-buddyicon");
 	purple_signal_unregister(purple_buddy_icons_get_handle(), "prpltwtr-update-iconurl");
 	purple_signal_unregister(purple_conversations_get_handle(), "prpltwtr-format-tweet");
+	purple_signal_unregister(purple_conversations_get_handle(), "prpltwtr-received-im");
 	purple_signals_disconnect_by_handle(plugin);
 }
 

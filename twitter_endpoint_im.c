@@ -235,6 +235,12 @@ void twitter_status_data_update_conv(TwitterEndpointIm *ctx,
 			PURPLE_MESSAGE_RECV,
 			s->created_at);
 
+	/* Notify the GUI that a new IM was sent. This can't be done in twitter_format_tweet, since the conv window wasn't created yet (if it's the first tweet), and it can't be done by listening to the signal from serv_got_im, since we don't have the tweet there. Shame. Maybe I can refactor by storing the id in a global variable; TBD which per conv (aka per account/conv_name) structs exist ebefore calling serv_got_im */
+	purple_signal_emit(purple_conversations_get_handle(),
+			"prpltwtr-received-im",
+			account,
+			s->id,
+			conv_name);
 	g_free(tweet);
 }
 

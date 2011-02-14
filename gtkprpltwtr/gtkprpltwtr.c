@@ -69,6 +69,59 @@ static void twitter_delete_tweet_error_cb(TwitterRequestor *r,
 	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_ERROR, "Delete failed");
 }
 
+static void gtkprpltwtr_mark_reply(PurpleConversation * conv, const gchar * id_str)
+{
+	GtkIMHtml *imhtml = NULL;
+	GtkTextBuffer *text_buffer = NULL;
+	GtkTextIter insertion_point;
+	GtkTextIter old_insertion_point;
+	GtkTextIter old_insertion_point_end;
+	GtkTextMark * id_mark = NULL; /* new reply location's id_str mark */
+	GtkTextMark * reply_mark = NULL; /* reply mark itself */
+	GdkPixbuf *reply_icon = NULL;
+
+	imhtml = GTK_IMHTML(PIDGIN_CONVERSATION(conv)->imhtml);
+	text_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(imhtml));
+
+	purple_debug_info(DEBUG_ID, "Setting the reply mark for %p to %s\n", conv, id_str ? id_str : "DISABLED");
+
+	/* First erase the old reply mark, if any */
+	reply_mark = gtk_text_buffer_get_mark(text_buffer, "prpltwtr-reply-mark");
+	if (reply_mark)
+	{
+		gtk_text_buffer_get_iter_at_mark(text_buffer, &old_insertion_point, reply_mark);
+		old_insertion_point_end = old_insertion_point;
+		gtk_text_iter_forward_char(&old_insertion_point_end);
+		gtk_text_buffer_delete(text_buffer, &old_insertion_point, &old_insertion_point_end);
+	}
+
+	/* If there's no new mark, delete the old mark, and then we're done here */
+	if (!id_str)
+	{
+		/* Doesn't matter if this fails */
+		gtk_text_buffer_delete_mark_by_name(text_buffer, "prpltwtr-reply-mark");
+		return;
+	}
+
+	/* Move or create the reply mark */
+	id_mark = gtk_text_buffer_get_mark(text_buffer, id_str);
+	gtk_text_buffer_get_iter_at_mark(text_buffer, &insertion_point, id_mark);
+	if (reply_mark)
+	{
+		gtk_text_buffer_move_mark(text_buffer, reply_mark, &insertion_point);
+	} else {
+		reply_mark = gtk_text_buffer_create_mark(text_buffer, "prpltwtr-reply-mark", &insertion_point, TRUE);
+	}
+
+	/* Add the new icon */
+	reply_icon = gtk_widget_render_icon((GtkWidget *)imhtml, GTK_STOCK_OK, GTK_ICON_SIZE_MENU, NULL);
+	if(!reply_icon) {
+		purple_debug_info(DEBUG_ID, "Couldn't load reply icon!\n");
+		return;
+	}
+	gtk_text_buffer_insert_pixbuf(text_buffer, &insertion_point, reply_icon);
+	g_object_unref(reply_icon);
+}
 
 static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHashTable *params)
 {
@@ -141,11 +194,14 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 			purple_debug_info(DEBUG_ID, "malformed uri. Invalid id for reply\n");
 			return FALSE;
 		}
-		conv = twitter_endpoint_reply_conversation_new(twitter_endpoint_im_find(account, TWITTER_IM_TYPE_AT_MSG), user, id);
+		conv = twitter_endpoint_reply_conversation_new(twitter_endpoint_im_find(account, TWITTER_IM_TYPE_AT_MSG), user, id, TRUE);
 		if (!conv)
 		{
 			return FALSE;
 		}
+
+		purple_conversation_set_data(conv, "twitter_conv_last_reply_id_manual", NULL);
+		gtkprpltwtr_mark_reply(conv, NULL);
 
 		i=0;
 		memset(others, 0, sizeof(others));
@@ -191,11 +247,15 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 		}
 		conv = twitter_endpoint_reply_conversation_new(twitter_endpoint_im_find(account, TWITTER_IM_TYPE_AT_MSG),
 				user,
-				id);
+				id,
+				TRUE);
 		if (!conv)
 		{
 			return FALSE;
 		}
+		purple_conversation_set_data(conv, "twitter_conv_last_reply_id_manual", NULL);
+		gtkprpltwtr_mark_reply(conv, NULL);
+
 		purple_conversation_present(conv);
 	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_ORT)) {
 		const char *user;
@@ -349,6 +409,34 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 		g_hash_table_insert(components, "search", g_strdup(purple_url_decode(text)));
 		twitter_endpoint_chat_start(purple_account_get_connection(account), twitter_get_endpoint_chat_settings(TWITTER_CHAT_SEARCH),
 				components, TRUE) ;
+	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_SET_REPLY)) {
+		const char *id_str, *user;
+		long long id;
+		PurpleConversation *conv;
+		id_str = g_hash_table_lookup(params, "id");
+		user = g_hash_table_lookup(params, "user");
+		if (id_str == NULL || user == NULL || id_str[0] == '\0' || user[0] == '\0')
+		{
+			purple_debug_info(DEBUG_ID, "malformed uri. Invalid id/user for reply\n");
+			return FALSE;
+		}
+		id = strtoll(id_str, NULL, 10);
+		if (id == 0)
+		{
+			purple_debug_info(DEBUG_ID, "malformed uri. Invalid id for reply\n");
+			return FALSE;
+		}
+		conv = twitter_endpoint_reply_conversation_new(twitter_endpoint_im_find(account, TWITTER_IM_TYPE_AT_MSG),
+				user,
+				id,
+				TRUE);
+		if (!conv)
+		{
+			return FALSE;
+		}
+		purple_conversation_set_data(conv, "twitter_conv_last_reply_id_manual", (gpointer)0x10101010);
+		purple_debug_info(DEBUG_ID, "Setting reply to %lld for conv %p\n", id, conv);
+		gtkprpltwtr_mark_reply(conv, id_str);
 	}
 	return TRUE;
 }
@@ -391,6 +479,11 @@ static void twitter_context_menu_delete(GtkWidget *w, const gchar *url)
 	twitter_got_uri_action(url, TWITTER_URI_ACTION_DELETE);
 }
 
+static void twitter_context_menu_set_reply(GtkWidget *w, const gchar *url)
+{
+	twitter_got_uri_action(url, TWITTER_URI_ACTION_SET_REPLY);
+}
+
 static const gchar *url_get_param_value(const gchar *url, const gchar *key, gsize *len)
 {
 	const gchar *start = strchr(url, '?');
@@ -425,11 +518,14 @@ static void twitter_url_menu_actions(GtkWidget *menu, const char *url)
 	gsize account_len;
 	gsize user_len;
 	gsize in_reply_to_status_id_len;
+	gsize conv_type_len;
+	PurpleConversationType conv_type;
 	PurpleAccount *account;
 
 	const gchar *account_name_tmp = url_get_param_value(url, "account", &account_len);
 	const gchar *user_name_tmp = url_get_param_value(url, "user", &user_len);
 	const gchar *in_reply_to_status_id_tmp = url_get_param_value(url, "in_reply_to_status_id", &in_reply_to_status_id_len);
+	const gchar *conv_type_tmp = url_get_param_value(url, "conv_type", &conv_type_len);
 	long long in_reply_to_status_id;
 	gchar *account_name, *user_name;
 	if (!account_name_tmp || !user_name_tmp)
@@ -438,6 +534,7 @@ static void twitter_url_menu_actions(GtkWidget *menu, const char *url)
 	account_len--;
 
 	in_reply_to_status_id = strtoll(in_reply_to_status_id_tmp, NULL, 10);
+	conv_type = (PurpleConversationType) strtol(conv_type_tmp, NULL, 10);
 
 	account_name = g_strndup(account_name_tmp, account_len);
 	user_name = g_strndup(user_name_tmp, user_len);
@@ -495,6 +592,15 @@ static void twitter_url_menu_actions(GtkWidget *menu, const char *url)
 		gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
 	}
 #endif /* 0 */
+
+	if (conv_type == PURPLE_CONV_TYPE_IM)
+	{
+		img = gtk_image_new_from_stock(GTK_STOCK_CONVERT, GTK_ICON_SIZE_MENU);
+		item = gtk_image_menu_item_new_with_mnemonic(("Lock reply"));
+		gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
+		g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_set_reply), (gpointer)url);
+		gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
+	}
 
 	g_free(account_name);
 	g_free(user_name);
@@ -710,6 +816,29 @@ static gchar *gtkprpltwtr_format_tweet_cb(PurpleAccount *account,
 	g_free(linkified_message);
 	return g_string_free(tweet, FALSE);
 }
+
+
+static void gtkprpltwtr_received_im_cb(PurpleAccount *account,
+		long long tweet_id,
+		const gchar *buddy_name)
+{
+	gchar *conv_name = twitter_endpoint_im_buddy_name_to_conv_name(twitter_endpoint_im_find(account, TWITTER_IM_TYPE_AT_MSG), buddy_name);
+	PurpleConversation *conv = purple_find_conversation_with_account(PURPLE_CONV_TYPE_IM, conv_name, account);
+	gchar *id_str = NULL;
+	GtkTextBuffer *text_buffer;
+	GtkTextIter insertion_point;
+	g_free(conv_name);
+
+	if (conv)
+	{
+		text_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(GTK_IMHTML(PIDGIN_CONVERSATION(conv)->imhtml)));
+		gtk_text_buffer_get_end_iter(text_buffer, &insertion_point);
+		gtk_text_iter_forward_to_line_end(&insertion_point);
+		id_str = g_strdup_printf("%lld",tweet_id);
+		gtk_text_buffer_create_mark(text_buffer, id_str, &insertion_point, TRUE);
+		g_free(id_str);
+	}
+}
 #endif
 
 static void gtkprpltwtr_enable_conv_icon()
@@ -770,6 +899,14 @@ static gboolean plugin_load(PurplePlugin *plugin)
 	purple_signal_connect(purple_conversations_get_handle(),
 			"prpltwtr-format-tweet",
 			plugin, PURPLE_CALLBACK(gtkprpltwtr_format_tweet_cb), NULL);
+
+	purple_signal_connect(purple_conversations_get_handle(),
+			"prpltwtr-received-im",
+			plugin, PURPLE_CALLBACK(gtkprpltwtr_received_im_cb), NULL);
+
+	purple_signal_connect(purple_conversations_get_handle(),
+			"prpltwtr-set-reply",
+			plugin, PURPLE_CALLBACK(gtkprpltwtr_mark_reply), NULL);
 
 	purple_signal_connect(purple_get_core(), "uri-handler", plugin,
 			PURPLE_CALLBACK(twitter_uri_handler), NULL);

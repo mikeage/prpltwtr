@@ -40,8 +40,11 @@ static int twitter_send_reply_do(PurpleAccount *account, const char *who,
 		if (in_reply_to_status_id_pnt)
 		{
 			in_reply_to_status_id = *in_reply_to_status_id_pnt;
-			g_free(in_reply_to_status_id_pnt);
-			purple_conversation_set_data(conv, "twitter_conv_last_reply_id", NULL);
+		    if (!purple_conversation_get_data(conv, "twitter_conv_last_reply_id_manual")) {
+				g_free(in_reply_to_status_id_pnt);
+				purple_conversation_set_data(conv, "twitter_conv_last_reply_id", NULL);
+				purple_signal_emit(purple_conversations_get_handle(), "prpltwtr-set-reply", conv, NULL);
+			}
 		}
 	}
 	if (!in_reply_to_status_id)
@@ -193,27 +196,50 @@ static void twitter_get_replies_last_since_id(PurpleAccount *account,
 static void twitter_endpoint_reply_convo_closed(PurpleConversation *conv)
 {
 	long long *id;
+	PurpleConnection *gc = NULL;
+	TwitterConnectionData *twitter = NULL;
 	if (!conv)
 		return;
 	id = purple_conversation_get_data(conv, "twitter_conv_last_reply_id");
 	if (id)
 		g_free(id);
+	purple_conversation_set_data(conv, "twitter_conv_last_reply_id", NULL);
+
+	/* Don't continue to send replies (if someone messaged us) the next time this window is opened */
+	gc = purple_conversation_get_gc(conv);
+	if (gc) {
+		twitter	= gc->proto_data;
+		g_hash_table_remove (twitter->user_reply_id_table, conv->name);
+	}
 }
 
 PurpleConversation *twitter_endpoint_reply_conversation_new(TwitterEndpointIm *im,
 		const gchar *buddy_name,
-		long long reply_id)
+		long long reply_id,
+		gboolean force)
 {
 	if (im)
 	{
 		gchar *conv_name = twitter_endpoint_im_buddy_name_to_conv_name(im, buddy_name);
 		PurpleConversation *conv = purple_conversation_new(PURPLE_CONV_TYPE_IM, im->account, conv_name);
 
-		if (conv && reply_id)
-		{
-			purple_conversation_set_data(conv, "twitter_conv_last_reply_id", g_memdup(&reply_id, sizeof(reply_id)));
-		}
+		purple_debug_info(TWITTER_PROTOCOL_ID, "%s() conv %p (%s) %s replies to %lld\n", G_STRFUNC, conv, conv_name, force ? "force" : "suggest", reply_id);
 
+		if (conv)
+		{
+			if (force || !purple_conversation_get_data(conv, "twitter_conv_last_reply_id_manual"))
+			{
+				long long *p = purple_conversation_get_data(conv, "twitter_conv_last_reply_id");
+				if (p)
+					g_free(p);
+				purple_conversation_set_data(conv, "twitter_conv_last_reply_id", NULL);
+
+				if (reply_id)
+				{
+					purple_conversation_set_data(conv, "twitter_conv_last_reply_id", g_memdup(&reply_id, sizeof(reply_id)));
+				}
+			}
+		}
 		g_free(conv_name);
 		return conv;
 	}
