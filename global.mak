@@ -66,6 +66,7 @@ PURPLE_CFLAGS += $(shell pkg-config --cflags purple)
 PURPLE_CFLAGS += -Wdeclaration-after-statement -Wall -pthread -I. -g -O2 -pipe -fPIC -DPIC 
 PLUGIN_SUFFIX := .so
 EXE_SUFFIX := 
+STRIP := strip
 
 PURPLE_PROTOCOL_PIXMAP_DIR := $(DESTDIR)$(PREFIX)/share/pixmaps/pidgin/protocols
 PURPLE_PLUGIN_DIR := $(DESTDIR)$(LIBDIR)/purple-2
