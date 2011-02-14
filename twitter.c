@@ -1744,7 +1744,7 @@ static PurplePluginInfo info =
 	PURPLE_PRIORITY_DEFAULT,				 /* priority */
 	TWITTER_PROTOCOL_ID,					     /* id */
 	"Twitter Protocol",					      /* name */
-	"0.5.2",						   /* version */
+	"0.6.0",						   /* version */
 	"Twitter Protocol Plugin",				  /* summary */
 	"Twitter Protocol Plugin",				  /* description */
 	"neaveru <neaveru@gmail.com>",		     /* author */
