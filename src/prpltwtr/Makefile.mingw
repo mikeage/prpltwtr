@@ -1,0 +1,99 @@
+#
+# Makefile.mingw
+#
+# Description: Makefile for privacy please plugin.
+# Taken from the ticker plugin.
+#
+
+ifndef PIDGIN_TREE_TOP
+$(error Please make sure PIDGIN_TREE_TOP is defined!)
+endif
+
+include $(PIDGIN_TREE_TOP)/libpurple/win32/global.mak
+
+TARGET = prpltwtr
+DEFINES += -DVERSION=\"$(VERSION)\" -DPURPLE_PLUGINS
+
+##
+## INCLUDE PATHS
+##
+INCLUDE_PATHS +=	-I. \
+			-I$(GTK_TOP)/include \
+			-I$(GTK_TOP)/include/gtk-2.0 \
+			-I$(GTK_TOP)/include/glib-2.0 \
+			-I$(GTK_TOP)/include/pango-1.0 \
+			-I$(GTK_TOP)/include/atk-1.0 \
+			-I$(GTK_TOP)/include/cairo \
+			-I$(GTK_TOP)/lib/glib-2.0/include \
+			-I$(GTK_TOP)/lib/gtk-2.0/include \
+			-I$(PURPLE_TOP) \
+			-I$(PURPLE_TOP)/win32 \
+			-I$(PIDGIN_TOP) \
+			-I$(PIDGIN_TOP)/win32 \
+			-I$(PIDGIN_TREE_TOP)
+
+LIB_PATHS +=		-L$(GTK_TOP)/lib \
+			-L$(PURPLE_TOP) \
+			-L$(PIDGIN_TOP)
+
+##
+##  SOURCES, OBJECTS
+##
+C_SRC = \
+twitter_api.c \
+twitter_buddy.c \
+twitter.c \
+twitter_conn.c \
+twitter_endpoint_chat.c \
+twitter_endpoint_dm.c \
+twitter_endpoint_im.c \
+twitter_endpoint_reply.c \
+twitter_endpoint_search.c \
+twitter_endpoint_timeline.c \
+twitter_mbprefs.c \
+twitter_prefs.c \
+twitter_request.c \
+twitter_search.c \
+twitter_util.c \
+twitter_xml.c \
+
+OBJECTS = $(C_SRC:%.c=%.o)
+
+##
+## LIBRARIES
+##
+LIBS =			-lgtk-win32-2.0 \
+			-lglib-2.0 \
+			-lgdk-win32-2.0 \
+			-lgobject-2.0 \
+			-lpurple 
+#			-lpidgin
+
+include $(PIDGIN_COMMON_RULES)
+
+##
+## TARGET DEFINITIONS
+##
+.PHONY: all install clean installer dist
+
+all: $(TARGET).dll
+
+$(OBJECTS): $(PIDGIN_CONFIG_H)
+
+$(TARGET).dll: $(PURPLE_DLL).a $(PIDGIN_DLL).a $(OBJECTS) $(TARGET).dll.dbgsym
+	$(STRIP) -g $(TARGET).dll.dbgsym -o $(TARGET).dll
+$(TARGET).dll.dbgsym:
+	$(CC) -shared $(OBJECTS) $(LIB_PATHS) $(LIBS) $(DLL_LD_FLAGS) -g -o $(TARGET).dll.dbgsym
+
+installer: dist
+
+dist: all
+
+##
+## CLEAN RULES
+##
+clean:
+	rm -rf $(OBJECTS)
+	rm -rf $(TARGET).dll $(TARGET).dll.dbgsym
+
+include $(PIDGIN_COMMON_TARGETS)

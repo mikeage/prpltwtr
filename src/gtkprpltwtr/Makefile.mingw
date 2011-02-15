@@ -1,0 +1,100 @@
+#
+# Makefile.mingw
+#
+# Description: Makefile for privacy please plugin.
+# Taken from the ticker plugin.
+#
+
+ifndef PIDGIN_TREE_TOP
+$(error Please make sure PIDGIN_TREE_TOP is defined!)
+endif
+
+include $(PIDGIN_TREE_TOP)/libpurple/win32/global.mak
+
+TARGET = gtkprpltwtr
+DEFINES += -DVERSION=\"$(VERSION)\" -DPURPLE_PLUGINS
+
+PRPLTWTR_PATH = ../prpltwtr/
+##
+## INCLUDE PATHS
+##
+INCLUDE_PATHS +=	-I. \
+			-I$(GTK_TOP)/include \
+			-I$(GTK_TOP)/include/gtk-2.0 \
+			-I$(GTK_TOP)/include/glib-2.0 \
+			-I$(GTK_TOP)/include/pango-1.0 \
+			-I$(GTK_TOP)/include/atk-1.0 \
+			-I$(GTK_TOP)/include/cairo \
+			-I$(GTK_TOP)/lib/glib-2.0/include \
+			-I$(GTK_TOP)/lib/gtk-2.0/include \
+			-I$(PURPLE_TOP) \
+			-I$(PURPLE_TOP)/win32 \
+			-I$(PIDGIN_TOP) \
+			-I$(PIDGIN_TOP)/win32 \
+			-I$(PIDGIN_TREE_TOP) \
+            -I$(PRPLTWTR_PATH)
+
+LIB_PATHS +=		-L$(GTK_TOP)/lib \
+			-L$(PURPLE_TOP) \
+			-L$(PIDGIN_TOP) \
+            -L$(PRPLTWTR_PATH)
+
+##
+##  SOURCES, OBJECTS
+##
+C_SRC = \
+gtkprpltwtr.c \
+gtkprpltwtr_prefs.c \
+twitter_charcount.c \
+twitter_convicon.c
+
+
+OBJECTS = $(C_SRC:%.c=%.o)
+
+BASE_PRPLTWTR_OBJS = twitter_prefs.o twitter_request.o twitter_api.o twitter_search.o twitter_util.o twitter_xml.o twitter_endpoint_chat.o twitter_endpoint_search.o twitter_endpoint_timeline.o twitter_buddy.o twitter_conn.o twitter_endpoint_im.o twitter_endpoint_dm.o twitter_endpoint_reply.o twitter_mbprefs.o
+
+PRPLTWTR_OBJS = $(addprefix $(PRPLTWTR_PATH), $(BASE_PRPLTWTR_OBJS))
+
+
+##
+## LIBRARIES
+##
+LIBS =	-lgtk-win32-2.0 \
+			-lglib-2.0 \
+			-lgdk_pixbuf-2.0 \
+			-lgdk-win32-2.0 \
+			-lgobject-2.0 \
+			-lintl \
+			-lpurple \
+			-lpidgin
+
+include $(PIDGIN_COMMON_RULES)
+
+##
+## TARGET DEFINITIONS
+##
+.PHONY: all install clean installer dist
+
+all: $(TARGET).dll
+
+$(OBJECTS): $(PIDGIN_CONFIG_H)
+
+$(TARGET).dll: $(PURPLE_DLL).a $(PIDGIN_DLL).a $(OBJECTS) $(PRPLTWTR_OBJS) $(TARGET).dll.dbgsym
+	$(STRIP) -g $(TARGET).dll.dbgsym -o $(TARGET).dll
+
+$(TARGET).dll.dbgsym:
+	$(CC) -shared $(PRPLTWTR_OBJS) $(OBJECTS) $(LIB_PATHS) $(LIBS) $(DLL_LD_FLAGS) -g -o $(TARGET).dll.dbgsym
+
+installer: dist
+
+dist: all
+
+
+##
+## CLEAN RULES
+##
+clean:
+	rm -rf $(OBJECTS)
+	rm -rf $(TARGET).dll $(TARGET).dll.dbgsym
+
+include $(PIDGIN_COMMON_TARGETS)

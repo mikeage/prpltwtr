@@ -1,0 +1,29 @@
+# Makefile.mingw
+#
+# Description: Top Makefile for pidgin-privacy-please.
+#
+
+.PHONY: all installer clean
+
+MINGW_MAKEFILE=Makefile.mingw
+export VERSION=$(shell grep ^PACKAGE_VERSION= configure | cut -d "'" -f 2)
+
+all:
+	$(MAKE) -C src -f $(MINGW_MAKEFILE) $@
+	$(MAKE) -C data -f $(MINGW_MAKEFILE) $@
+
+clean:
+	$(MAKE) -C src -f $(MINGW_MAKEFILE) $@
+	$(MAKE) -C data -f $(MINGW_MAKEFILE) $@
+	rm -rf nsis/*exe
+
+ifeq ($(strip $(VERSION)),)
+$(error Version wasn't defined! Did you run configure? If you want, this can be set on the command line)
+endif
+
+installer: dist
+
+dist: 
+	$(MAKE) -C src -f $(MINGW_MAKEFILE) $@
+	$(MAKE) -C data -f $(MINGW_MAKEFILE) $@
+	makensis -DPRODUCT_VERSION=$(VERSION) nsis/prpltwtr.nsi
