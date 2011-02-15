@@ -41,7 +41,7 @@ TwitterRequestParam *twitter_request_param_new_ll(const gchar *name, long long v
 
 typedef GArray TwitterRequestParams;
 
-TwitterRequestParams *twitter_request_params_new();
+TwitterRequestParams *twitter_request_params_new(void);
 TwitterRequestParams *twitter_request_params_add(GArray *params, TwitterRequestParam *p);
 void twitter_request_params_free(TwitterRequestParams *params);
 void twitter_request_param_free(TwitterRequestParam *p);

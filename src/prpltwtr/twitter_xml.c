@@ -109,7 +109,7 @@ static const gchar *twitter_search_entry_get_icon_url(xmlnode *entry_node)
 	return NULL;
 }
 
-TwitterUserTweet *twitter_search_entry_node_parse(xmlnode *entry_node)
+static TwitterUserTweet *twitter_search_entry_node_parse(xmlnode *entry_node)
 {
 	if (entry_node != NULL && entry_node->name && !strcmp(entry_node->name, "entry"))
 	{

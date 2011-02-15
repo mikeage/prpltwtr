@@ -952,7 +952,7 @@ static PurplePluginPrefFrame *get_plugin_pref_frame(PurplePlugin *plugin)
 	return frame;
 }
 
-void plugin_destroy(PurplePlugin * plugin)
+static void plugin_destroy(PurplePlugin * plugin)
 {
 }
 

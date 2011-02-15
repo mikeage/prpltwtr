@@ -261,7 +261,7 @@ static TwitterEndpointImSettings TwitterEndpointReplySettings =
 	twitter_endpoint_reply_convo_closed, //convo_closed
 };
 
-TwitterEndpointImSettings *twitter_endpoint_reply_get_settings()
+TwitterEndpointImSettings *twitter_endpoint_reply_get_settings(void)
 {
 	return &TwitterEndpointReplySettings;
 }

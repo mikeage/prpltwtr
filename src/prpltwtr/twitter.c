@@ -84,7 +84,7 @@ static GList *twitter_chat_info(PurpleConnection *gc) {
 	return chat_info;
 }
 
-GHashTable *twitter_chat_info_defaults(PurpleConnection *gc, const char *chat_name)
+static GHashTable *twitter_chat_info_defaults(PurpleConnection *gc, const char *chat_name)
 {
 	GHashTable *defaults;
 
@@ -99,7 +99,7 @@ GHashTable *twitter_chat_info_defaults(PurpleConnection *gc, const char *chat_na
 }
 
 
-#if _HAZE_
+#ifdef _HAZE_
 static PurpleBuddy *twitter_blist_chat_timeline_new(PurpleAccount *account, gint timeline_id)
 {
 	return twitter_buddy_new(account, "Timeline: Home", NULL);
@@ -292,7 +292,7 @@ static void get_saved_searches_cb(TwitterRequestor *r,
 	for (search = node->child; search; search = search->next) {
 		if (search->name && !g_strcmp0 (search->name, "saved_search")) {
 			gchar *query = xmlnode_get_child_data (search, "query");
-#if _HAZE_
+#ifdef _HAZE_
 			char *buddy_name = g_strdup_printf("#%s", query);
 
 			twitter_buddy_new(r->account, buddy_name, NULL);
@@ -398,7 +398,7 @@ static void twitter_init_auto_open_contexts(PurpleAccount *account)
 	return;
 }
 
-#if _HAZE_
+#ifdef _HAZE_
 static void conversation_created_cb(PurpleConversation *conv, gpointer *unused)
 {
 	const char *name = purple_conversation_get_name(conv);
@@ -484,7 +484,7 @@ static void twitter_connected(PurpleAccount *account)
 	purple_connection_set_state(gc, PURPLE_CONNECTED);
 
 	twitter_blist_chat_timeline_new(account, 0);
-#if _HAZE_
+#ifdef _HAZE_
 	//Set home timeline online
 	purple_prpl_got_user_status(account, "Timeline: Home", TWITTER_STATUS_ONLINE, NULL);
 #endif
@@ -972,7 +972,7 @@ static void twitter_oauth_request_token_error_cb(TwitterRequestor *r, const Twit
 	twitter_oauth_disconnect(r->account, "Error receiving request token");
 }
 
-void twitter_verify_credentials_success_cb(TwitterRequestor *r, xmlnode *node, gpointer user_data)
+static void twitter_verify_credentials_success_cb(TwitterRequestor *r, xmlnode *node, gpointer user_data)
 {
 	PurpleAccount *account = r->account;
 	TwitterUserTweet *user_tweet = twitter_verify_credentials_parse(node);
@@ -1083,7 +1083,7 @@ static void twitter_login(PurpleAccount *account)
 	if (!TWITTER_SIGNALS_CONNECTED)
 	{
 		TWITTER_SIGNALS_CONNECTED = TRUE;
-#if _HAZE_
+#ifdef _HAZE_
 		purple_debug_info(TWITTER_PROTOCOL_ID, "Connecting conv signals for first time\n");
 		purple_signal_connect(purple_conversations_get_handle(), "conversation-created",
 				twitter, PURPLE_CALLBACK(conversation_created_cb), NULL);
@@ -1251,7 +1251,7 @@ static int twitter_send_im(PurpleConnection *gc, const char *conv_name,
 
 	stripped_message = purple_markup_strip_html(message);
 
-#if _HAZE_
+#ifdef _HAZE_
 	if (conv_name[0] == '#')
 	{
 		purple_debug_info(TWITTER_PROTOCOL_ID, "%s of search %s\n", G_STRFUNC, conv_name);
@@ -1610,11 +1610,16 @@ static PurplePluginProtocolInfo prpl_info =
 	NULL,
 	NULL,
 	sizeof(PurplePluginProtocolInfo),    /* struct_size */
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
 	NULL
 };
 
 //borrowed from signals.c
-void twitter_marshal_format_tweet(PurpleCallback cb, va_list args, void *data,
+static void twitter_marshal_format_tweet(PurpleCallback cb, va_list args, void *data,
 		void **return_val)
 {
 	gpointer ret_val;
@@ -1633,7 +1638,7 @@ void twitter_marshal_format_tweet(PurpleCallback cb, va_list args, void *data,
 		*return_val = ret_val;
 }
 
-void twitter_marshal_received_im(PurpleCallback cb, va_list args, void *data,
+static void twitter_marshal_received_im(PurpleCallback cb, va_list args, void *data,
 		void **return_val)
 {
 	void *arg1 = va_arg(args, void *); //account
@@ -1646,7 +1651,7 @@ void twitter_marshal_received_im(PurpleCallback cb, va_list args, void *data,
 		*return_val = NULL;
 }
 
-void twitter_marshal_set_reply(PurpleCallback cb, va_list args, void *data,
+static void twitter_marshal_set_reply(PurpleCallback cb, va_list args, void *data,
 		void **return_val)
 {
 	void *arg1 = va_arg(args, void *); // conversation

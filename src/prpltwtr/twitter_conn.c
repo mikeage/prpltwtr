@@ -12,7 +12,7 @@ void twitter_connection_foreach_endpoint_im(TwitterConnectionData *twitter,
 
 TwitterEndpointIm *twitter_connection_get_endpoint_im(TwitterConnectionData *twitter, TwitterImType type)
 {
-	if (type >= 0 && type < TWITTER_IM_TYPE_UNKNOWN)
+	if (type < TWITTER_IM_TYPE_UNKNOWN)
 		return twitter->endpoint_ims[type];
 	return NULL;
 }

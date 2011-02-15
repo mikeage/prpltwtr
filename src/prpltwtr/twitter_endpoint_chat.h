@@ -46,7 +46,7 @@ typedef gint (*TwitterChatSendMessageFunc)(TwitterEndpointChat *ctx, const char 
 struct _TwitterEndpointChatSettings
 {
 	TwitterChatType type;
-#if _HAZE_
+#ifdef _HAZE_
 	gchar conv_id;
 #endif
 	gchar *(*get_status_added_text)(TwitterEndpointChat *endpoint_chat);
@@ -89,6 +89,7 @@ TwitterEndpointChat *twitter_endpoint_chat_new(
 	TwitterChatType type, PurpleAccount *account, const gchar *chat_name,
 	GHashTable *components);
 
+void twitter_endpoint_chat_init(void);
 void twitter_endpoint_chat_free(TwitterEndpointChat *ctx);
 
 void twitter_endpoint_chat_start(PurpleConnection *gc, TwitterEndpointChatSettings *settings,
@@ -107,6 +108,6 @@ void twitter_chat_got_user_tweets(TwitterEndpointChat *endpoint_chat, GList *use
 int twitter_endpoint_chat_send(TwitterEndpointChat *ctx, const gchar *message);
 
 TwitterEndpointChatSettings *twitter_get_endpoint_chat_settings(TwitterChatType type);
-void twitter_endpoint_chat_init();
+void twitter_endpoint_chat_init(void);
 
 #endif

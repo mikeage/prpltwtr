@@ -633,7 +633,7 @@ static int xmlnode_child_count(xmlnode *parent)
 	return count;
 }
 
-void twitter_send_xml_request_multipage_cb(TwitterRequestor *r, xmlnode *node, gpointer user_data)
+static void twitter_send_xml_request_multipage_cb(TwitterRequestor *r, xmlnode *node, gpointer user_data)
 {
 	TwitterMultiPageRequestData *request_data = user_data;
 	int count = 0;
@@ -679,7 +679,7 @@ void twitter_send_xml_request_multipage_cb(TwitterRequestor *r, xmlnode *node, g
 		twitter_send_xml_request_multipage_do(r, request_data);
 	}
 }
-void twitter_send_xml_request_multipage_error_cb(TwitterRequestor *r, const TwitterRequestErrorData *error_data, gpointer user_data)
+static void twitter_send_xml_request_multipage_error_cb(TwitterRequestor *r, const TwitterRequestErrorData *error_data, gpointer user_data)
 {
 	TwitterMultiPageRequestData *request_data = user_data;
 	gboolean try_again;
@@ -710,7 +710,7 @@ void twitter_send_xml_request_multipage_do(TwitterRequestor *r,
 }
 
 
-void twitter_send_xml_request_multipage(TwitterRequestor *r,
+static void twitter_send_xml_request_multipage(TwitterRequestor *r,
 		const char *url, TwitterRequestParams *params,
 		TwitterSendRequestMultiPageSuccessFunc success_callback,
 		TwitterSendRequestMultiPageErrorFunc error_callback,

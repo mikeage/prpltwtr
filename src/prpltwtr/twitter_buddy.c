@@ -31,14 +31,14 @@ static void twitter_buddy_change_state(PurpleBuddy *buddy, gboolean online, cons
 			NULL);
 }
 
-void twitter_buddy_touch_state_with_cutoff(PurpleBuddy *buddy, time_t cutoff)
+static void twitter_buddy_touch_state_with_cutoff(PurpleBuddy *buddy, time_t cutoff)
 {
 	PurpleAccount *account = purple_buddy_get_account(buddy);
 	TwitterUserTweet *user_tweet = twitter_buddy_get_buddy_data(buddy);
 	TwitterTweet *tweet = user_tweet ? user_tweet->status : NULL;
 	gchar *tweet_message = tweet ? tweet->text : NULL;
 
-#if _HAZE_
+#ifdef _HAZE_
 	//Haze has chats as buddies. Keep them always online
 	if (buddy->name && (buddy->name[0] == '#' || twitter_usernames_match(account, buddy->name, "Timeline: Home")))
 	{

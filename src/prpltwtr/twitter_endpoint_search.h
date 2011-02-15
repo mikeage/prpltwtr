@@ -39,6 +39,6 @@ typedef struct
 	long long last_tweet_id;
 } TwitterSearchTimeoutContext;
 
-TwitterEndpointChatSettings *twitter_endpoint_search_get_settings();
+TwitterEndpointChatSettings *twitter_endpoint_search_get_settings(void);
 
 #endif

@@ -31,7 +31,7 @@ static void twitter_search_timeout_context_free(gpointer _ctx)
 
 static char *twitter_chat_name_from_search(const char *search)
 {
-#if _HAZE_
+#ifdef _HAZE_
 	return g_strdup_printf("#%s", search);
 #else
 	char *search_lower = g_utf8_strdown(search, -1);
@@ -144,7 +144,7 @@ static gchar *twitter_endpoint_search_get_status_added_text(TwitterEndpointChat 
 static TwitterEndpointChatSettings TwitterEndpointSearchSettings =
 {
 	TWITTER_CHAT_SEARCH,
-#if _HAZE_
+#ifdef _HAZE_
 	'#',
 #endif
 	twitter_endpoint_search_get_status_added_text,
@@ -157,7 +157,7 @@ static TwitterEndpointChatSettings TwitterEndpointSearchSettings =
 	twitter_search_timeout_context_new,
 };
 
-TwitterEndpointChatSettings *twitter_endpoint_search_get_settings()
+TwitterEndpointChatSettings *twitter_endpoint_search_get_settings(void)
 {
 	return &TwitterEndpointSearchSettings;
 }

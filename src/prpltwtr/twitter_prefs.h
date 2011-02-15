@@ -92,7 +92,7 @@
 #define TWITTER_PREF_URL_DELETE_STATUS "/statuses/destroy" /* Yay for inconsistency */
 /***** END URLS *****/
 
-GList *twitter_get_protocol_options();
+GList *twitter_get_protocol_options(void);
 
 gboolean twitter_option_add_link_to_tweet(PurpleAccount *account);
 gint twitter_option_search_timeout(PurpleAccount *account);

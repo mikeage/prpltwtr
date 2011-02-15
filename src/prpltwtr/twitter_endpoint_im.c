@@ -15,7 +15,7 @@ TwitterEndpointIm *twitter_endpoint_im_find(PurpleAccount *account, TwitterImTyp
 	PurpleConnection *gc;
 	TwitterConnectionData *twitter;
 
-	g_return_val_if_fail(type >= 0 && type < TWITTER_IM_TYPE_UNKNOWN, NULL);
+	g_return_val_if_fail(type < TWITTER_IM_TYPE_UNKNOWN, NULL);
 
 	gc = purple_account_get_connection(account);
 	if (gc) {

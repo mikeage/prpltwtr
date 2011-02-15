@@ -13,7 +13,7 @@ static void twitter_init_endpoint_chat_settings(TwitterEndpointChatSettings *set
 
 TwitterEndpointChatSettings *twitter_get_endpoint_chat_settings(TwitterChatType type)
 {
-	if (type >= 0 && type < TWITTER_CHAT_UNKNOWN)
+	if (type < TWITTER_CHAT_UNKNOWN)
 		return TwitterEndpointChatSettingsLookup[type];
 	return NULL;
 }
@@ -25,7 +25,7 @@ static gint twitter_get_next_chat_id(PurpleAccount *account)
 	return ++twitter->chat_id;
 }
 
-void twitter_endpoint_chat_init()
+void twitter_endpoint_chat_init(void)
 {
 	twitter_init_endpoint_chat_settings(twitter_endpoint_search_get_settings());
 	twitter_init_endpoint_chat_settings(twitter_endpoint_timeline_get_settings());
@@ -100,7 +100,7 @@ TwitterEndpointChat *twitter_endpoint_chat_find_by_id(TwitterEndpointChatId *cha
 
 static PurpleConversation *twitter_endpoint_chat_find_open_conv(TwitterEndpointChat *ctx)
 {
-#if _HAZE_
+#ifdef _HAZE_
 	return purple_find_conversation_with_account(PURPLE_CONV_TYPE_IM, ctx->chat_name, ctx->account);
 #else
 	return purple_find_conversation_with_account(PURPLE_CONV_TYPE_CHAT, ctx->chat_name, ctx->account);
@@ -210,13 +210,13 @@ gboolean twitter_blist_chat_is_auto_open(PurpleChat *chat)
 static void twitter_chat_add_tweet(PurpleConversation *conv, const char *who, const char *message, long long id, time_t time, long long in_reply_to_status_id)
 {
 	gchar *tweet;
-#if !_HAZE_
+#ifndef _HAZE_
 	PurpleConvChat *chat;
 #endif
 
 	purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
 
-#if !_HAZE_
+#ifndef _HAZE_
 	chat = purple_conversation_get_chat_data(conv);
 	g_return_if_fail(chat != NULL);
 #endif
@@ -233,7 +233,7 @@ static void twitter_chat_add_tweet(PurpleConversation *conv, const char *who, co
 			purple_conversation_get_name(conv),
 			TRUE,
 			in_reply_to_status_id);
-#if _HAZE_
+#ifdef _HAZE_
 	//This isn't in twitter_Format_tweet because we can't distinguish between a im and a chat
 	gchar *tweet2 = g_strdup_printf("%s: %s", who, tweet);
 	g_free(tweet);
@@ -264,7 +264,7 @@ static void twitter_chat_add_tweet(PurpleConversation *conv, const char *who, co
 
 static PurpleConversation *twitter_endpoint_chat_get_conv(TwitterEndpointChat *endpoint_chat)
 {
-#if _HAZE_
+#ifdef _HAZE_
 	return twitter_endpoint_chat_find_open_conv(endpoint_chat);
 #else
 	PurpleConversation *conv = twitter_endpoint_chat_find_open_conv(endpoint_chat);
@@ -423,7 +423,7 @@ void twitter_endpoint_chat_start(PurpleConnection *gc, TwitterEndpointChatSettin
 
 	chat_name = settings->get_name(components);
 
-#if _HAZE_
+#ifdef _HAZE_
 	//HAZE only works when the conv has already been created
 	//as opposed to right before the conversation has been created
         if (!purple_find_conversation_with_account(PURPLE_CONV_TYPE_IM, chat_name, account)) {
@@ -457,7 +457,7 @@ void twitter_endpoint_chat_start(PurpleConnection *gc, TwitterEndpointChatSettin
 		}
 	}
 
-#if !_HAZE_
+#ifndef _HAZE_
 	if (!purple_find_conversation_with_account(PURPLE_CONV_TYPE_CHAT, chat_name, account)) {
 		if (open_conv)
 		{
@@ -486,7 +486,7 @@ static void twitter_endpoint_chat_send_success_cb(PurpleAccount *account, xmlnod
 	TwitterTweet *tweet = user_tweet ? user_tweet->status : NULL;
 	TwitterEndpointChat *ctx = twitter_endpoint_chat_find_by_id(id);
 
-#if !_HAZE_
+#ifndef _HAZE_
 	PurpleConversation *conv;
 
 	if (ctx && tweet && tweet->text && (conv = twitter_endpoint_chat_find_open_conv(ctx)))

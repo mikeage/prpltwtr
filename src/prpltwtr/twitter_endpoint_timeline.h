@@ -40,6 +40,6 @@ typedef struct
 	guint timeline_id;
 } TwitterTimelineTimeoutContext;
 
-TwitterEndpointChatSettings *twitter_endpoint_timeline_get_settings();
+TwitterEndpointChatSettings *twitter_endpoint_timeline_get_settings(void);
 
 #endif

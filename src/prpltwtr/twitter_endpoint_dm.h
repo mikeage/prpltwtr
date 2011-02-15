@@ -7,6 +7,6 @@
 #include "twitter_conn.h"
 #include "twitter_buddy.h"
 
-TwitterEndpointImSettings *twitter_endpoint_dm_get_settings();
+TwitterEndpointImSettings *twitter_endpoint_dm_get_settings(void);
 
 #endif

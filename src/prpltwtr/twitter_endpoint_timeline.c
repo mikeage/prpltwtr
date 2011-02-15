@@ -1,17 +1,17 @@
 #include "twitter_endpoint_timeline.h"
 
 //TODO: Should these be here?
-long long twitter_account_get_last_home_timeline_id(PurpleAccount *account)
+static long long twitter_account_get_last_home_timeline_id(PurpleAccount *account)
 {
 	return purple_account_get_long_long(account, "twitter_last_home_timeline_id", 0);
 }
 
-void twitter_account_set_last_home_timeline_id(PurpleAccount *account, long long reply_id)
+static void twitter_account_set_last_home_timeline_id(PurpleAccount *account, long long reply_id)
 {
 	purple_account_set_long_long(account, "twitter_last_home_timeline_id", reply_id);
 }
 
-long long twitter_connection_get_last_home_timeline_id(PurpleConnection *gc)
+static long long twitter_connection_get_last_home_timeline_id(PurpleConnection *gc)
 {
 	long long reply_id = 0;
 	TwitterConnectionData *connection_data = gc->proto_data;
@@ -19,7 +19,7 @@ long long twitter_connection_get_last_home_timeline_id(PurpleConnection *gc)
 	return (reply_id ? reply_id : twitter_account_get_last_home_timeline_id(purple_connection_get_account(gc)));
 }
 
-void twitter_connection_set_last_home_timeline_id(PurpleConnection *gc, long long reply_id)
+static void twitter_connection_set_last_home_timeline_id(PurpleConnection *gc, long long reply_id)
 {
 	TwitterConnectionData *connection_data = gc->proto_data;
 
@@ -179,7 +179,7 @@ static gboolean twitter_timeline_timeout(TwitterEndpointChat *endpoint_chat)
 static TwitterEndpointChatSettings TwitterEndpointTimelineSettings =
 {
 	TWITTER_CHAT_TIMELINE,
-#if _HAZE_
+#ifdef _HAZE_
 	'!',
 #endif
 	NULL,
@@ -192,7 +192,7 @@ static TwitterEndpointChatSettings TwitterEndpointTimelineSettings =
 	twitter_timeline_timeout_context_new,
 };
 
-TwitterEndpointChatSettings *twitter_endpoint_timeline_get_settings()
+TwitterEndpointChatSettings *twitter_endpoint_timeline_get_settings(void)
 {
 	return &TwitterEndpointTimelineSettings;
 }
