@@ -804,6 +804,14 @@ static GHashTable *twitter_oauth_result_to_hashtable(const gchar *txt)
 	return results;
 }
 
+static void twitter_oauth_recoverable_disconnect(PurpleAccount *account, const char *message)
+{
+	PurpleConnection *gc = purple_account_get_connection(account);
+	purple_connection_error_reason(gc,
+			PURPLE_CONNECTION_ERROR_NETWORK_ERROR,
+			(message));
+}
+
 static void twitter_oauth_disconnect(PurpleAccount *account, const char *message)
 {
 	PurpleConnection *gc = purple_account_get_connection(account);
@@ -991,7 +999,23 @@ static void twitter_verify_credentials_success_cb(TwitterRequestor *r, xmlnode *
 
 static void twitter_verify_credentials_error_cb(TwitterRequestor *r, const TwitterRequestErrorData *error_data, gpointer user_data)
 {
-	twitter_oauth_disconnect(r->account, "Error verifying credentials");
+	purple_debug_info(TWITTER_PROTOCOL_ID, "Error verifying credentials. Error type %d: %s\n", error_data->type, error_data->message);
+	switch (error_data->type) {
+		case TWITTER_REQUEST_ERROR_SERVER:
+			twitter_oauth_recoverable_disconnect(r->account, "Error verifying credentials (server)");
+			break;
+		case TWITTER_REQUEST_ERROR_NONE:
+		case TWITTER_REQUEST_ERROR_TWITTER_GENERAL:
+		case TWITTER_REQUEST_ERROR_INVALID_XML:
+		case TWITTER_REQUEST_ERROR_NO_OAUTH:
+		case TWITTER_REQUEST_ERROR_CANCELED:
+		case TWITTER_REQUEST_ERROR_UNAUTHORIZED:
+			twitter_oauth_disconnect(r->account, "Error verifying credentials");
+			break;
+		default:
+			twitter_oauth_disconnect(r->account, "Error verifying credentials: unknown reason");
+			break;
+	}
 }
 
 static void twitter_requestor_pre_send_auth_basic(TwitterRequestor *r, gboolean *post, const char **url, TwitterRequestParams **params, gchar ***header_fields, gpointer *requestor_data)
