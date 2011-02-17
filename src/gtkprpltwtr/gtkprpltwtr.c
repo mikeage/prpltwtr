@@ -60,6 +60,7 @@ static void twitter_get_status_success_cb(TwitterRequestor *r,
 	TwitterTweet *tweet;
 	TwitterUserData *user;
 	TwitterConversationId *conv_id = user_data;
+	gchar * tweet_text;
 
 	tweet = twitter_status_node_parse(node);
 	if (!tweet || !tweet->text || !tweet->id)
