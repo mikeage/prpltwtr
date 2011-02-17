@@ -111,6 +111,17 @@ static const gchar *twitter_option_url_rt(PurpleAccount *account, long long id)
 	return result;
 }
 
+static const gchar *twitter_option_url_get_status(PurpleAccount *account, long long id)
+{
+	gchar *url = g_strdup_printf("%s/%lld.xml",
+			TWITTER_PREF_URL_GET_STATUS,
+			id);
+	const gchar *result = twitter_api_create_url(account,
+			url);
+	g_free(url);
+	return result;
+}
+
 static const gchar *twitter_option_url_delete_status(PurpleAccount *account, long long id)
 {
 	gchar *url = g_strdup_printf("%s/%lld.xml",
@@ -432,6 +443,19 @@ void twitter_api_send_rt(TwitterRequestor *r,
 			twitter_option_url_rt(r->account, id), NULL,
 			success_func, error_func, data);
 
+}
+
+void twitter_api_get_status(TwitterRequestor *r,
+		long long id,
+		TwitterSendXmlRequestSuccessFunc success_func,
+		TwitterSendRequestErrorFunc error_func,
+		gpointer data)
+{
+	g_return_if_fail(id > 0);
+
+	twitter_send_xml_request(r, FALSE,
+			twitter_option_url_get_status(r->account, id), NULL,
+			success_func, error_func, data);
 }
 
 void twitter_api_delete_status(TwitterRequestor *r,

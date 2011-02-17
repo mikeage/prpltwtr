@@ -53,6 +53,45 @@ static void twitter_send_rt_error_cb(TwitterRequestor *r,
 	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_ERROR, "Retweet failed");
 }
 
+static void twitter_get_status_success_cb(TwitterRequestor *r,
+		xmlnode *node,
+		gpointer user_data)
+{
+	TwitterTweet *tweet;
+	TwitterUserData *user;
+	TwitterConversationId *conv_id = user_data;
+
+	tweet = twitter_status_node_parse(node);
+	if (!tweet || !tweet->text || !tweet->id)
+	{
+		purple_debug_info(DEBUG_ID, "Essential information missing from the tweet!\n");
+		return;
+	}
+
+	user = twitter_user_node_parse(xmlnode_get_child(node, "user"));
+	if (!user || !user->screen_name)
+	{
+		purple_debug_info(DEBUG_ID, "Essential information missing from the user!\n");
+		return;
+	}
+
+	tweet_text = twitter_format_tweet(r->account, user->screen_name, tweet->text, tweet->id, conv_id->type, conv_id->conv_name, TRUE, tweet->in_reply_to_status_id);
+
+	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_RECV | PURPLE_MESSAGE_NO_LOG, tweet_text);
+
+	g_free(tweet_text);
+	twitter_status_data_free(tweet);
+	twitter_user_data_free(user);
+}
+
+static void twitter_get_status_error_cb(TwitterRequestor *r,
+		const TwitterRequestErrorData *error_data,
+		gpointer user_data)
+{
+	TwitterConversationId *conv_id = user_data;
+	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_ERROR, "Couldn't get status!");
+}
+
 static void twitter_delete_tweet_success_cb(TwitterRequestor *r,
 		xmlnode *node,
 		gpointer user_data)
@@ -328,6 +367,43 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 				twitter_send_rt_success_cb,
 				twitter_send_rt_error_cb,
 				conv_id);
+	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_GET_ORIGINAL)) {
+		TwitterConversationId *conv_id;
+
+		const char *in_reply_to_status_id_str;
+		long long in_reply_to_status_id;
+
+		gchar *conv_type_str;
+		PurpleConversationType conv_type;
+
+		gchar *conv_name_encoded;
+
+		in_reply_to_status_id_str = g_hash_table_lookup(params, "in_reply_to_status_id");
+		conv_name_encoded = g_hash_table_lookup(params, "conv_name");
+		conv_type_str = g_hash_table_lookup(params, "conv_type");
+
+		if (in_reply_to_status_id_str== NULL || in_reply_to_status_id_str[0] == '\0')
+		{
+			purple_debug_info(DEBUG_ID, "malformed uri. Invalid in_reply_to_status_id_str for GET_ORIGINAL\n");
+			return FALSE;
+		}
+		in_reply_to_status_id = strtoll(in_reply_to_status_id_str, NULL, 10);
+		if (in_reply_to_status_id == 0)
+		{
+			purple_debug_info(DEBUG_ID, "malformed uri. Invalid in_reply_to_status_id for GET_ORIGINAL \n");
+			return FALSE;
+		}
+
+		conv_type = atoi(conv_type_str);
+
+		conv_id = g_new0(TwitterConversationId, 1);
+		conv_id->conv_name = g_strdup(purple_url_decode(conv_name_encoded));
+		conv_id->type = conv_type;
+		twitter_api_get_status(purple_account_get_requestor(account),
+				in_reply_to_status_id,
+				twitter_get_status_success_cb,
+				twitter_get_status_error_cb,
+				conv_id);
 	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_LINK)) {
 		const char *id_str, *user;
 		long long id;
@@ -484,6 +560,10 @@ static void twitter_context_menu_set_reply(GtkWidget *w, const gchar *url)
 	twitter_got_uri_action(url, TWITTER_URI_ACTION_SET_REPLY);
 }
 
+static void twitter_context_menu_get_original(GtkWidget *w, const gchar *url)
+{
+	twitter_got_uri_action(url, TWITTER_URI_ACTION_GET_ORIGINAL);
+}
 static const gchar *url_get_param_value(const gchar *url, const gchar *key, gsize *len)
 {
 	const gchar *start = strchr(url, '?');
@@ -588,7 +668,7 @@ static void twitter_url_menu_actions(GtkWidget *menu, const char *url)
 		img = gtk_image_new_from_stock(GTK_STOCK_HOME, GTK_ICON_SIZE_MENU);
 		item = gtk_image_menu_item_new_with_mnemonic(("Get Original"));
 		gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
-//		g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_delete), (gpointer)url);
+		g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_get_original), (gpointer)url);
 		gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
 	}
 #endif /* 0 */

@@ -95,6 +95,12 @@ void twitter_api_send_rt(TwitterRequestor *r,
 		TwitterSendRequestErrorFunc error_func,
 		gpointer data);
 
+void twitter_api_get_status(TwitterRequestor *r,
+		long long id,
+		TwitterSendXmlRequestSuccessFunc success_func,
+		TwitterSendRequestErrorFunc error_func,
+		gpointer data);
+
 void twitter_api_delete_status(TwitterRequestor *r,
 		long long id,
 		TwitterSendXmlRequestSuccessFunc success_func,
