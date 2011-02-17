@@ -79,11 +79,11 @@ all: $(TARGET).dll
 
 $(OBJECTS): $(PIDGIN_CONFIG_H)
 
-$(TARGET).dll: $(PURPLE_DLL).a $(PIDGIN_DLL).a $(OBJECTS) $(PRPLTWTR_OBJS) $(TARGET).dll.dbgsym
-	$(STRIP) -g $(TARGET).dll.dbgsym -o $(TARGET).dll
-
-$(TARGET).dll.dbgsym:
+$(TARGET).dll.dbgsym: $(PURPLE_DLL).a $(PIDGIN_DLL).a $(OBJECTS) $(PRPLTWTR_OBJS)
 	$(CC) -shared $(PRPLTWTR_OBJS) $(OBJECTS) $(LIB_PATHS) $(LIBS) $(DLL_LD_FLAGS) -g -o $(TARGET).dll.dbgsym
+
+$(TARGET).dll: $(TARGET).dll.dbgsym
+	$(STRIP) -g $(TARGET).dll.dbgsym -o $(TARGET).dll
 
 installer: dist
 
