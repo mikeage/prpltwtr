@@ -1,4 +1,4 @@
-Changelog for next release:
+Changelog for 0.6.2:
 
     * Add a "report spammer" link
     * Initial "Conversation" support available. Click on "In reply to..." and the parent tweet will be retrieve. It's currently delivered just like any other tweet; if it's from an IM session, it will be shown in a new IM window; if it's from a chat window, it will be shown at the bottom. I don't like this, but I don't have anything better at the moment.
