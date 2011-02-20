@@ -69,9 +69,16 @@ static void twitter_get_home_timeline_parse_statuses(TwitterEndpointChat *endpoi
 
 	l = g_list_last(statuses);
 	user_tweet = l->data;
-	if (user_tweet && user_tweet->status &&
+	if (user_tweet && user_tweet->status)
+	/* Tweets might not be sequential anymore. Take since_id from the last one, not the greatest */
+#if 0
+		&&
 			user_tweet->status->id > twitter_connection_get_last_home_timeline_id(gc))
+#endif /* 0 */
 	{
+		if (user_tweet->status->id < twitter_connection_get_last_home_timeline_id(gc)) {
+			purple_debug_info(TWITTER_PROTOCOL_ID, "Setting last as %d, although it's less than the previous %d\n", user_tweet->status->id, twitter_connection_get_last_home_timeline_id(gc));
+		}
 		twitter_connection_set_last_home_timeline_id(gc, user_tweet->status->id);
 	}
 	twitter_chat_got_user_tweets(endpoint_chat, statuses);
