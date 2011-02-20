@@ -57,13 +57,26 @@ static void twitter_get_status_success_cb(TwitterRequestor *r,
 		xmlnode *node,
 		gpointer user_data)
 {
-	TwitterTweet *tweet;
+	TwitterTweet *status;
 	TwitterUserData *user;
 	TwitterConversationId *conv_id = user_data;
-	gchar * tweet_text;
+	TwitterUserTweet * user_tweet;
 
-	tweet = twitter_status_node_parse(node);
-	if (!tweet || !tweet->text || !tweet->id)
+	PurpleConnection *gc;
+	TwitterConnectionData *twitter;
+
+	if (!conv_id)
+		return;
+	gc = purple_account_get_connection(r->account);
+	if (!gc)
+		return;
+
+	twitter = gc->proto_data;
+	if (!twitter)
+		return;
+
+	status = twitter_status_node_parse(node);
+	if (!status || !status->text || !status->id)
 	{
 		purple_debug_info(DEBUG_ID, "Essential information missing from the tweet!\n");
 		return;
@@ -76,13 +89,28 @@ static void twitter_get_status_success_cb(TwitterRequestor *r,
 		return;
 	}
 
-	tweet_text = twitter_format_tweet(r->account, user->screen_name, tweet->text, tweet->id, conv_id->type, conv_id->conv_name, TRUE, tweet->in_reply_to_status_id);
+	user_tweet = twitter_user_tweet_new(user->screen_name, user->profile_image_url, user, status);
 
-	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_RECV | PURPLE_MESSAGE_NO_LOG, tweet_text);
+	switch(conv_id->type) {
+		case PURPLE_CONV_TYPE_CHAT:
+			{
+				TwitterEndpointChat *endpoint_chat = twitter_endpoint_chat_find(r->account, conv_id->conv_name);
+				twitter_chat_got_tweet(endpoint_chat, user_tweet);
+			}
+			break;
+		case PURPLE_CONV_TYPE_IM:
+			{
+				TwitterEndpointIm *endpoint_im = twitter_connection_get_endpoint_im(twitter, TWITTER_IM_TYPE_AT_MSG);
+				twitter_status_data_update_conv(endpoint_im, user->screen_name, status);
+			}
+			break;
+		default:
+			break;
+	}
 
-	g_free(tweet_text);
-	twitter_status_data_free(tweet);
-	twitter_user_data_free(user);
+	twitter_user_tweet_free(user_tweet);
+	g_free(conv_id->conv_name);
+	g_free(conv_id);
 }
 
 static void twitter_get_status_error_cb(TwitterRequestor *r,
@@ -663,16 +691,14 @@ static void twitter_url_menu_actions(GtkWidget *menu, const char *url)
 		gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
 	}
 
-#if 0 /* TBD: write code to handle this */
 	if(in_reply_to_status_id)
 	{
 		img = gtk_image_new_from_stock(GTK_STOCK_HOME, GTK_ICON_SIZE_MENU);
-		item = gtk_image_menu_item_new_with_mnemonic(("Get Original"));
+		item = gtk_image_menu_item_new_with_mnemonic(("In reply to..."));
 		gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
 		g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_get_original), (gpointer)url);
 		gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
 	}
-#endif /* 0 */
 
 	if (conv_type == PURPLE_CONV_TYPE_IM)
 	{
