@@ -53,6 +53,21 @@ static void twitter_send_rt_error_cb(TwitterRequestor *r,
 	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_ERROR, "Retweet failed");
 }
 
+static void twitter_report_spammer_success_cb(TwitterRequestor *r,
+		xmlnode *node,
+		gpointer user_data)
+{
+	TwitterConversationId *conv_id = user_data;
+	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_SYSTEM, "Successfully reported as spam");
+}
+
+static void twitter_report_spammer_error_cb(TwitterRequestor *r,
+		const TwitterRequestErrorData *error_data,
+		gpointer user_data)
+{
+	TwitterConversationId *conv_id = user_data;
+	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_ERROR, "Report as spam failed");
+}
 static void twitter_get_status_success_cb(TwitterRequestor *r,
 		xmlnode *node,
 		gpointer user_data)
@@ -542,6 +557,32 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 		purple_conversation_set_data(conv, "twitter_conv_last_reply_id_manual", (gpointer)0x10101010);
 		purple_debug_info(DEBUG_ID, "Setting reply to %lld for conv %p\n", id, conv);
 		gtkprpltwtr_mark_reply(conv, id_str);
+	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_REPORT_SPAM)) {
+		TwitterConversationId *conv_id;
+		gchar * user;
+		PurpleConversationType conv_type;
+		gchar *conv_type_str;
+		gchar *conv_name_encoded;
+
+		conv_name_encoded = g_hash_table_lookup(params, "conv_name");
+		conv_type_str = g_hash_table_lookup(params, "conv_type");
+
+		conv_type = atoi(conv_type_str);
+
+		user = g_hash_table_lookup(params, "user");
+		if (user == NULL || user[0] == '\0')
+		{
+			purple_debug_info(DEBUG_ID, "malformed uri. Invalid user for marking as spam\n");
+			return FALSE;
+		}
+		conv_id = g_new0(TwitterConversationId, 1);
+		conv_id->conv_name = g_strdup(purple_url_decode(conv_name_encoded));
+		conv_id->type = conv_type;
+		twitter_api_report_spammer(purple_account_get_requestor(account),
+				user,
+				twitter_report_spammer_success_cb,
+				twitter_report_spammer_error_cb,
+				conv_id);
 	}
 	return TRUE;
 }
@@ -587,6 +628,11 @@ static void twitter_context_menu_delete(GtkWidget *w, const gchar *url)
 static void twitter_context_menu_set_reply(GtkWidget *w, const gchar *url)
 {
 	twitter_got_uri_action(url, TWITTER_URI_ACTION_SET_REPLY);
+}
+
+static void twitter_context_menu_report_spammer(GtkWidget *w, const gchar *url)
+{
+	twitter_got_uri_action(url, TWITTER_URI_ACTION_REPORT_SPAM);
 }
 
 static void twitter_context_menu_get_original(GtkWidget *w, const gchar *url)
@@ -708,6 +754,12 @@ static void twitter_url_menu_actions(GtkWidget *menu, const char *url)
 		g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_set_reply), (gpointer)url);
 		gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
 	}
+
+	img = gtk_image_new_from_stock(GTK_STOCK_STOP, GTK_ICON_SIZE_MENU);
+	item = gtk_image_menu_item_new_with_mnemonic(("Report spammer"));
+	gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
+	g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_report_spammer), (gpointer)url);
+	gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
 
 	g_free(account_name);
 	g_free(user_name);

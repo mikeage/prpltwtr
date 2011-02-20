@@ -111,6 +111,12 @@ static const gchar *twitter_option_url_rt(PurpleAccount *account, long long id)
 	return result;
 }
 
+static const gchar *twitter_option_url_report_spam(PurpleAccount *account)
+{
+	return twitter_api_create_url(account,
+			TWITTER_PREF_URL_REPORT_SPAMMER);
+}
+
 static const gchar *twitter_option_url_get_status(PurpleAccount *account, long long id)
 {
 	gchar *url = g_strdup_printf("%s/%lld.xml",
@@ -443,6 +449,24 @@ void twitter_api_send_rt(TwitterRequestor *r,
 			twitter_option_url_rt(r->account, id), NULL,
 			success_func, error_func, data);
 
+}
+
+void twitter_api_report_spammer(TwitterRequestor *r,
+		const gchar *user,
+		TwitterSendXmlRequestSuccessFunc success_func,
+		TwitterSendRequestErrorFunc error_func,
+		gpointer data)
+{
+	TwitterRequestParams *params;
+
+	g_return_if_fail(user != NULL && user[0] != '\0');
+
+	params = twitter_request_params_new();
+	twitter_request_params_add(params, twitter_request_param_new("screen_name", user));
+	twitter_send_xml_request(r, TRUE,
+			twitter_option_url_report_spam(r->account), params,
+			success_func, error_func, data);
+	twitter_request_params_free(params);
 }
 
 void twitter_api_get_status(TwitterRequestor *r,
