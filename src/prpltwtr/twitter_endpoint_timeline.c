@@ -77,7 +77,7 @@ static void twitter_get_home_timeline_parse_statuses(TwitterEndpointChat *endpoi
 #endif /* 0 */
 	{
 		if (user_tweet->status->id < twitter_connection_get_last_home_timeline_id(gc)) {
-			purple_debug_info(TWITTER_PROTOCOL_ID, "Setting last as %d, although it's less than the previous %d\n", user_tweet->status->id, twitter_connection_get_last_home_timeline_id(gc));
+			purple_debug_info(TWITTER_PROTOCOL_ID, "Setting last as %lld, although it's less than the previous %lld\n", user_tweet->status->id, twitter_connection_get_last_home_timeline_id(gc));
 		}
 		twitter_connection_set_last_home_timeline_id(gc, user_tweet->status->id);
 	}

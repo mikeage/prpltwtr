@@ -1555,12 +1555,21 @@ static void twitter_convo_closed(PurpleConnection *gc, const gchar *conv_name)
 	}
 }
 
+static GHashTable * twitter_get_account_text_table(PurpleAccount *account)
+{
+	GHashTable *table;
+	table = g_hash_table_new(g_str_hash, g_str_equal);
+	g_hash_table_insert(table, "login_label", "No passwords with OAuth");
+	return table;
+}
+
+
 /*
  * prpl stuff. see prpl.h for more information.
  */
 static PurplePluginProtocolInfo prpl_info =
 {
-	OPT_PROTO_CHAT_TOPIC,  /* options */
+	OPT_PROTO_CHAT_TOPIC | OPT_PROTO_PASSWORD_OPTIONAL,  /* options */
 	NULL,	       /* user_splits, initialized in twitter_init() */
 	NULL,	       /* protocol_options, initialized in twitter_init() */
 	{   /* icon_spec, a PurpleBuddyIconSpec */
@@ -1630,16 +1639,16 @@ static PurplePluginProtocolInfo prpl_info =
 	NULL,				/* whiteboard_prpl_ops */
 	NULL,				/* send_raw */
 	NULL,				/* roomlist_room_serialize */
-	NULL,				/* padding... */
-	NULL,
-	NULL,
+	NULL,				/* unregister_user... */
+	NULL,               /* send_attention */
+	NULL,               /* get_attention type */
 	sizeof(PurplePluginProtocolInfo),    /* struct_size */
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL
+	twitter_get_account_text_table, /* get_account_text_table */
+	NULL,               /* initiate_media */
+	NULL,               /* get_media_caps */
+	NULL,               /* get_moods */
+	NULL,               /* set_public_alias */
+	NULL               /* get_public_alias */
 };
 
 //borrowed from signals.c
