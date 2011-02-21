@@ -53,9 +53,9 @@ SectionIn RO
     SetOverwrite try
     
 	SetOutPath "$INSTDIR\pixmaps\pidgin"
-	File "/oname=protocols\16\prpltwtr.png" "${BASEDIR}\data\prpltwtr16.png"
-	File "/oname=protocols\22\prpltwtr.png" "${BASEDIR}\data\prpltwtr22.png"
-	File "/oname=protocols\48\prpltwtr.png" "${BASEDIR}\data\prpltwtr48.png"
+	File "/oname=protocols\16\prpltwtr.png" "${BASEDIR}\data\16\prpltwtr.png"
+	File "/oname=protocols\22\prpltwtr.png" "${BASEDIR}\data\22\prpltwtr.png"
+	File "/oname=protocols\48\prpltwtr.png" "${BASEDIR}\data\48\prpltwtr.png"
 
     SetOverwrite try
 	copy:
