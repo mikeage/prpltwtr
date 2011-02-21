@@ -1,3 +1,8 @@
+Changelog for current version:
+
+Changelog for 0.6.3:
+    * Fix make install target
+
 Changelog for 0.6.2:
 
     * Add a "report spammer" link
