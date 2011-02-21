@@ -145,7 +145,7 @@ static TwitterUserTweet *twitter_search_entry_node_parse(xmlnode *entry_node)
 	}
 	return NULL;
 }
-static TwitterSearchResults *twitter_search_results_new(GList *tweets, gchar *refresh_url, gint max_id)
+static TwitterSearchResults *twitter_search_results_new(GList *tweets, gchar *refresh_url, gint64 max_id)
 {
 	TwitterSearchResults *results = g_new(TwitterSearchResults, 1);
 	results->refresh_url = refresh_url;
@@ -196,14 +196,18 @@ TwitterSearchResults *twitter_search_results_node_parse(xmlnode *response_node)
 			}
 		}
 	}
+
+	/* After snowflake, the IDs aren't sequential; always take the first entry */
 	for (entry_node = xmlnode_get_child(response_node, "entry"); entry_node; entry_node = xmlnode_get_next_twin(entry_node))
 	{
 		TwitterUserTweet *entry = twitter_search_entry_node_parse(entry_node);
 		if (entry != NULL)
 		{
 			search_results = g_list_append(search_results, entry);
-			if (max_id < entry->status->id)
+			if (!max_id)
+			{
 				max_id = entry->status->id;
+			}
 		}
 	}
 

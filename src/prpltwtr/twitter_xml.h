@@ -52,7 +52,7 @@ typedef struct
 {
 	char *refresh_url;
 	GList *tweets;
-	gint max_id;
+	gint64 max_id;
 } TwitterSearchResults;
 
 gchar *xmlnode_get_child_data(const xmlnode *node, const char *name);

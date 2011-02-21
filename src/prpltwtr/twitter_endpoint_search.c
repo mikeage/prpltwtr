@@ -67,6 +67,7 @@ static void twitter_search_cb(PurpleAccount *account,
 	TwitterEndpointChatId *id = (TwitterEndpointChatId *) user_data;
 	TwitterEndpointChat *endpoint_chat;
 	TwitterSearchTimeoutContext *ctx;
+	gchar *key;
 
 	g_return_if_fail(id != NULL);
 
@@ -89,19 +90,35 @@ static void twitter_search_cb(PurpleAccount *account,
 		twitter_chat_got_user_tweets(endpoint_chat, search_results);
 	}
 
-	ctx->last_tweet_id = max_id;
+	if (max_id)
+	{
+		ctx->last_tweet_id = max_id;
+	}
+
+	key = g_strdup_printf("search_%s",ctx->search_text);
+	purple_account_set_long_long(account, key, ctx->last_tweet_id);
+
 	g_free (ctx->refresh_url);
 	ctx->refresh_url = g_strdup (refresh_url);
+
+	g_free(key);
 }
 
 static gboolean twitter_endpoint_search_interval_start(TwitterEndpointChat *endpoint)
 {
 	TwitterSearchTimeoutContext *ctx = endpoint->endpoint_data;
 	TwitterEndpointChatId *id = twitter_endpoint_chat_id_new(endpoint);
+	gchar * key = g_strdup_printf("search_%s",ctx->search_text);
+
+	ctx->last_tweet_id = purple_account_get_long_long(endpoint->account, key, -1);
+	purple_debug_info(TWITTER_PROTOCOL_ID, "Resuming search for %s from %lld\n", ctx->search_text, ctx->last_tweet_id);
+
 	twitter_api_search(purple_account_get_requestor(endpoint->account),
 			ctx->search_text, ctx->last_tweet_id,
 			TWITTER_SEARCH_RPP_DEFAULT,
 			twitter_search_cb, NULL, id);
+
+	g_free(key);
 	return TRUE;
 }
 
