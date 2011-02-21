@@ -1,4 +1,5 @@
 Changelog for current version:
+    * Show the error texts from twitter when displaying an error. Should make it easier to understand things like why DMs fail.
 
 Changelog for 0.6.3:
     * Fix make install target

@@ -511,7 +511,7 @@ static void twitter_endpoint_chat_send_success_cb(PurpleAccount *account, xmlnod
 		twitter_endpoint_chat_id_free(id);
 }
 
-static gboolean twitter_endpoint_chat_send_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error, gpointer _ctx_id)
+static gboolean twitter_endpoint_chat_send_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error_data, gpointer _ctx_id)
 {
 	TwitterEndpointChatId *id = _ctx_id;
 	TwitterEndpointChat *ctx = twitter_endpoint_chat_find_by_id(id);
@@ -522,7 +522,9 @@ static gboolean twitter_endpoint_chat_send_error_cb(PurpleAccount *account, cons
 
 		if (conv)
 		{
+			gchar * error = g_strdup_printf("Error sending tweet: %s", error_data->message ? error_data->message : "unknown error");
 			purple_conversation_write(conv, NULL, "Error sending tweet", PURPLE_MESSAGE_ERROR, time(NULL));
+			g_free(error);
 		}
 	}
 

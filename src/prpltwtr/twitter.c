@@ -913,7 +913,9 @@ static void twitter_oauth_access_token_success_cb(TwitterRequestor *r,
 
 static void twitter_oauth_access_token_error_cb(TwitterRequestor *r, const TwitterRequestErrorData *error_data, gpointer user_data)
 {
-	twitter_oauth_disconnect(r->account, "Error verifying PIN");
+	gchar * error = g_strdup_printf("Error verifying PIN: %s", error_data->message ? error_data->message : "unknown error");
+	twitter_oauth_disconnect(r->account, error);
+	g_free(error);
 }
 
 static void twitter_oauth_request_pin_ok(PurpleAccount *account, const gchar *pin)
@@ -977,7 +979,9 @@ static void twitter_oauth_request_token_success_cb(TwitterRequestor *r,
 
 static void twitter_oauth_request_token_error_cb(TwitterRequestor *r, const TwitterRequestErrorData *error_data, gpointer user_data)
 {
-	twitter_oauth_disconnect(r->account, "Error receiving request token");
+	gchar * error = g_strdup_printf("Error receiving request token: %s", error_data->message ? error_data->message : "unknown error");
+	twitter_oauth_disconnect(r->account, error);
+	g_free(error);
 }
 
 static void twitter_verify_credentials_success_cb(TwitterRequestor *r, xmlnode *node, gpointer user_data)
@@ -999,10 +1003,10 @@ static void twitter_verify_credentials_success_cb(TwitterRequestor *r, xmlnode *
 
 static void twitter_verify_credentials_error_cb(TwitterRequestor *r, const TwitterRequestErrorData *error_data, gpointer user_data)
 {
-	purple_debug_info(TWITTER_PROTOCOL_ID, "Error verifying credentials. Error type %d: %s\n", error_data->type, error_data->message);
+	gchar * error = g_strdup_printf("Error verify credentials: %s", error_data->message ? error_data->message : "unknown error");
 	switch (error_data->type) {
 		case TWITTER_REQUEST_ERROR_SERVER:
-			twitter_oauth_recoverable_disconnect(r->account, "Error verifying credentials (server)");
+			twitter_oauth_recoverable_disconnect(r->account, error);
 			break;
 		case TWITTER_REQUEST_ERROR_NONE:
 		case TWITTER_REQUEST_ERROR_TWITTER_GENERAL:
@@ -1010,12 +1014,11 @@ static void twitter_verify_credentials_error_cb(TwitterRequestor *r, const Twitt
 		case TWITTER_REQUEST_ERROR_NO_OAUTH:
 		case TWITTER_REQUEST_ERROR_CANCELED:
 		case TWITTER_REQUEST_ERROR_UNAUTHORIZED:
-			twitter_oauth_disconnect(r->account, "Error verifying credentials");
-			break;
 		default:
-			twitter_oauth_disconnect(r->account, "Error verifying credentials: unknown reason");
+			twitter_oauth_disconnect(r->account, error);
 			break;
 	}
+	g_free(error);
 }
 
 static void twitter_requestor_pre_send_auth_basic(TwitterRequestor *r, gboolean *post, const char **url, TwitterRequestParams **params, gchar ***header_fields, gpointer *requestor_data)

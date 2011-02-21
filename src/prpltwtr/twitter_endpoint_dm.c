@@ -6,13 +6,15 @@ static void twitter_send_dm_success_cb(PurpleAccount *account, xmlnode *node, gb
 	if (last && _who)
 		g_free(_who);
 }
-static gboolean twitter_send_dm_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error, gpointer _who)
+static gboolean twitter_send_dm_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error_data, gpointer _who)
 {
 	gchar *who = _who;
 	if (who)
 	{
 		gchar *conv_name = twitter_endpoint_im_buddy_name_to_conv_name(twitter_endpoint_im_find(account, TWITTER_IM_TYPE_DM), _who);
-		purple_conv_present_error(conv_name, account, "Error sending tweet");
+		gchar * error = g_strdup_printf("Error sending DM: %s", error_data->message ? error_data->message : "unknown error");
+		purple_conv_present_error(conv_name, account, error);
+		g_free(error);
 		g_free(who);
 		g_free(conv_name);
 	}

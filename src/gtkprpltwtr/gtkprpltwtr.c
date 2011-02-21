@@ -50,7 +50,9 @@ static void twitter_send_rt_error_cb(TwitterRequestor *r,
 		gpointer user_data)
 {
 	TwitterConversationId *conv_id = user_data;
-	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_ERROR, "Retweet failed");
+	gchar * error = g_strdup_printf("Couldn't retweet status: %s", error_data->message ? error_data->message : "unknown error");
+	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_ERROR, error);
+	g_free(error);
 }
 
 static void twitter_report_spammer_success_cb(TwitterRequestor *r,
@@ -66,7 +68,9 @@ static void twitter_report_spammer_error_cb(TwitterRequestor *r,
 		gpointer user_data)
 {
 	TwitterConversationId *conv_id = user_data;
-	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_ERROR, "Report as spam failed");
+	gchar * error = g_strdup_printf("Couldn't report spammer: %s", error_data->message ? error_data->message : "unknown error");
+	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_ERROR, error);
+	g_free(error);
 }
 static void twitter_get_status_success_cb(TwitterRequestor *r,
 		xmlnode *node,
@@ -133,7 +137,9 @@ static void twitter_get_status_error_cb(TwitterRequestor *r,
 		gpointer user_data)
 {
 	TwitterConversationId *conv_id = user_data;
-	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_ERROR, "Couldn't get status!");
+	gchar * error = g_strdup_printf("Couldn't get status: %s", error_data->message ? error_data->message : "unknown error");
+	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_ERROR, error);
+	g_free(error);
 }
 
 static void twitter_delete_tweet_success_cb(TwitterRequestor *r,
@@ -149,7 +155,9 @@ static void twitter_delete_tweet_error_cb(TwitterRequestor *r,
 		gpointer user_data)
 {
 	TwitterConversationId *conv_id = user_data;
-	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_ERROR, "Delete failed");
+	gchar * error = g_strdup_printf("Couldn't delete status: %s", error_data->message ? error_data->message : "unknown error");
+	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_ERROR, error);
+	g_free(error);
 }
 
 static void gtkprpltwtr_mark_reply(PurpleConversation * conv, const gchar * id_str)

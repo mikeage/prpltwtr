@@ -7,14 +7,16 @@ static void twitter_send_reply_success_cb(PurpleAccount *account, xmlnode *node,
 		g_free(_who);
 }
 
-static gboolean twitter_send_reply_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error, gpointer _who)
+static gboolean twitter_send_reply_error_cb(PurpleAccount *account, const TwitterRequestErrorData *error_data, gpointer _who)
 {
 	//TODO: this doesn't work yet
 	gchar *who = _who;
 	if (who)
 	{
 		gchar *conv_name = twitter_endpoint_im_buddy_name_to_conv_name(twitter_endpoint_im_find(account, TWITTER_IM_TYPE_AT_MSG), _who);
-		purple_conv_present_error(conv_name, account, "Error sending tweet");
+		gchar * error = g_strdup_printf("Error sending reply: %s", error_data->message ? error_data->message : "unknown error");
+		purple_conv_present_error(conv_name, account, error);
+		g_free(error);
 		g_free(who);
 		g_free(conv_name);
 	}
