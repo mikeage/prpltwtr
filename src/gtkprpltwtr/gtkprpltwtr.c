@@ -1078,6 +1078,10 @@ static gboolean plugin_load(PurplePlugin *plugin)
 	purple_signal_connect(purple_get_core(), "uri-handler", plugin,
 			PURPLE_CALLBACK(twitter_uri_handler), NULL);
 
+	purple_signal_connect(purple_conversations_get_handle(),
+		   "prpltwtr-changed-attached-search",
+		  plugin, PURPLE_CALLBACK(twitter_charcount_update_append_text_cb), NULL);
+
 	gtk_imhtml_class_register_protocol(TWITTER_URI "://", twitter_url_clicked_cb, twitter_context_menu);
 #endif
 

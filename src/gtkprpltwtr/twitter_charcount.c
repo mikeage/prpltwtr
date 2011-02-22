@@ -55,7 +55,11 @@ static gchar *twitter_conv_get_append_text(PurpleConversation *conv)
 		TwitterEndpointChat *ctx = twitter_endpoint_chat_find(purple_conversation_get_account(conv), purple_conversation_get_name(conv));
 		if (ctx && ctx->settings->get_status_added_text)
 		{
-			return ctx->settings->get_status_added_text(ctx);
+			PurpleChat *chat = twitter_blist_chat_find(purple_conversation_get_account(conv), ctx->chat_name);
+			if (chat && TWITTER_ATTACH_SEARCH_TEXT_NONE != twitter_blist_chat_attach_search_text(chat))
+			{
+				return ctx->settings->get_status_added_text(ctx);
+			}
 		}
 	} else if (conv->type == PURPLE_CONV_TYPE_IM) {
 		PurpleAccount *account = purple_conversation_get_account(conv);
@@ -219,6 +223,7 @@ static void detach_from_gtkconv(PidginConversation *gtkconv, gpointer null)
 	gtk_widget_queue_draw(pidgin_conv_get_window(gtkconv)->window);
 }
 
+
 static void attach_to_gtkconv(PidginConversation *gtkconv, gpointer null)
 {
 	GtkWidget *box, *sep, *counter;
@@ -266,6 +271,23 @@ static void attach_to_gtkconv(PidginConversation *gtkconv, gpointer null)
 	changed_cb(gtkconv->entry_buffer, ccc);
 
 	gtk_widget_queue_draw(pidgin_conv_get_window(gtkconv)->window);
+}
+
+void twitter_charcount_update_append_text_cb(PurpleConversation *conv)
+{
+	PidginConversation * gtkconv = PIDGIN_CONVERSATION(conv);
+	ConvCharCount *ccc;
+	gchar *append_text;
+
+	ccc = g_object_get_data(G_OBJECT(gtkconv->toolbar), TWITTER_PROTOCOL_ID "-ccc");
+
+	append_text = twitter_conv_get_append_text(gtkconv->active_conv);
+	ccc->append_text = append_text ? g_utf8_strdown(append_text, -1) : NULL; 
+	ccc->append_text_len = ccc->append_text ? g_utf8_strlen(ccc->append_text, -1) + 1 : 0;
+	if (append_text)
+		g_free(append_text);
+
+	changed_cb(gtkconv->entry_buffer, ccc);
 }
 
 static void detach_from_pidgin_window(PidginWindow *win, gpointer null)

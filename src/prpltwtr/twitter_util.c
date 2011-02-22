@@ -176,7 +176,7 @@ gchar *twitter_utf8_find_last_pos(const gchar *str, const gchar *needles, glong 
 	return NULL;
 }
 
-char *twitter_utf8_get_segment(const gchar *message, int max_len, const gchar *add_text, const gchar **new_start)
+char *twitter_utf8_get_segment(const gchar *message, int max_len, const gchar *add_text, const gchar **new_start, gboolean prepend)
 {
 	int add_text_len = 0;
 	int index_add_text = -1;
@@ -207,7 +207,11 @@ char *twitter_utf8_get_segment(const gchar *message, int max_len, const gchar *a
 		status = g_strdup(message);
 		len = strlen(message);
 	} else if (len_left <= max_len && len_left + add_text_len + 1 <= max_len) {
-		status = g_strdup_printf("%s %s", add_text, message);
+		if (prepend) {
+			status = g_strdup_printf("%s %s", add_text, message);
+		} else {
+			status = g_strdup_printf("%s %s", message, add_text);
+		}
 		len = strlen(message);
 	} else {
 		gchar *space;
@@ -224,7 +228,11 @@ char *twitter_utf8_get_segment(const gchar *message, int max_len, const gchar *a
 		} else if ((space = twitter_utf8_find_last_pos(message, spaces, max_len - (add_text ? add_text_len + 1 : 0)))) {
 			len = space - message;
 			space[0] = '\0';
-			status = add_text ? g_strdup_printf("%s %s", add_text, message) : g_strdup(message);
+			if (prepend) {
+				status = add_text ? g_strdup_printf("%s %s", add_text, message) : g_strdup(message);
+			} else {
+				status = add_text ? g_strdup_printf("%s %s", message, add_text) : g_strdup(message);
+			}
 			space[0] = ' ';
 			len++;
 		} else if (index_add_text != -1 && index_add_text <= max_len) {
@@ -247,7 +255,11 @@ char *twitter_utf8_get_segment(const gchar *message, int max_len, const gchar *a
 			len = end_pos - message;
 			prev_char = end_pos[0];
 			end_pos[0] = '\0';
-			status = add_text ? g_strdup_printf("%s %s", add_text, message) : g_strdup(message);
+			if (prepend) {
+				status = add_text ? g_strdup_printf("%s %s", add_text, message) : g_strdup(message);
+			} else {
+				status = add_text ? g_strdup_printf("%s %s", add_text, message) : g_strdup(message);
+			}
 			end_pos[0] = prev_char;
 		}
 	}
@@ -255,18 +267,18 @@ char *twitter_utf8_get_segment(const gchar *message, int max_len, const gchar *a
 		*new_start = message + len;
 	return g_strstrip(status);
 }
-GArray *twitter_utf8_get_segments(const gchar *message, int segment_length, const gchar *add_text)
+GArray *twitter_utf8_get_segments(const gchar *message, int segment_length, const gchar *add_text, gboolean prepend)
 {
 	GArray *segments;
 	const gchar *new_start = NULL;
 	const gchar *pos;
-	gchar *segment = twitter_utf8_get_segment(message, segment_length, add_text, &new_start);
+	gchar *segment = twitter_utf8_get_segment(message, segment_length, add_text, &new_start, prepend);
 	segments = g_array_new(FALSE, FALSE, sizeof(char *));
 	while (segment)
 	{
 		g_array_append_val(segments, segment);
 		pos = new_start;
-		segment = twitter_utf8_get_segment(pos, segment_length, add_text, &new_start);
+		segment = twitter_utf8_get_segment(pos, segment_length, add_text, &new_start, prepend);
 	};
 	return segments;
 }

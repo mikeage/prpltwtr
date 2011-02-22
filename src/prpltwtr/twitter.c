@@ -1431,6 +1431,20 @@ static void twitter_get_cb_info(PurpleConnection *gc, int id, const char *who) {
 	twitter_get_info(gc, who);
 }
 
+static void twitter_blist_char_attach_search_toggle(PurpleBlistNode *node, gpointer userdata)
+{
+	PurpleChat *chat = PURPLE_CHAT(node);
+	PurpleAccount *account = purple_chat_get_account(chat);
+	GHashTable *components = purple_chat_get_components(chat);
+	const char *chat_name = twitter_chat_get_name(components);
+	PurpleConversation * conv;
+
+	purple_debug_info(TWITTER_PROTOCOL_ID, "Setting attach for %s to %d\n", chat_name, (int) userdata);
+	conv = purple_find_conversation_with_account(PURPLE_CONV_TYPE_CHAT, chat_name, account);
+	g_hash_table_replace(components, g_strdup("attach_search_text"), (g_strdup_printf("%d",(int) userdata)));
+	purple_signal_emit(purple_conversations_get_handle(), "prpltwtr-changed-attached-search", conv);
+}
+
 static void twitter_blist_chat_auto_open_toggle(PurpleBlistNode *node, gpointer userdata) {
 	TwitterEndpointChat *ctx;
 	PurpleChat *chat = PURPLE_CHAT(node);
@@ -1507,9 +1521,13 @@ static GList *twitter_blist_node_menu(PurpleBlistNode *node) {
 	purple_debug_info(TWITTER_PROTOCOL_ID, "providing buddy list context menu item\n");
 
 	if (PURPLE_BLIST_NODE_IS_CHAT(node)) {
+		GList *submenu = NULL;
 		PurpleChat *chat = PURPLE_CHAT(node);
+		GHashTable *components = purple_chat_get_components(chat);
 		char *label = g_strdup_printf("Automatically open chat on new tweets (Currently: %s)",
 			(twitter_blist_chat_is_auto_open(chat) ? "On" : "Off"));
+		const char *chat_type_str = g_hash_table_lookup(components, "chat_type");
+		TwitterChatType chat_type = chat_type_str == NULL ? 0 : strtol(chat_type_str, NULL, 10);
 
 		PurpleMenuAction *action = purple_menu_action_new(
 				label,
@@ -1518,6 +1536,30 @@ static GList *twitter_blist_node_menu(PurpleBlistNode *node) {
 				NULL);  /* child menu items */
 		g_free(label);
 		menu = g_list_append(menu, action);
+		if (chat_type == TWITTER_CHAT_SEARCH)
+		{
+			TWITTER_ATTACH_SEARCH_TEXT cur_attach_search_text = twitter_blist_chat_attach_search_text(chat);
+
+			label = g_strdup_printf("No%s", cur_attach_search_text == TWITTER_ATTACH_SEARCH_TEXT_NONE ? " (set)" : "");
+			action = purple_menu_action_new(label, PURPLE_CALLBACK(twitter_blist_char_attach_search_toggle), (gpointer) TWITTER_ATTACH_SEARCH_TEXT_NONE, NULL);
+			g_free(label);
+			submenu = g_list_append(submenu, action);
+
+			label = g_strdup_printf("Prepend%s", cur_attach_search_text == TWITTER_ATTACH_SEARCH_TEXT_PREPEND ? " (set)" : "");
+			action = purple_menu_action_new(label, PURPLE_CALLBACK(twitter_blist_char_attach_search_toggle), (gpointer) TWITTER_ATTACH_SEARCH_TEXT_PREPEND, NULL);
+			g_free(label);
+			submenu = g_list_append(submenu, action);
+
+			label = g_strdup_printf("Append%s", cur_attach_search_text == TWITTER_ATTACH_SEARCH_TEXT_APPEND ? " (set)" : "");
+			action = purple_menu_action_new(label, PURPLE_CALLBACK(twitter_blist_char_attach_search_toggle), (gpointer) TWITTER_ATTACH_SEARCH_TEXT_APPEND, NULL);
+			g_free(label);
+			submenu = g_list_append(submenu, action);
+
+			label = g_strdup_printf("Tag all chats with search term:");
+			action = purple_menu_action_new(label, NULL, NULL, submenu);
+			g_free(label);
+			menu = g_list_append(menu, action);
+		}
 	} else if (PURPLE_BLIST_NODE_IS_BUDDY(node)) {
 		PurpleMenuAction *action;
 		if (twitter_option_default_dm(purple_buddy_get_account(PURPLE_BUDDY(node))))
@@ -1699,6 +1741,17 @@ static void twitter_marshal_set_reply(PurpleCallback cb, va_list args, void *dat
 		*return_val = NULL;
 }
 
+static void twitter_marshal_changed_attached_search(PurpleCallback cb, va_list args, void *data,
+		void **return_val)
+{
+	void *arg1 = va_arg(args, void *); // conversation
+
+	((gpointer(*)(void *, void *))cb)(arg1,data);
+
+	if (return_val != NULL)
+		*return_val = NULL;
+}
+
 static void twitter_init(PurplePlugin *plugin)
 {
 
@@ -1754,6 +1807,12 @@ static void twitter_init(PurplePlugin *plugin)
 			NULL, 2,
 			purple_value_new(PURPLE_TYPE_SUBTYPE, PURPLE_SUBTYPE_CONVERSATION), // conv
 			purple_value_new(PURPLE_TYPE_STRING) // id_str
+			);
+
+	purple_signal_register(purple_conversations_get_handle(), "prpltwtr-changed-attached-search",
+			twitter_marshal_changed_attached_search,
+			NULL, 1,
+			purple_value_new(PURPLE_TYPE_SUBTYPE, PURPLE_SUBTYPE_CONVERSATION) // conv
 			);
 
 	twitter_endpoint_chat_init();

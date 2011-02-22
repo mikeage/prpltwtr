@@ -195,6 +195,19 @@ PurpleChat *twitter_blist_chat_find(PurpleAccount *account, const char *name)
 	}
 	return c;
 }
+TWITTER_ATTACH_SEARCH_TEXT twitter_blist_chat_attach_search_text(PurpleChat *chat)
+{
+	GHashTable *components;
+	char *attach_search_text_str;
+	TWITTER_ATTACH_SEARCH_TEXT attach_search_text = TWITTER_ATTACH_SEARCH_TEXT_NONE;
+	g_return_val_if_fail(chat != NULL, FALSE);
+	components = purple_chat_get_components(chat);
+	attach_search_text_str = g_hash_table_lookup(components, "attach_search_text");
+	if (attach_search_text_str != NULL) {
+		attach_search_text = (TWITTER_ATTACH_SEARCH_TEXT) strtol(attach_search_text_str, NULL, 10);
+	}
+	return attach_search_text;
+}
 
 //TODO should be static?
 gboolean twitter_blist_chat_is_auto_open(PurpleChat *chat)
@@ -539,11 +552,17 @@ int twitter_endpoint_chat_send(TwitterEndpointChat *ctx, const gchar *message)
 	TwitterEndpointChatId *id;
 	gchar *added_text = NULL;
 	GArray *statuses;
+	TWITTER_ATTACH_SEARCH_TEXT attach_search_text;
 
-	if (ctx->settings->get_status_added_text)
+	PurpleChat *chat = twitter_blist_chat_find(account, ctx->chat_name);
+	attach_search_text = twitter_blist_chat_attach_search_text(chat);
+
+	if (TWITTER_ATTACH_SEARCH_TEXT_NONE != attach_search_text && ctx->settings->get_status_added_text)
+	{
 		added_text = ctx->settings->get_status_added_text(ctx);
+	}
 
-	statuses = twitter_utf8_get_segments(message, MAX_TWEET_LENGTH, added_text);
+	statuses = twitter_utf8_get_segments(message, MAX_TWEET_LENGTH, added_text, attach_search_text == TWITTER_ATTACH_SEARCH_TEXT_PREPEND);
 	id = twitter_endpoint_chat_id_new(ctx);
 	twitter_api_set_statuses(purple_account_get_requestor(account),
 			statuses,

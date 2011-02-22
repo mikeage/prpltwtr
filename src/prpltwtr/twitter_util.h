@@ -33,8 +33,8 @@ long long purple_account_get_long_long(PurpleAccount *account, const gchar *key,
 void purple_account_set_long_long(PurpleAccount *account, const gchar *key, long long value);
 
 gchar *twitter_utf8_find_last_pos(const gchar *str, const gchar *needles, glong str_len);
-char *twitter_utf8_get_segment(const gchar *message, int max_len, const gchar *add_text, const gchar **new_start);
-GArray *twitter_utf8_get_segments(const gchar *message, int segment_length, const gchar *add_text);
+char *twitter_utf8_get_segment(const gchar *message, int max_len, const gchar *add_text, const gchar **new_start, gboolean prepend);
+GArray *twitter_utf8_get_segments(const gchar *message, int segment_length, const gchar *add_text, gboolean prepend);
 
 #ifndef g_slice_new0
 #define g_slice_new0(a) g_new0(a, 1)

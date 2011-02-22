@@ -103,6 +103,14 @@ PurpleChat *twitter_blist_chat_find(PurpleAccount *account, const char *name);
 
 gboolean twitter_blist_chat_is_auto_open(PurpleChat *chat);
 
+typedef enum _TWITTER_ATTACH_SEARCH_TEXT {
+	TWITTER_ATTACH_SEARCH_TEXT_NONE = 0,
+	TWITTER_ATTACH_SEARCH_TEXT_PREPEND = 1,
+	TWITTER_ATTACH_SEARCH_TEXT_APPEND = 2,
+} TWITTER_ATTACH_SEARCH_TEXT;
+
+TWITTER_ATTACH_SEARCH_TEXT twitter_blist_chat_attach_search_text(PurpleChat *chat);
+
 void twitter_chat_got_tweet(TwitterEndpointChat *endpoint_chat, TwitterUserTweet *tweet);
 void twitter_chat_got_user_tweets(TwitterEndpointChat *endpoint_chat, GList *user_tweets);
 int twitter_endpoint_chat_send(TwitterEndpointChat *ctx, const gchar *message);

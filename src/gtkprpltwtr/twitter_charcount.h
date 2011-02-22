@@ -9,5 +9,6 @@ void twitter_charcount_detach_from_all_windows(void);
 void twitter_charcount_attach_to_all_windows(void);
 void twitter_charcount_conv_created_cb(PurpleConversation *conv, gpointer null);
 void twitter_charcount_conv_destroyed_cb(PurpleConversation *conv, gpointer null);
+void twitter_charcount_update_append_text_cb(PurpleConversation *conv);
 
 #endif

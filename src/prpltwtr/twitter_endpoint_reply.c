@@ -30,7 +30,7 @@ static int twitter_send_reply_do(PurpleAccount *account, const char *who,
 	PurpleConnection *gc = purple_account_get_connection(account);
 	TwitterConnectionData *twitter = gc->proto_data;
 	gchar *added_text = g_strdup_printf("@%s", who);
-	GArray *statuses = twitter_utf8_get_segments(message, MAX_TWEET_LENGTH, added_text);
+	GArray *statuses = twitter_utf8_get_segments(message, MAX_TWEET_LENGTH, added_text, TRUE);
 	long long in_reply_to_status_id = 0;
 	const gchar *reply_id;
 	gchar *conv_name = twitter_endpoint_im_buddy_name_to_conv_name(twitter_endpoint_im_find(account, TWITTER_IM_TYPE_AT_MSG), who);

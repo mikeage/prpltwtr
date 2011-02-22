@@ -25,7 +25,7 @@ static gboolean twitter_send_dm_error_cb(PurpleAccount *account, const TwitterRe
 static int twitter_send_dm_do(PurpleAccount *account, const char *who,
 		const char *message, PurpleMessageFlags flags)
 {
-	GArray *statuses = twitter_utf8_get_segments(message, MAX_TWEET_LENGTH, NULL);
+	GArray *statuses = twitter_utf8_get_segments(message, MAX_TWEET_LENGTH, NULL, FALSE);
 
 	twitter_api_send_dms(purple_account_get_requestor(account),
 			who,

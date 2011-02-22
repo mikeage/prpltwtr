@@ -1,36 +1,34 @@
 Changelog for current version:
-    * Show the error texts from twitter when displaying an error. Should make it easier to understand things like why DMs fail.
-	* Don't retreive old tweets when rejoining a search. Behaviour is now similar to a regular timeline.
+  * Show the error texts from twitter when displaying an error. Should make it easier to understand things like why DMs fail.
+  * Don't retreive old tweets when rejoining a search. Behaviour is now similar to a regular timeline.
+  * Allow customization of the insertion of the search text in tweets: never, prepended, or appended (set on a per-search basis). Default is never.
 
 Changelog for 0.6.3:
-    * Fix make install target
+  * Fix make install target
 
 Changelog for 0.6.2:
-
-    * Add a "report spammer" link
-    * Initial "Conversation" support available. Click on "In reply to..." and the parent tweet will be retrieve. It's currently delivered just like any other tweet; if it's from an IM session, it will be shown in a new IM window; if it's from a chat window, it will be shown at the bottom. I don't like this, but I don't have anything better at the moment.
-    * More sensible login defaults; HTTPS, OAuth, password is optional (not required when using OAuth)
-    * Snowflake API update; don't assume tweet_id's are sequential. This could have resulted in missing some tweets.
-    * Fix the Makefile.mingw dependency bug where foo.dll wasn't being rebuilt. Note that there is no support for header dependencies; the pidgin makefiles, which we use, do not support them. If you change a head files, run make clean all
-    * Automatically re-connect on server issues. 
+  * Add a "report spammer" link
+  * Initial "Conversation" support available. Click on "In reply to..." and the parent tweet will be retrieve. It's currently delivered just like any other tweet; if it's from an IM session, it will be shown in a new IM window; if it's from a chat window, it will be shown at the bottom. I don't like this, but I don't have anything better at the moment.
+  * More sensible login defaults; HTTPS, OAuth, password is optional (not required when using OAuth)
+  * Snowflake API update; don't assume tweet_id's are sequential. This could have resulted in missing some tweets.
+  * Fix the Makefile.mingw dependency bug where foo.dll wasn't being rebuilt. Note that there is no support for header dependencies; the pidgin makefiles, which we use, do not support them. If you change a head files, run make clean all
+  * Automatically re-connect on server issues. 
 
 Changelog for 0.6.1:
-
-    * 64 bit installations now work. Use the regular build system
-    * Proper build system. For Linux, run ./autogen.sh && make && make sudo install . Everything should "just work". For MinGW, run make -f Makefile.mingw PIDGIN_TREE_TOP=/path/to/pidgin-2.7.x/ VERSION=whatever. Note that I've only tested MinGW on Linux; Cygwin feedback is welcome.
-    * Cleaned up a bunch of code warnings. No functional changes (hopefully) 
+  * 64 bit installations now work. Use the regular build system
+  * Proper build system. For Linux, run ./autogen.sh && make && make sudo install . Everything should "just work". For MinGW, run make -f Makefile.mingw PIDGIN_TREE_TOP=/path/to/pidgin-2.7.x/ VERSION=whatever. Note that I've only tested MinGW on Linux; Cygwin feedback is welcome.
+  * Cleaned up a bunch of code warnings. No functional changes (hopefully) 
 
 Changelog for 0.6.0:
-
-    * Better Makefile & Installer support. Supports MinGW compilation (copy local.mak.mingw to local.mak in the prpltwtr and prpltwtr/gtkprpltwtr directories). The installer detects Pidgin installations (based on the registry) and PidginPortable (it looks in c:\PortableApps\PidginPortable, C:\Program Files\PortableApps\PidginPortable, and c:\Program Files\PortableApps\PortableApps\PidginPortable). Also, the installer installs .dbgsym files for meaningful crash reports.
-    * Old style RTs and Reply-to-all added (as in  issue 36 )
-    * "Lock reply" and other IM reply / in_reply_to improvements. See the description below
-    * Preparation for retreiving a conversation. The UI code is in an #ifdef 0, so you won't see anything. Yet.
-    * At least half a dozen crashes fixed, including when resuming from standby.
-    * Delayed icons no longer show up in a line after clearing the buffer using Ctrl-L
-    * Icon size is a gtkprpltwtr option
-    * New style RTs include all 140 characters plus the RT @someone header (no more crops using "..." at the end)
-    * Default retrieval quantities raised to 200 from 100. 
+  * Better Makefile & Installer support. Supports MinGW compilation (copy local.mak.mingw to local.mak in the prpltwtr and prpltwtr/gtkprpltwtr directories). The installer detects Pidgin installations (based on the registry) and PidginPortable (it looks in c:\PortableApps\PidginPortable, C:\Program Files\PortableApps\PidginPortable, and c:\Program Files\PortableApps\PortableApps\PidginPortable). Also, the installer installs .dbgsym files for meaningful crash reports.
+  * Old style RTs and Reply-to-all added (as in  issue 36 )
+  * "Lock reply" and other IM reply / in_reply_to improvements. See the description below
+  * Preparation for retreiving a conversation. The UI code is in an #ifdef 0, so you won't see anything. Yet.
+  * At least half a dozen crashes fixed, including when resuming from standby.
+  * Delayed icons no longer show up in a line after clearing the buffer using Ctrl-L
+  * Icon size is a gtkprpltwtr option
+  * New style RTs include all 140 characters plus the RT @someone header (no more crops using "..." at the end)
+  * Default retrieval quantities raised to 200 from 100. 
 
 Rules for replies
 
