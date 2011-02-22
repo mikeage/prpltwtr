@@ -339,6 +339,33 @@ static void twitter_sent_tweets_ids_remove_before(TwitterEndpointChat *ctx, long
 	}
 }
 
+void twitter_chat_update_rate_limit(TwitterEndpointChat *endpoint_chat)
+{
+	PurpleConversation *conv = twitter_endpoint_chat_find_open_conv(endpoint_chat);
+//	PurpleConversation *conv = twitter_endpoint_chat_get_conv(endpoint_chat);
+
+	if(!endpoint_chat)
+		return;
+
+	if (conv)
+	{
+		if (endpoint_chat->rate_limit_total)
+		{
+			gchar *status;
+			gchar rate_limit_graph[] = "--------------------";
+			int num;
+			num = (sizeof(rate_limit_graph)-1) * 100 * endpoint_chat->rate_limit_remaining / endpoint_chat->rate_limit_total / 100;
+			memset(rate_limit_graph, '>', num);
+
+			status = g_strdup_printf("Rate limit: %d/%d [%s]",endpoint_chat->rate_limit_remaining, endpoint_chat->rate_limit_total, rate_limit_graph);
+			purple_conv_chat_set_topic(PURPLE_CONV_CHAT(conv), "system", status);
+			purple_debug_info(TWITTER_PROTOCOL_ID, "Setting title to %s for conv=%p\n", status, conv);
+
+			g_free(status);
+		}
+	}
+}
+
 void twitter_chat_got_user_tweets(TwitterEndpointChat *endpoint_chat, GList *user_tweets)
 {
 	PurpleAccount *account;
@@ -349,31 +376,34 @@ void twitter_chat_got_user_tweets(TwitterEndpointChat *endpoint_chat, GList *use
 
 	account = endpoint_chat->account;
 
-	if (!user_tweets)
-		return;
-
-	l = g_list_last(user_tweets);
-	max_id = ((TwitterUserTweet *) l->data)->status->id;
-	for (l = user_tweets; l; l = l->next)
+	if (user_tweets)
 	{
-		TwitterUserTweet *user_tweet = l->data;
-		TwitterUserData *user = twitter_user_tweet_take_user_data(user_tweet);
-		TwitterTweet *status;
 
-		if (user)
-			twitter_buddy_set_user_data(account, user, FALSE);
+		l = g_list_last(user_tweets);
+		max_id = ((TwitterUserTweet *) l->data)->status->id;
+		for (l = user_tweets; l; l = l->next)
+		{
+			TwitterUserTweet *user_tweet = l->data;
+			TwitterUserData *user = twitter_user_tweet_take_user_data(user_tweet);
+			TwitterTweet *status;
 
-		/* This could be more efficient */
-		if (!twitter_sent_tweets_contains_id(endpoint_chat, user_tweet->status->id))
-			twitter_chat_got_tweet(endpoint_chat, user_tweet);
+			if (user)
+				twitter_buddy_set_user_data(account, user, FALSE);
 
-		status = twitter_user_tweet_take_tweet(user_tweet);
-		twitter_buddy_set_status_data(account, user_tweet->screen_name, status);
+			/* This could be more efficient */
+			if (!twitter_sent_tweets_contains_id(endpoint_chat, user_tweet->status->id))
+				twitter_chat_got_tweet(endpoint_chat, user_tweet);
 
-		twitter_user_tweet_free(user_tweet);
+			status = twitter_user_tweet_take_tweet(user_tweet);
+			twitter_buddy_set_status_data(account, user_tweet->screen_name, status);
+
+			twitter_user_tweet_free(user_tweet);
+		}
+		twitter_sent_tweets_ids_remove_before(endpoint_chat, max_id);
+		g_list_free(user_tweets);
 	}
-	twitter_sent_tweets_ids_remove_before(endpoint_chat, max_id);
-	g_list_free(user_tweets);
+
+	twitter_chat_update_rate_limit(endpoint_chat);
 }
 
 static int _tweet_id_compare(long long *a, long long *b)

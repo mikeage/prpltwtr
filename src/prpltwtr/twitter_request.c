@@ -209,6 +209,31 @@ gint twitter_response_text_status_code(const gchar *response_text)
 
 	return atoi(ptr);
 }
+
+static gboolean twitter_response_text_rate_limit(const gchar *response_text, int * remaining, int *total)
+{
+	const gchar *ptr;
+	const gchar *remaining_str = "X-RateLimit-Remaining: ";
+	const gchar *total_str = "X-RateLimit-Limit: ";
+
+	if (!response_text)
+		return FALSE;
+
+	ptr = g_strrstr(response_text, remaining_str);
+	if (!ptr)
+		return FALSE;
+
+	*remaining = atoi(ptr+strlen(remaining_str));
+
+	ptr = g_strrstr(response_text, total_str);
+	if (!ptr)
+		return FALSE;
+
+	*total = atoi(ptr+strlen(total_str));
+
+	return TRUE;
+}
+
 const gchar *twitter_response_text_data(const gchar *response_text, gsize len)
 {
 	const gchar *data = g_strstr_len(response_text, len, "\r\n\r\n");
@@ -320,6 +345,8 @@ static void twitter_send_request_cb(PurpleUtilFetchUrlData *url_data, gpointer u
 		twitter_requestor_on_error(request_data->requestor, error_data, request_data->error_func, request_data->user_data);
 		g_free(error_data);
 	} else {
+		twitter_response_text_rate_limit(response_text, &(request_data->requestor->rate_limit_remaining), &(request_data->requestor->rate_limit_total));
+
 		purple_debug_info(TWITTER_PROTOCOL_ID, "Valid response, calling success func\n");
 		if (request_data->success_func)
 			request_data->success_func(request_data->requestor, url_text, request_data->user_data);

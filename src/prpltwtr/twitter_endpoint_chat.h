@@ -70,6 +70,8 @@ struct _TwitterEndpointChat
 	gpointer endpoint_data;
 
 	GList *sent_tweet_ids;
+	int rate_limit_total;
+	int rate_limit_remaining;
 };
 
 //Identifier to use for multithreading
@@ -110,6 +112,8 @@ typedef enum _TWITTER_ATTACH_SEARCH_TEXT {
 } TWITTER_ATTACH_SEARCH_TEXT;
 
 TWITTER_ATTACH_SEARCH_TEXT twitter_blist_chat_attach_search_text(PurpleChat *chat);
+
+void twitter_chat_update_rate_limit(TwitterEndpointChat *endpoint_chat);
 
 void twitter_chat_got_tweet(TwitterEndpointChat *endpoint_chat, TwitterUserTweet *tweet);
 void twitter_chat_got_user_tweets(TwitterEndpointChat *endpoint_chat, GList *user_tweets);

@@ -80,6 +80,8 @@ struct _TwitterRequestor
 	void (*post_send)(TwitterRequestor *r, gboolean *post, const char **url, TwitterRequestParams **params, gchar ***header_fields, gpointer *requestor_data);
 	gboolean (*pre_failed)(TwitterRequestor *r, const TwitterRequestErrorData **error_data);
 	void (*post_failed)(TwitterRequestor *r, const TwitterRequestErrorData **error_data);
+	int rate_limit_total;
+	int rate_limit_remaining;
 };
 
 void twitter_requestor_free(TwitterRequestor *requestor);

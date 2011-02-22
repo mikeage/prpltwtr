@@ -65,7 +65,11 @@ static void twitter_get_home_timeline_parse_statuses(TwitterEndpointChat *endpoi
 	gc = purple_account_get_connection(endpoint_chat->account);
 
 	if (!statuses)
+	{
+		/* At least update the topic with the new rate limit info */
+		twitter_chat_update_rate_limit(endpoint_chat);
 		return;
+	}
 
 	l = g_list_last(statuses);
 	user_tweet = l->data;
@@ -99,6 +103,9 @@ static void twitter_get_home_timeline_cb(TwitterRequestor *r, xmlnode *node, gpo
 	if (endpoint_chat == NULL)
 		return;
 
+	endpoint_chat->rate_limit_remaining = r->rate_limit_remaining;
+	endpoint_chat->rate_limit_total = r->rate_limit_total;
+
 	statuses = twitter_statuses_node_parse(node);
 	twitter_get_home_timeline_parse_statuses(endpoint_chat, statuses);
 
@@ -120,6 +127,9 @@ static void twitter_get_home_timeline_all_cb(TwitterRequestor *r,
 	
 	if (endpoint_chat == NULL)
 		return;
+
+	endpoint_chat->rate_limit_remaining = r->rate_limit_remaining;
+	endpoint_chat->rate_limit_total = r->rate_limit_total;
 
 	statuses = twitter_statuses_nodes_parse(nodes);
 	twitter_get_home_timeline_parse_statuses(endpoint_chat, statuses);

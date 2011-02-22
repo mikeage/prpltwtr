@@ -81,6 +81,10 @@ static void twitter_search_cb(PurpleAccount *account,
 		purple_debug_info(TWITTER_PROTOCOL_ID, "%s, chat data went away\n", G_STRFUNC);
 		return;
 	}
+
+	endpoint_chat->rate_limit_remaining = purple_account_get_requestor(account)->rate_limit_remaining;
+	endpoint_chat->rate_limit_total = purple_account_get_requestor(account)->rate_limit_total;
+
 	ctx = (TwitterSearchTimeoutContext *) endpoint_chat->endpoint_data;
 
 	g_return_if_fail (ctx != NULL);
@@ -88,7 +92,11 @@ static void twitter_search_cb(PurpleAccount *account,
 	if (search_results)
 	{
 		twitter_chat_got_user_tweets(endpoint_chat, search_results);
+	} else {
+		/* At least update the topic with the new rate limit info */
+		twitter_chat_update_rate_limit(endpoint_chat);
 	}
+
 
 	if (max_id)
 	{
