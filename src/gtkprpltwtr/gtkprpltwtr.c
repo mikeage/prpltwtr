@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif /* HAVE_CONFIG_H */
+
 #include "defaults.h"
 
 #include <gtkplugin.h>
@@ -9,6 +13,17 @@
 #include "twitter_convicon.h"
 #include "gtkprpltwtr.h"
 #include <ctype.h>
+
+#ifdef WIN32
+#include "win32dep.h"
+#endif
+
+#ifdef ENABLE_NLS
+#include <glib/gi18n-lib.h>
+#else
+#define _(String) ((/* const */ char *) (String))
+#define N_(String) ((/* const */ char *) (String))
+#endif // ENABLE NLS
 
 static PurplePlugin *gtkprpltwtr_plugin = NULL;
 
@@ -42,7 +57,7 @@ static void twitter_send_rt_success_cb(TwitterRequestor *r,
 		gpointer user_data)
 {
 	TwitterConversationId *conv_id = user_data;
-	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_SYSTEM, "Successfully retweeted");
+	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_SYSTEM, _("Successfully retweeted"));
 }
 
 static void twitter_send_rt_error_cb(TwitterRequestor *r,
@@ -50,7 +65,7 @@ static void twitter_send_rt_error_cb(TwitterRequestor *r,
 		gpointer user_data)
 {
 	TwitterConversationId *conv_id = user_data;
-	gchar * error = g_strdup_printf("Couldn't retweet status: %s", error_data->message ? error_data->message : "unknown error");
+	gchar * error = g_strdup_printf(_("Couldn't retweet status: %s"), error_data->message ? error_data->message : _("unknown error"));
 	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_ERROR, error);
 	g_free(error);
 }
@@ -60,7 +75,7 @@ static void twitter_report_spammer_success_cb(TwitterRequestor *r,
 		gpointer user_data)
 {
 	TwitterConversationId *conv_id = user_data;
-	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_SYSTEM, "Successfully reported as spam");
+	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_SYSTEM, _("Successfully reported as spam"));
 }
 
 static void twitter_report_spammer_error_cb(TwitterRequestor *r,
@@ -68,7 +83,7 @@ static void twitter_report_spammer_error_cb(TwitterRequestor *r,
 		gpointer user_data)
 {
 	TwitterConversationId *conv_id = user_data;
-	gchar * error = g_strdup_printf("Couldn't report spammer: %s", error_data->message ? error_data->message : "unknown error");
+	gchar * error = g_strdup_printf(_("Couldn't report spammer: %s"), error_data->message ? error_data->message : _("unknown error"));
 	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_ERROR, error);
 	g_free(error);
 }
@@ -137,7 +152,7 @@ static void twitter_get_status_error_cb(TwitterRequestor *r,
 		gpointer user_data)
 {
 	TwitterConversationId *conv_id = user_data;
-	gchar * error = g_strdup_printf("Couldn't get status: %s", error_data->message ? error_data->message : "unknown error");
+	gchar * error = g_strdup_printf(_("Couldn't get status: %s"), error_data->message ? error_data->message : _("unknown error"));
 	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_ERROR, error);
 	g_free(error);
 }
@@ -147,7 +162,7 @@ static void twitter_delete_tweet_success_cb(TwitterRequestor *r,
 		gpointer user_data)
 {
 	TwitterConversationId *conv_id = user_data;
-	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_SYSTEM, "Successfully deleted");
+	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_SYSTEM, _("Successfully deleted"));
 }
 
 static void twitter_delete_tweet_error_cb(TwitterRequestor *r,
@@ -155,7 +170,7 @@ static void twitter_delete_tweet_error_cb(TwitterRequestor *r,
 		gpointer user_data)
 {
 	TwitterConversationId *conv_id = user_data;
-	gchar * error = g_strdup_printf("Couldn't delete status: %s", error_data->message ? error_data->message : "unknown error");
+	gchar * error = g_strdup_printf(_("Couldn't delete status: %s"), error_data->message ? error_data->message : _("unknown error"));
 	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_ERROR, error);
 	g_free(error);
 }
@@ -260,9 +275,9 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 	if (!strcmp(cmd_arg, TWITTER_URI_ACTION_USER))
 	{
 		purple_notify_info(purple_account_get_connection(account),
-				"Clicked URI",
-				"@name clicked",
-				"Sorry, this has not been implemented yet");
+				_("Clicked URI"),
+				_("@name clicked"),
+				_("Sorry, this has not been implemented yet"));
 	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_REPLYALL)) {
 		const char *id_str, *user, *text;
 		char others[140];
@@ -705,33 +720,33 @@ static void twitter_url_menu_actions(GtkWidget *menu, const char *url)
 	account = purple_accounts_find(account_name, TWITTER_PROTOCOL_ID);
 
 	img = gtk_image_new_from_stock(GTK_STOCK_REFRESH, GTK_ICON_SIZE_MENU);
-	item = gtk_image_menu_item_new_with_mnemonic(("Retweet"));
+	item = gtk_image_menu_item_new_with_mnemonic((_("Retweet")));
 	gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
 	g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_retweet), (gpointer)url);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
 
 	img = gtk_image_new_from_stock(GTK_STOCK_REFRESH, GTK_ICON_SIZE_MENU);
-	item = gtk_image_menu_item_new_with_mnemonic(("Old Retweet"));
+	item = gtk_image_menu_item_new_with_mnemonic((_("Old Retweet")));
 	gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
 	g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_old_retweet), (gpointer)url);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
 
 
 	img = gtk_image_new_from_stock(GTK_STOCK_REDO, GTK_ICON_SIZE_MENU);
-	item = gtk_image_menu_item_new_with_mnemonic(("Reply"));
+	item = gtk_image_menu_item_new_with_mnemonic((_("Reply")));
 	gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
 	g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_reply), (gpointer)url);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
 
 	img = gtk_image_new_from_stock(GTK_STOCK_REDO, GTK_ICON_SIZE_MENU);
-	item = gtk_image_menu_item_new_with_mnemonic(("Reply All"));
+	item = gtk_image_menu_item_new_with_mnemonic((_("Reply All")));
 	gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
 	g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_replyall), (gpointer)url);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
 
 
 	img = gtk_image_new_from_stock(GTK_STOCK_HOME, GTK_ICON_SIZE_MENU);
-	item = gtk_image_menu_item_new_with_mnemonic(("Goto Site"));
+	item = gtk_image_menu_item_new_with_mnemonic((_("Goto Site")));
 	gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
 	g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_link), (gpointer)url);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
@@ -739,7 +754,7 @@ static void twitter_url_menu_actions(GtkWidget *menu, const char *url)
 	if (account && twitter_usernames_match(account, account_name, user_name))
 	{
 		img = gtk_image_new_from_stock(GTK_STOCK_DELETE, GTK_ICON_SIZE_MENU);
-		item = gtk_image_menu_item_new_with_mnemonic(("Delete"));
+		item = gtk_image_menu_item_new_with_mnemonic((_("Delete")));
 		gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
 		g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_delete), (gpointer)url);
 		gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
@@ -748,7 +763,7 @@ static void twitter_url_menu_actions(GtkWidget *menu, const char *url)
 	if(in_reply_to_status_id)
 	{
 		img = gtk_image_new_from_stock(GTK_STOCK_HOME, GTK_ICON_SIZE_MENU);
-		item = gtk_image_menu_item_new_with_mnemonic(("In reply to..."));
+		item = gtk_image_menu_item_new_with_mnemonic((_("In reply to...")));
 		gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
 		g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_get_original), (gpointer)url);
 		gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
@@ -757,14 +772,14 @@ static void twitter_url_menu_actions(GtkWidget *menu, const char *url)
 	if (conv_type == PURPLE_CONV_TYPE_IM)
 	{
 		img = gtk_image_new_from_stock(GTK_STOCK_CONVERT, GTK_ICON_SIZE_MENU);
-		item = gtk_image_menu_item_new_with_mnemonic(("Lock reply"));
+		item = gtk_image_menu_item_new_with_mnemonic((_("Lock reply")));
 		gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
 		g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_set_reply), (gpointer)url);
 		gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
 	}
 
 	img = gtk_image_new_from_stock(GTK_STOCK_STOP, GTK_ICON_SIZE_MENU);
-	item = gtk_image_menu_item_new_with_mnemonic(("Report spammer"));
+	item = gtk_image_menu_item_new_with_mnemonic((_("Report spammer")));
 	gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
 	g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_report_spammer), (gpointer)url);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
@@ -1113,10 +1128,10 @@ static PurplePluginPrefFrame *get_plugin_pref_frame(PurplePlugin *plugin)
 	frame = purple_plugin_pref_frame_new();
 
 	ppref = purple_plugin_pref_new_with_name_and_label(
-			TWITTER_PREF_ENABLE_CONV_ICON, "Enable Icons in Chat");
+			TWITTER_PREF_ENABLE_CONV_ICON, _("Enable Icons in Chat"));
 	purple_plugin_pref_frame_add(frame, ppref);
 
-	ppref = purple_plugin_pref_new_with_name_and_label(TWITTER_PREF_CONV_ICON_SIZE, "Icon Size");
+	ppref = purple_plugin_pref_new_with_name_and_label(TWITTER_PREF_CONV_ICON_SIZE, _("Icon Size"));
 	purple_plugin_pref_set_bounds(ppref, 16, 64);
 	purple_plugin_pref_frame_add(frame, ppref);
 
@@ -1150,7 +1165,7 @@ static PurplePluginInfo info =
 	PURPLE_PRIORITY_DEFAULT,                        /**< priority */
 	PLUGIN_ID,                                   /**< id */
 	"GtkPrplTwtr",                                      /**< name */
-	VERSION,                               /**< version */
+	PACKAGE_VERSION,                               /**< version */
 	"PrplTwtr Pidgin Support",                        /**< summary */
 	"PrplTwtr Pidgin Support",               /**< description */
 	"neaveru <neaveru@gmail.com>",		     /* author */
@@ -1170,6 +1185,13 @@ static PurplePluginInfo info =
 
 static void plugin_init(PurplePlugin *plugin) 
 {	
+#ifdef ENABLE_NLS
+	bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
+	bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
+#endif /* ENABLE_NLS */
+	info.summary     = _("GUI Enhancements for PrplTwtr");
+	info.description = _("Pidgin specific GUI options for the purple plugin PrplTwtr");
+
 	gtkprpltwtr_plugin = plugin;
 	twitter_endpoint_chat_init();
 	gtkprpltwtr_prefs_init(plugin);

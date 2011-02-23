@@ -1,29 +1,40 @@
+#
 # Makefile.mingw
 #
-# Description: Top Makefile for pidgin-privacy-please.
+# Description: Top Makefile
 #
 
 .PHONY: all installer clean
 
 MINGW_MAKEFILE=Makefile.mingw
-export VERSION=$(shell grep ^PACKAGE_VERSION= configure | cut -d "'" -f 2)
+export PACKAGE_VERSION=$(shell grep ^PACKAGE_VERSION= configure | cut -d "'" -f 2)
+
+PO_INSTALL_SCRIPT = nsis/po_prpltwtr.nsi
 
 all:
 	$(MAKE) -C src -f $(MINGW_MAKEFILE) $@
+	$(MAKE) -C po -f $(MINGW_MAKEFILE) $@
 	$(MAKE) -C data -f $(MINGW_MAKEFILE) $@
 
 clean:
 	$(MAKE) -C src -f $(MINGW_MAKEFILE) $@
+	$(MAKE) -C po -f $(MINGW_MAKEFILE) $@
 	$(MAKE) -C data -f $(MINGW_MAKEFILE) $@
-	rm -rf nsis/*exe
+	-rm -rf nsis/*exe
+	-rm $(PO_INSTALL_SCRIPT)
 
-ifeq ($(strip $(VERSION)),)
+ifeq ($(strip $(PACKAGE_VERSION)),)
 $(error Version wasn't defined! Did you run configure? If you want, this can be set on the command line)
 endif
 
-installer: dist
+$(PO_INSTALL_SCRIPT):
+	@echo "; Automatically generated installer script include for translation .mo files" > $@
+	@for file in po/*gmo ; do file=`basename $$file`; lang=`basename $$file .gmo`; echo "SetOutPath \"\$$INSTDIR\\locale\\$$lang\\LC_MESSAGES\\\"" >> $@ ; echo  "File /oname=prpltwtr.mo ..\\po\\$$file" >>$@ ; done
 
-dist: 
+installer: all dist
+
+dist: $(PO_INSTALL_SCRIPT)
 	$(MAKE) -C src -f $(MINGW_MAKEFILE) $@
+	$(MAKE) -C po -f $(MINGW_MAKEFILE) $@
 	$(MAKE) -C data -f $(MINGW_MAKEFILE) $@
-	makensis -DPRODUCT_VERSION=$(VERSION) nsis/prpltwtr.nsi
+	makensis -DPACKAGE_VERSION=$(PACKAGE_VERSION) nsis/prpltwtr.nsi

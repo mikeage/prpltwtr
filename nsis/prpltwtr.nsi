@@ -40,8 +40,8 @@ SetCompress auto
 
 ; MUI end ------
 
-Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "${PRODUCT_NAME}-${PRODUCT_VERSION}.exe"
+Name "${PRODUCT_NAME} ${PACKAGE_VERSION}"
+OutFile "${PRODUCT_NAME}-${PACKAGE_VERSION}.exe"
 
 ShowInstDetails show
 ShowUnInstDetails show
@@ -53,9 +53,12 @@ SectionIn RO
     SetOverwrite try
     
 	SetOutPath "$INSTDIR\pixmaps\pidgin"
-	File "/oname=protocols\16\prpltwtr.png" "${BASEDIR}\data\16\prpltwtr.png"
-	File "/oname=protocols\22\prpltwtr.png" "${BASEDIR}\data\22\prpltwtr.png"
-	File "/oname=protocols\48\prpltwtr.png" "${BASEDIR}\data\48\prpltwtr.png"
+	SetOutPath "$INSTDIR\pixmaps\pidgin\protocols\16\"
+	File "${BASEDIR}\data\16\prpltwtr.png"
+	SetOutPath "$INSTDIR\pixmaps\pidgin\protocols\22\"
+	File "${BASEDIR}\data\22\prpltwtr.png"
+	SetOutPath "$INSTDIR\pixmaps\pidgin\protocols\48\"
+	File "${BASEDIR}\data\48\prpltwtr.png"
 
     SetOverwrite try
 	copy:
@@ -75,8 +78,13 @@ SectionIn RO
 SectionEnd
 
 Section "${PRODUCT_NAME} dbgsym" SEC02
+		SetOutPath "$INSTDIR\plugins"
 		File "${BASEDIR}\src\prpltwtr\prpltwtr.dll.dbgsym"
 		File "${BASEDIR}\src\gtkprpltwtr\gtkprpltwtr.dll.dbgsym"
+SectionEnd
+
+Section "${PRODUCT_NAME} localizations" SEC03
+	!include po_prpltwtr.nsi
 SectionEnd
 
 Function GetPidginInstPath

@@ -3,10 +3,12 @@ EXTRA_DIST = \
 	COPYING \
 	Makefile.mingw \
 	src/Makefile.mingw \
+	po/Makefile.mingw \
 	nsis \
 	data 
 
 SUBDIRS = \
 	src \
+	po \
     data
 	

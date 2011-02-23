@@ -10,13 +10,20 @@
 #	include <win32dep.h>
 #endif
 
-#if !defined(VERSION) && defined(HAVE_CONFIG_H)
+#ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-#ifndef VERSION
+#ifndef PACKAGE_VERSION
 #error Version not defined! (command line for MinGW, config.h for autoconf builds)
 #endif
+
+#ifdef ENABLE_NLS
+#include <glib/gi18n-lib.h>
+#else
+#define _(String) ((/* const */ char *) (String))
+#define N_(String) ((/* const */ char *) (String))
+#endif // ENABLE NLS
 
 /* The number of tweets to return per page, up to a max of 200 */
 #define TWITTER_SEARCH_RPP_DEFAULT 200

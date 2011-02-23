@@ -454,8 +454,8 @@ void twitter_endpoint_chat_start(PurpleConnection *gc, TwitterEndpointChatSettin
 	if (settings->verify_components && (error = settings->verify_components(components)))
 	{
 		purple_notify_info(gc,  /* plugin handle or PurpleConnection */
-				("Chat Join"),
-				("Invalid Chat"),
+				_("Chat Join"),
+				_("Invalid Chat"),
 				(error));
 		g_free(error);
 		return;
@@ -565,8 +565,8 @@ static gboolean twitter_endpoint_chat_send_error_cb(PurpleAccount *account, cons
 
 		if (conv)
 		{
-			gchar * error = g_strdup_printf("Error sending tweet: %s", error_data->message ? error_data->message : "unknown error");
-			purple_conversation_write(conv, NULL, "Error sending tweet", PURPLE_MESSAGE_ERROR, time(NULL));
+			gchar * error = g_strdup_printf(_("Error sending tweet: %s"), error_data->message ? error_data->message : _("unknown error"));
+			purple_conversation_write(conv, NULL, error, PURPLE_MESSAGE_ERROR, time(NULL));
 			g_free(error);
 		}
 	}

@@ -1,8 +1,7 @@
 #
 # Makefile.mingw
 #
-# Description: Makefile for privacy please plugin.
-# Taken from the ticker plugin.
+# Description: Makefile for prpltwtr
 #
 
 ifndef PIDGIN_TREE_TOP
@@ -12,7 +11,10 @@ endif
 include $(PIDGIN_TREE_TOP)/libpurple/win32/global.mak
 
 TARGET = prpltwtr
-DEFINES += -DVERSION=\"$(VERSION)\" -DPURPLE_PLUGINS
+
+DEFINES += -DGETTEXT_PACKAGE=\"prpltwtr\"
+DEFINES += -DPACKAGE_VERSION=\"$(PACKAGE_VERSION)\"
+DEFINES += -DPURPLE_PLUGINS
 
 ##
 ## INCLUDE PATHS
@@ -62,11 +64,13 @@ OBJECTS = $(C_SRC:%.c=%.o)
 ##
 ## LIBRARIES
 ##
-LIBS =			-lgtk-win32-2.0 \
+LIBS =	-lgtk-win32-2.0 \
 			-lglib-2.0 \
 			-lgdk-win32-2.0 \
 			-lgobject-2.0 \
-			-lpurple 
+			-lintl \
+			-lpurple \
+#			-lgdk_pixbuf-2.0 \
 #			-lpidgin
 
 include $(PIDGIN_COMMON_RULES)
@@ -85,7 +89,7 @@ $(TARGET).dll: $(TARGET).dll.dbgsym
 $(TARGET).dll.dbgsym: $(PURPLE_DLL).a $(PIDGIN_DLL).a $(OBJECTS) 
 	$(CC) -shared $(OBJECTS) $(LIB_PATHS) $(LIBS) $(DLL_LD_FLAGS) -g -o $(TARGET).dll.dbgsym
 
-installer: dist
+installer: all dist
 
 dist: all
 

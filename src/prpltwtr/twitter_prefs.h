@@ -28,9 +28,9 @@
 #include <account.h>
 #include <accountopt.h>
 
-#define TWITTER_PREF_DEFAULT_BUDDY_GROUP "twitter"
-#define TWITTER_PREF_DEFAULT_SEARCH_GROUP "twitter searches"
-#define TWITTER_PREF_DEFAULT_TIMELINE_GROUP "twitter timelines"
+#define TWITTER_PREF_DEFAULT_BUDDY_GROUP _("twitter")
+#define TWITTER_PREF_DEFAULT_SEARCH_GROUP _("twitter searches")
+#define TWITTER_PREF_DEFAULT_TIMELINE_GROUP _("twitter timelines")
 
 #define TWITTER_PREF_USE_HTTPS "use_https"
 #define TWITTER_PREF_USE_HTTPS_DEFAULT TRUE

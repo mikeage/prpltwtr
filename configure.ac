@@ -5,7 +5,6 @@ AC_PREREQ(2.59)
 AC_INIT([prpltwtr], [0.6.3], [http://code.google.com/p/prpltwtr/issues/list])
 AC_CANONICAL_TARGET([])
 AM_INIT_AUTOMAKE([1.9.5])
-AM_MAINTAINER_MODE
 
 REQUIRED_PKG_CONFIG="0.15.0"
 AC_SUBST(REQUIRED_PKG_CONFIG)
@@ -13,6 +12,7 @@ AC_SUBST(REQUIRED_PKG_CONFIG)
 REQUIRED_PIDGIN="pidgin >= 2.6 pidgin < 3.0"
 AC_SUBST(REQUIRED_PIDGIN)
 
+AC_CONFIG_SRCDIR([src/Makefile.mingw])
 AC_CONFIG_HEADER([config.h])
 
 AC_DEFINE(PURPLE_PLUGINS, 1, [Define if plugins are enabled.])
@@ -28,6 +28,16 @@ AC_PATH_PROG(PKG_CONFIG, [pkg-config], [no])
 
 LIBPURPLE_DATADIR=`pkg-config --variable=datadir purple`
 AC_SUBST(LIBPURPLE_DATADIR)
+
+#
+# Setup gettext
+#
+AC_PROG_INTLTOOL
+GETTEXT_PACKAGE=prpltwtr
+AC_SUBST(GETTEXT_PACKAGE)
+AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, ["$GETTEXT_PACKAGE"], [Define the gettext package to be used])
+ALL_LINGUAS="es"
+AM_GLIB_GNU_GETTEXT
 
 if test x$PKG_CONFIG = xno ; then
   AC_MSG_ERROR([*** pkg-config not found])
@@ -78,15 +88,17 @@ if test "x$GCC" = "xyes"; then
 	CFLAGS="$CFLAGS -Wall -g3"
 fi
 AC_SUBST(CFLAGS)
+AM_MAINTAINER_MODE
 
 # Creating files.
-AC_OUTPUT([
-Makefile
+AC_CONFIG_FILES([Makefile
 data/Makefile
 src/Makefile
+po/Makefile.in
 src/prpltwtr/Makefile
 src/gtkprpltwtr/Makefile
 ])
+AC_OUTPUT
 
 echo
 echo $PACKAGE $VERSION

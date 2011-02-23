@@ -1,6 +1,7 @@
+#
 # Makefile.mingw
 #
-# Description: Top Makefile for pidgin-privacy-please.
+# Description: src makefile for prpltwtr and gtkprpltwtr
 #
 
 .PHONY: all 
@@ -15,7 +16,7 @@ clean:
 	$(MAKE) -C prpltwtr -f $(MINGW_MAKEFILE) $@
 	$(MAKE) -C gtkprpltwtr -f $(MINGW_MAKEFILE) $@
 
-installer: dist
+installer: all dist
 
 dist:
 	$(MAKE) -C prpltwtr -f $(MINGW_MAKEFILE) $@

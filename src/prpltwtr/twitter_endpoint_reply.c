@@ -14,7 +14,7 @@ static gboolean twitter_send_reply_error_cb(PurpleAccount *account, const Twitte
 	if (who)
 	{
 		gchar *conv_name = twitter_endpoint_im_buddy_name_to_conv_name(twitter_endpoint_im_find(account, TWITTER_IM_TYPE_AT_MSG), _who);
-		gchar * error = g_strdup_printf("Error sending reply: %s", error_data->message ? error_data->message : "unknown error");
+		gchar * error = g_strdup_printf(_("Error sending reply: %s"), error_data->message ? error_data->message : _("unknown error"));
 		purple_conv_present_error(conv_name, account, error);
 		g_free(error);
 		g_free(who);
@@ -91,7 +91,7 @@ static void twitter_get_replies_timeout_error_cb (PurpleAccount *account,
 
 		if (twitter->failed_get_replies_count >= 3)
 		{
-			purple_connection_error_reason(gc, PURPLE_CONNECTION_ERROR_NETWORK_ERROR, "Could not retrieve replies, giving up trying");
+			purple_connection_error_reason(gc, PURPLE_CONNECTION_ERROR_NETWORK_ERROR, _("Could not retrieve replies, giving up trying"));
 		}
 	}
 }

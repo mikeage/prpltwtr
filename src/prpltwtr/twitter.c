@@ -65,14 +65,14 @@ static GList *twitter_chat_info(PurpleConnection *gc) {
 	GList *chat_info = NULL;
 
 	pce = g_new0(struct proto_chat_entry, 1);
-	pce->label = "Search";
+	pce->label = ("Search");
 	pce->identifier = "search";
 	pce->required = FALSE;
 
 	chat_info = g_list_append(chat_info, pce);
 
 	pce = g_new0(struct proto_chat_entry, 1);
-	pce->label = "Update Interval";
+	pce->label = ("Update Interval");
 	pce->identifier = "interval";
 	pce->required = TRUE;
 	pce->is_int = TRUE;
@@ -177,11 +177,11 @@ static void twitter_verify_connection_error_handler(PurpleAccount *account, cons
 			break;
 		case TWITTER_REQUEST_ERROR_INVALID_XML:
 			reason = PURPLE_CONNECTION_ERROR_NETWORK_ERROR;
-			error_message = "Received Invalid XML";
+			error_message = _("Received Invalid XML");
 			break;
 		case TWITTER_REQUEST_ERROR_UNAUTHORIZED:
 			reason = PURPLE_CONNECTION_ERROR_AUTHENTICATION_FAILED;
-			error_message = "Unauthorized";
+			error_message = _("Unauthorized");
 			break;
 		case TWITTER_REQUEST_ERROR_TWITTER_GENERAL:
 			reason = PURPLE_CONNECTION_ERROR_NETWORK_ERROR;
@@ -189,7 +189,7 @@ static void twitter_verify_connection_error_handler(PurpleAccount *account, cons
 			break;
 		default:
 			reason = PURPLE_CONNECTION_ERROR_OTHER_ERROR;
-			error_message = "Unknown error";
+			error_message = _("Unknown error");
 			break;
 	}
 	purple_connection_error_reason(purple_account_get_connection(account), reason, error_message);
@@ -478,7 +478,7 @@ static void twitter_connected(PurpleAccount *account)
 				twitter_option_get_history(account),
 				TWITTER_INITIAL_DMS_COUNT));
 
-	purple_connection_update_progress(gc, "Connected",
+	purple_connection_update_progress(gc, _("Connected"),
 			2,   /* which connection step this is */
 			3);  /* total number of steps */
 	purple_connection_set_state(gc, PURPLE_CONNECTED);
@@ -569,10 +569,10 @@ static void twitter_get_rate_limit_status_cb(TwitterRequestor *r, xmlnode *node,
 			}
 		}
 	}
-	message = g_strdup_printf("%d/%d %s", remaining_hits, hourly_limit, "Remaining");
+	message = g_strdup_printf("%d/%d %s", remaining_hits, hourly_limit, _("Remaining"));
 	purple_notify_info(NULL,  /* plugin handle or PurpleConnection */
-			("Rate Limit Status"),
-			("Rate Limit Status"),
+			_("Rate Limit Status"),
+			_("Rate Limit Status"),
 			(message));
 	g_free(message);
 }
@@ -703,12 +703,12 @@ static void twitter_action_set_status(PurplePluginAction *action)
 	purple_request_fields_add_group(request, group);
 
 	purple_request_fields(action->plugin,
-			("Status"),
-			("Set Account Status"),
+			_("Status"),
+			_("Set Account Status"),
 			NULL,
 			request,
-			("_Set"), G_CALLBACK(twitter_action_set_status_ok),
-			("_Cancel"), NULL,
+			_("_Set"), G_CALLBACK(twitter_action_set_status_ok),
+			_("_Cancel"), NULL,
 			purple_connection_get_account(gc), NULL, NULL,
 			gc);
 }
@@ -727,15 +727,15 @@ static GList *twitter_actions(PurplePlugin *plugin, gpointer context)
 	GList *l = NULL;
 	PurplePluginAction *action;
 
-	action = purple_plugin_action_new("Set status", twitter_action_set_status);
+	action = purple_plugin_action_new(_("Set status"), twitter_action_set_status);
 	l = g_list_append(l, action);
 
-	action = purple_plugin_action_new("Rate Limit Status", twitter_action_get_rate_limit_status);
+	action = purple_plugin_action_new(("Rate Limit Status"), twitter_action_get_rate_limit_status);
 	l = g_list_append(l, action);
 
 	l = g_list_append(l, NULL);
 
-	action = purple_plugin_action_new("Debug - Retrieve users", twitter_action_get_user_info);
+	action = purple_plugin_action_new(_("Debug - Retrieve users"), twitter_action_get_user_info);
 	l = g_list_append(l, action);
 
 	return l;
@@ -767,7 +767,7 @@ static void twitter_verify_connection(PurpleAccount *account)
 
 	if (purple_connection_get_state(gc) == PURPLE_CONNECTING) {
 
-		purple_connection_update_progress(gc, "Connecting...",
+		purple_connection_update_progress(gc, _("Connecting..."),
 				1,   /* which connection step this is */
 				3);  /* total number of steps */
 	}
@@ -832,7 +832,7 @@ static void twitter_account_mismatch_screenname_change_cancel_cb(TwitterAccountU
 	twitter_account_invalidate_token(account);
 	g_free(change->username);
 	g_free(change);
-	twitter_oauth_disconnect(account, "Username mismatch");
+	twitter_oauth_disconnect(account, _("Username mismatch"));
 }
 static void twitter_account_mismatch_screenname_change_ok_cb(TwitterAccountUserNameChange *change, gint action_id)
 {
@@ -846,7 +846,7 @@ static void twitter_account_mismatch_screenname_change_ok_cb(TwitterAccountUserN
 static void twitter_account_username_change_verify(PurpleAccount *account, const gchar *username)
 {
 	PurpleConnection *gc = purple_account_get_connection(account);
-	gchar *secondary = g_strdup_printf("Do you wish to change the name on this account to %s?",
+	gchar *secondary = g_strdup_printf(_("Do you wish to change the name on this account to %s?"),
 			username);
 	TwitterAccountUserNameChange *change_data = (TwitterAccountUserNameChange *) g_new0(TwitterAccountUserNameChange *, 1);
 
@@ -854,8 +854,8 @@ static void twitter_account_username_change_verify(PurpleAccount *account, const
 	change_data->username = g_strdup(username);
 
 	purple_request_action(gc,
-			"Mismatched Screen Names",
-			"Authorized screen name does not match with account screen name",
+			_("Mismatched Screen Names"),
+			_("Authorized screen name does not match with account screen name"),
 			secondary,
 			0,
 			account,
@@ -863,8 +863,8 @@ static void twitter_account_username_change_verify(PurpleAccount *account, const
 			NULL,
 			change_data,
 			2, 
-			"Cancel", twitter_account_mismatch_screenname_change_cancel_cb,
-			"Yes", twitter_account_mismatch_screenname_change_ok_cb,
+			_("Cancel"), twitter_account_mismatch_screenname_change_cancel_cb,
+			_("Yes"), twitter_account_mismatch_screenname_change_ok_cb,
 			NULL);
 	
 	g_free(secondary);
@@ -905,7 +905,7 @@ static void twitter_oauth_access_token_success_cb(TwitterRequestor *r,
 			twitter_verify_connection(account);
 		}
 	} else {
-		twitter_oauth_disconnect(account, "Unknown response getting access token");
+		twitter_oauth_disconnect(account, _("Unknown response getting access token"));
 		purple_debug_info(TWITTER_PROTOCOL_ID, "Unknown error receiving access token: %s\n",
 				response);
 	}
@@ -913,7 +913,7 @@ static void twitter_oauth_access_token_success_cb(TwitterRequestor *r,
 
 static void twitter_oauth_access_token_error_cb(TwitterRequestor *r, const TwitterRequestErrorData *error_data, gpointer user_data)
 {
-	gchar * error = g_strdup_printf("Error verifying PIN: %s", error_data->message ? error_data->message : "unknown error");
+	gchar * error = g_strdup_printf(_("Error verifying PIN: %s"), error_data->message ? error_data->message : _("unknown error"));
 	twitter_oauth_disconnect(r->account, error);
 	g_free(error);
 }
@@ -929,7 +929,7 @@ static void twitter_oauth_request_pin_ok(PurpleAccount *account, const gchar *pi
 
 static void twitter_oauth_request_pin_cancel(PurpleAccount *account, const gchar *pin)
 {
-	twitter_oauth_disconnect(account, "Canceled PIN entry");
+	twitter_oauth_disconnect(account, _("Canceled PIN entry"));
 }
 
 static void twitter_oauth_request_token_success_cb(TwitterRequestor *r,
@@ -953,16 +953,16 @@ static void twitter_oauth_request_token_success_cb(TwitterRequestor *r,
 		purple_notify_uri(twitter, msg);
 
 		purple_request_input(twitter,
-				"OAuth Authentication", //title
-				"Please enter pin", //primary
+				_("OAuth Authentication"), //title
+				_("Please enter pin"), //primary
 				msg, //secondary
 				NULL, //default
 				FALSE, //multiline,
 				FALSE, //password
 				NULL, //hint
-				"Submit", //ok text
+				_("Submit"), //ok text
 				G_CALLBACK(twitter_oauth_request_pin_ok),
-				"Cancel",
+				_("Cancel"),
 				G_CALLBACK(twitter_oauth_request_pin_cancel),
 				account,
 				NULL,
@@ -970,7 +970,7 @@ static void twitter_oauth_request_token_success_cb(TwitterRequestor *r,
 				account);
 		g_free(msg);
 	} else {
-		twitter_oauth_disconnect(account, "Invalid response receiving request token");
+		twitter_oauth_disconnect(account, _("Invalid response receiving request token"));
 		purple_debug_info(TWITTER_PROTOCOL_ID, "Unknown error receiving request token: %s\n",
 				response);
 	}
@@ -979,7 +979,7 @@ static void twitter_oauth_request_token_success_cb(TwitterRequestor *r,
 
 static void twitter_oauth_request_token_error_cb(TwitterRequestor *r, const TwitterRequestErrorData *error_data, gpointer user_data)
 {
-	gchar * error = g_strdup_printf("Error receiving request token: %s", error_data->message ? error_data->message : "unknown error");
+	gchar * error = g_strdup_printf(_("Error receiving request token: %s"), error_data->message ? error_data->message : _("unknown error"));
 	twitter_oauth_disconnect(r->account, error);
 	g_free(error);
 }
@@ -990,7 +990,7 @@ static void twitter_verify_credentials_success_cb(TwitterRequestor *r, xmlnode *
 	TwitterUserTweet *user_tweet = twitter_verify_credentials_parse(node);
 	if (!user_tweet || !user_tweet->screen_name)
 	{
-		twitter_oauth_disconnect(account, "Could not verify credentials");
+		twitter_oauth_disconnect(account, _("Could not verify credentials"));
 	} else if (!twitter_usernames_match(account,user_tweet->screen_name, purple_account_get_username(account))) 
 	{
 		twitter_account_username_change_verify(account, user_tweet->screen_name);
@@ -1003,7 +1003,7 @@ static void twitter_verify_credentials_success_cb(TwitterRequestor *r, xmlnode *
 
 static void twitter_verify_credentials_error_cb(TwitterRequestor *r, const TwitterRequestErrorData *error_data, gpointer user_data)
 {
-	gchar * error = g_strdup_printf("Error verify credentials: %s", error_data->message ? error_data->message : "unknown error");
+	gchar * error = g_strdup_printf(_("Error verify credentials: %s"), error_data->message ? error_data->message : _("unknown error"));
 	switch (error_data->type) {
 		case TWITTER_REQUEST_ERROR_SERVER:
 			twitter_oauth_recoverable_disconnect(r->account, error);
@@ -1055,7 +1055,7 @@ static void twitter_requestor_pre_send_oauth(TwitterRequestor *r, gboolean *post
 	if (oauth_params == NULL)
 	{
 		TwitterRequestErrorData *error = g_new0(TwitterRequestErrorData, 1);
-		gchar *error_msg = g_strdup("Could not sign request");
+		gchar *error_msg = g_strdup(_("Could not sign request"));
 		error->type = TWITTER_REQUEST_ERROR_NO_OAUTH;
 		error->message = error_msg;
 		g_free(error_msg);
@@ -1085,7 +1085,7 @@ static void twitter_requestor_post_failed(TwitterRequestor *r, const TwitterRequ
 	{
 		case TWITTER_REQUEST_ERROR_UNAUTHORIZED:
 			twitter_account_invalidate_token(r->account);
-			twitter_oauth_disconnect(r->account, "Unauthorized");
+			twitter_oauth_disconnect(r->account, _("Unauthorized"));
 			break;
 		default:
 			break;
@@ -1248,13 +1248,13 @@ static void twitter_set_status_error_cb(TwitterRequestor *r, const TwitterReques
 	{
 		message = error_data->message;
 	} else if (error_data->type == TWITTER_REQUEST_ERROR_INVALID_XML) {
-		message = "Unknown reply by twitter server";
+		message = _("Unknown reply by twitter server");
 	} else {
-		message = "Unknown error";
+		message = _("Unknown error");
 	}
 	purple_notify_error(NULL,  /* plugin handle or PurpleConnection */
-			("Twitter Set Status"),
-			("Error setting Twitter Status"),
+			_("Twitter Set Status"),
+			_("Error setting Twitter Status"),
 			(message));
 }
 
@@ -1327,18 +1327,18 @@ static void twitter_get_info(PurpleConnection *gc, const char *username) {
 
 			if (user_data)
 			{
-				purple_notify_user_info_add_pair(info, "Description:", user_data->description);
+				purple_notify_user_info_add_pair(info, _("Description:"), user_data->description);
 			}
 			if (status_data)
 			{
-				purple_notify_user_info_add_pair(info, "Status:", status_data->text);
+				purple_notify_user_info_add_pair(info, _("Status:"), status_data->text);
 			}
 		}
 	} else {
-		purple_notify_user_info_add_pair(info, "Description:", "No user info");
+		purple_notify_user_info_add_pair(info, _("Description:"), _("No user info"));
 	}
 	url = twitter_mb_prefs_get_user_profile_url(twitter->mb_prefs, username);
-	purple_notify_user_info_add_pair(info, "Account Link:", url);
+	purple_notify_user_info_add_pair(info, _("Account Link:"), url);
 	if (url)
 	{
 		g_free(url);
@@ -1524,8 +1524,8 @@ static GList *twitter_blist_node_menu(PurpleBlistNode *node) {
 		GList *submenu = NULL;
 		PurpleChat *chat = PURPLE_CHAT(node);
 		GHashTable *components = purple_chat_get_components(chat);
-		char *label = g_strdup_printf("Automatically open chat on new tweets (Currently: %s)",
-			(twitter_blist_chat_is_auto_open(chat) ? "On" : "Off"));
+		char *label = g_strdup_printf(_("Automatically open chat on new tweets (Currently: %s)"),
+			(twitter_blist_chat_is_auto_open(chat) ? _("On") : _("Off")));
 		const char *chat_type_str = g_hash_table_lookup(components, "chat_type");
 		TwitterChatType chat_type = chat_type_str == NULL ? 0 : strtol(chat_type_str, NULL, 10);
 
@@ -1540,22 +1540,22 @@ static GList *twitter_blist_node_menu(PurpleBlistNode *node) {
 		{
 			TWITTER_ATTACH_SEARCH_TEXT cur_attach_search_text = twitter_blist_chat_attach_search_text(chat);
 
-			label = g_strdup_printf("No%s", cur_attach_search_text == TWITTER_ATTACH_SEARCH_TEXT_NONE ? " (set)" : "");
+			label = g_strdup_printf(_("No%s"), cur_attach_search_text == TWITTER_ATTACH_SEARCH_TEXT_NONE ? _(" (set)") : "");
 			action = purple_menu_action_new(label, PURPLE_CALLBACK(twitter_blist_char_attach_search_toggle), (gpointer) TWITTER_ATTACH_SEARCH_TEXT_NONE, NULL);
 			g_free(label);
 			submenu = g_list_append(submenu, action);
 
-			label = g_strdup_printf("Prepend%s", cur_attach_search_text == TWITTER_ATTACH_SEARCH_TEXT_PREPEND ? " (set)" : "");
+			label = g_strdup_printf(_("Prepend%s"), cur_attach_search_text == TWITTER_ATTACH_SEARCH_TEXT_PREPEND ? _(" (set)") : "");
 			action = purple_menu_action_new(label, PURPLE_CALLBACK(twitter_blist_char_attach_search_toggle), (gpointer) TWITTER_ATTACH_SEARCH_TEXT_PREPEND, NULL);
 			g_free(label);
 			submenu = g_list_append(submenu, action);
 
-			label = g_strdup_printf("Append%s", cur_attach_search_text == TWITTER_ATTACH_SEARCH_TEXT_APPEND ? " (set)" : "");
+			label = g_strdup_printf(_("Append%s"), cur_attach_search_text == TWITTER_ATTACH_SEARCH_TEXT_APPEND ? _(" (set)") : "");
 			action = purple_menu_action_new(label, PURPLE_CALLBACK(twitter_blist_char_attach_search_toggle), (gpointer) TWITTER_ATTACH_SEARCH_TEXT_APPEND, NULL);
 			g_free(label);
 			submenu = g_list_append(submenu, action);
 
-			label = g_strdup_printf("Tag all chats with search term:");
+			label = g_strdup_printf(_("Tag all chats with search term:"));
 			action = purple_menu_action_new(label, NULL, NULL, submenu);
 			g_free(label);
 			menu = g_list_append(menu, action);
@@ -1565,19 +1565,19 @@ static GList *twitter_blist_node_menu(PurpleBlistNode *node) {
 		if (twitter_option_default_dm(purple_buddy_get_account(PURPLE_BUDDY(node))))
 		{
 			action = purple_menu_action_new(
-					"@Message",
+					_("@Message"),
 					PURPLE_CALLBACK(twitter_blist_buddy_at_msg),
 					NULL,   /* userdata passed to the callback */
 					NULL);  /* child menu items */
 		} else {
 			action = purple_menu_action_new(
-					"Direct Message",
+					_("Direct Message"),
 					PURPLE_CALLBACK(twitter_blist_buddy_dm),
 					NULL,   /* userdata passed to the callback */
 					NULL);  /* child menu items */
 		}
 		menu =  g_list_append(menu, action);
-		action = purple_menu_action_new("Clear Reply Marker", PURPLE_CALLBACK(twitter_blist_buddy_clear_reply), NULL, NULL);
+		action = purple_menu_action_new(_("Clear Reply Marker"), PURPLE_CALLBACK(twitter_blist_buddy_clear_reply), NULL, NULL);
 		menu =  g_list_append(menu, action);
 	} else {
 	}
@@ -1604,7 +1604,7 @@ static GHashTable * twitter_get_account_text_table(PurpleAccount *account)
 {
 	GHashTable *table;
 	table = g_hash_table_new(g_str_hash, g_str_equal);
-	g_hash_table_insert(table, "login_label", "No passwords with OAuth");
+	g_hash_table_insert(table, "login_label", _("No passwords with OAuth"));
 	return table;
 }
 
@@ -1752,8 +1752,57 @@ static void twitter_marshal_changed_attached_search(PurpleCallback cb, va_list a
 		*return_val = NULL;
 }
 
+static void twitter_destroy(PurplePlugin *plugin) 
+{
+	purple_debug_info(TWITTER_PROTOCOL_ID, "shutting down\n");
+	purple_signal_unregister(purple_accounts_get_handle(), "prpltwtr-connecting");
+	purple_signal_unregister(purple_accounts_get_handle(), "prpltwtr-disconnected");
+	purple_signal_unregister(purple_buddy_icons_get_handle(), "prpltwtr-update-buddyicon");
+	purple_signal_unregister(purple_buddy_icons_get_handle(), "prpltwtr-update-iconurl");
+	purple_signal_unregister(purple_conversations_get_handle(), "prpltwtr-format-tweet");
+	purple_signal_unregister(purple_conversations_get_handle(), "prpltwtr-received-im");
+	purple_signals_disconnect_by_handle(plugin);
+}
+
+static PurplePluginInfo info =
+{
+	PURPLE_PLUGIN_MAGIC,				     /* magic */
+	PURPLE_MAJOR_VERSION,				    /* major_version */
+	PURPLE_MINOR_VERSION,				    /* minor_version */
+	PURPLE_PLUGIN_PROTOCOL,				  /* type */
+	NULL,						    /* ui_requirement */
+	0,						       /* flags */
+	NULL,						    /* dependencies */
+	PURPLE_PRIORITY_DEFAULT,				 /* priority */
+	TWITTER_PROTOCOL_ID,					     /* id */
+	"Twitter Protocol",					      /* name */
+	PACKAGE_VERSION,						   /* version */
+	"Twitter Protocol Plugin",				  /* summary */
+	"Twitter Protocol Plugin",				  /* description */
+	"neaveru <neaveru@gmail.com>",		     /* author */
+	"http://code.google.com/p/prpltwtr/",  /* homepage */
+	NULL,						    /* load */
+	NULL,						    /* unload */
+	twitter_destroy,					/* destroy */
+	NULL,						    /* ui_info */
+	&prpl_info,					      /* extra_info */
+	NULL,						    /* prefs_info */
+	twitter_actions,					/* actions */
+	NULL,						    /* padding... */
+	NULL,
+	NULL,
+	NULL,
+};
+
 static void twitter_init(PurplePlugin *plugin)
 {
+#ifdef ENABLE_NLS
+	bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
+	bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
+#endif /* ENABLE_NLS */
+	info.summary     = _("Twitter for Purple");
+	info.description = _("Access Twitter and compatible sites from within libpurple applications");
+
 
 	purple_debug_info(TWITTER_PROTOCOL_ID, "starting up\n");
 
@@ -1819,47 +1868,5 @@ static void twitter_init(PurplePlugin *plugin)
 
 	_twitter_protocol = plugin;
 }
-
-static void twitter_destroy(PurplePlugin *plugin) 
-{
-	purple_debug_info(TWITTER_PROTOCOL_ID, "shutting down\n");
-	purple_signal_unregister(purple_accounts_get_handle(), "prpltwtr-connecting");
-	purple_signal_unregister(purple_accounts_get_handle(), "prpltwtr-disconnected");
-	purple_signal_unregister(purple_buddy_icons_get_handle(), "prpltwtr-update-buddyicon");
-	purple_signal_unregister(purple_buddy_icons_get_handle(), "prpltwtr-update-iconurl");
-	purple_signal_unregister(purple_conversations_get_handle(), "prpltwtr-format-tweet");
-	purple_signal_unregister(purple_conversations_get_handle(), "prpltwtr-received-im");
-	purple_signals_disconnect_by_handle(plugin);
-}
-
-static PurplePluginInfo info =
-{
-	PURPLE_PLUGIN_MAGIC,				     /* magic */
-	PURPLE_MAJOR_VERSION,				    /* major_version */
-	PURPLE_MINOR_VERSION,				    /* minor_version */
-	PURPLE_PLUGIN_PROTOCOL,				  /* type */
-	NULL,						    /* ui_requirement */
-	0,						       /* flags */
-	NULL,						    /* dependencies */
-	PURPLE_PRIORITY_DEFAULT,				 /* priority */
-	TWITTER_PROTOCOL_ID,					     /* id */
-	"Twitter Protocol",					      /* name */
-	VERSION,						   /* version */
-	"Twitter Protocol Plugin",				  /* summary */
-	"Twitter Protocol Plugin",				  /* description */
-	"neaveru <neaveru@gmail.com>",		     /* author */
-	"http://code.google.com/p/prpltwtr/",  /* homepage */
-	NULL,						    /* load */
-	NULL,						    /* unload */
-	twitter_destroy,					/* destroy */
-	NULL,						    /* ui_info */
-	&prpl_info,					      /* extra_info */
-	NULL,						    /* prefs_info */
-	twitter_actions,					/* actions */
-	NULL,						    /* padding... */
-	NULL,
-	NULL,
-	NULL,
-};
 
 PURPLE_INIT_PLUGIN(null, twitter_init, info);

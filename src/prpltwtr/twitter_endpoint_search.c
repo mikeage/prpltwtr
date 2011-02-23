@@ -53,7 +53,7 @@ static gchar *twitter_search_verify_components(GHashTable *components)
 	const char *search = g_hash_table_lookup(components, "search");
 	if (search == NULL || search[0] == '\0')
 	{
-		return g_strdup("Search must be filled in when joining a search chat");
+		return g_strdup(_("Search must be filled in when joining a search chat"));
 	}
 	return NULL;
 }
