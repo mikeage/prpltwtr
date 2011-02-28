@@ -95,6 +95,11 @@ static const gchar *twitter_option_url_get_saved_searches(PurpleAccount *account
 	return twitter_api_create_url(account,
 			TWITTER_PREF_URL_GET_SAVED_SEARCHES);
 }
+static const gchar *twitter_option_url_get_lists(PurpleAccount *account)
+{
+	return twitter_api_create_url(account,
+			TWITTER_PREF_URL_GET_LISTS);
+}
 static const gchar *twitter_option_url_verify_credentials(PurpleAccount *account)
 {
 	return twitter_api_create_url(account,
@@ -577,6 +582,21 @@ void twitter_api_send_dms(TwitterRequestor *r,
 			twitter_api_send_dms_success_cb,
 			twitter_api_send_dms_error_cb,
 			ctx);
+}
+void twitter_api_get_lists(TwitterRequestor *r,
+		TwitterSendXmlRequestSuccessFunc success_func,
+		TwitterSendRequestErrorFunc error_func,
+		gpointer data)
+{
+	const gchar *url = twitter_option_url_get_lists(r->account);
+	purple_debug_info (TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+
+	if (url && url[0] != '\0')
+	{
+		twitter_send_xml_request(r, FALSE,
+				url, NULL,
+				success_func, error_func, data);
+	}
 }
 
 void twitter_api_get_saved_searches(TwitterRequestor *r,

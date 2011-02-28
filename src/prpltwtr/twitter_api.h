@@ -134,6 +134,11 @@ void twitter_api_set_status(TwitterRequestor *r,
 		TwitterSendRequestErrorFunc error_func,
 		gpointer data);
 
+void twitter_api_get_lists(TwitterRequestor *r,
+		TwitterSendXmlRequestSuccessFunc success_func,
+		TwitterSendRequestErrorFunc error_func,
+		gpointer data);
+
 void twitter_api_get_saved_searches (TwitterRequestor *r,
         TwitterSendXmlRequestSuccessFunc success_func,
         TwitterSendRequestErrorFunc error_func,

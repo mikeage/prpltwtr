@@ -35,7 +35,8 @@ typedef enum
 {
 	TWITTER_CHAT_SEARCH = 0,
 	TWITTER_CHAT_TIMELINE = 1,
-	TWITTER_CHAT_UNKNOWN = 2 //keep this as the last element
+	TWITTER_CHAT_LIST = 2,
+	TWITTER_CHAT_UNKNOWN = 3 //keep this as the last element
 } TwitterChatType;
 
 typedef struct _TwitterEndpointChatSettings TwitterEndpointChatSettings;
@@ -101,6 +102,7 @@ TwitterEndpointChat *twitter_endpoint_chat_find(PurpleAccount *account, const ch
 //TODO: we should replace this with a find by components. What's going on here with HAZE?
 PurpleChat *twitter_blist_chat_find_search(PurpleAccount *account, const char *name);
 PurpleChat *twitter_blist_chat_find_timeline(PurpleAccount *account, gint timeline_id);
+PurpleChat *twitter_blist_chat_find_list(PurpleAccount *account, const char *name);
 PurpleChat *twitter_blist_chat_find(PurpleAccount *account, const char *name);
 
 gboolean twitter_blist_chat_is_auto_open(PurpleChat *chat);

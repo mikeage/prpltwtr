@@ -25,6 +25,8 @@ twitter_endpoint_search.c \
 twitter_endpoint_search.h \
 twitter_endpoint_timeline.c \
 twitter_endpoint_timeline.h \
+twitter_endpoint_list.c \
+twitter_endpoint_list.h \
 twitter.h \
 twitter_mbprefs.c \
 twitter_mbprefs.h \

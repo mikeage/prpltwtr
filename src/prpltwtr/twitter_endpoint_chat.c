@@ -179,18 +179,30 @@ PurpleChat *twitter_blist_chat_find_timeline(PurpleAccount *account, gint timeli
 	return chat;
 }
 
+PurpleChat *twitter_blist_chat_find_list(PurpleAccount *account, const char *name)
+{
+//	char *tmp = g_strdup_printf("%lld", list_id);
+	PurpleChat *chat = _twitter_blist_chat_find(account, TWITTER_CHAT_LIST, "name", name);
+//	g_free(tmp);
+	return chat;
+}
+
 //XXX TODO: fix me
 PurpleChat *twitter_blist_chat_find(PurpleAccount *account, const char *name)
 {
 	static char *timeline = "Timeline: ";
 	static char *search = "Search: ";
+	static char *list = "List: ";
 	PurpleChat *c = NULL;
 	if (strlen(name) > strlen(timeline) && !strncmp(timeline, name, strlen(timeline)))
 	{
 		c = twitter_blist_chat_find_timeline(account, 0);
 	} else if (strlen(name) > strlen(search) && !strncmp(search, name, strlen(search))) {
 		c = twitter_blist_chat_find_search(account, name + strlen(search));
+	} else if (strlen(name) > strlen(list) && !strncmp(list, name, strlen(list))) {
+		c = twitter_blist_chat_find_list(account, name + strlen(list));
 	} else {
+		purple_debug_info(TWITTER_PROTOCOL_ID, "MHM: bad find: assuming search for %s\n", name);
 		c = twitter_blist_chat_find_search(account, name);
 	}
 	return c;

@@ -51,6 +51,7 @@ twitter_endpoint_dm.c \
 twitter_endpoint_im.c \
 twitter_endpoint_reply.c \
 twitter_endpoint_search.c \
+twitter_endpoint_list.c \
 twitter_endpoint_timeline.c \
 twitter_mbprefs.c \
 twitter_prefs.c \
@@ -58,6 +59,7 @@ twitter_request.c \
 twitter_search.c \
 twitter_util.c \
 twitter_xml.c \
+
 
 OBJECTS = $(C_SRC:%.c=%.o)
 

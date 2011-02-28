@@ -29,6 +29,7 @@
 #include <accountopt.h>
 
 #define TWITTER_PREF_DEFAULT_BUDDY_GROUP _("twitter")
+#define TWITTER_PREF_DEFAULT_LIST_GROUP _("twitter lists")
 #define TWITTER_PREF_DEFAULT_SEARCH_GROUP _("twitter searches")
 #define TWITTER_PREF_DEFAULT_TIMELINE_GROUP _("twitter timelines")
 
@@ -86,6 +87,7 @@
 #define TWITTER_PREF_URL_UPDATE_STATUS "/statuses/update.xml"
 #define TWITTER_PREF_URL_NEW_DM "/direct_messages/new.xml"
 #define TWITTER_PREF_URL_GET_SAVED_SEARCHES "/saved_searches.xml"
+#define TWITTER_PREF_URL_GET_LISTS "/lists.xml"
 #define TWITTER_PREF_URL_GET_SEARCH_RESULTS "/search.atom"
 #define TWITTER_PREF_URL_VERIFY_CREDENTIALS "/account/verify_credentials.xml"
 #define TWITTER_PREF_URL_RT "/statuses/retweet" /* Yay for inconsistency */
@@ -100,6 +102,8 @@ GList *twitter_get_protocol_options(void);
 gboolean twitter_option_add_link_to_tweet(PurpleAccount *account);
 gint twitter_option_search_timeout(PurpleAccount *account);
 gint twitter_option_timeline_timeout(PurpleAccount *account);
+gint twitter_option_list_timeout(PurpleAccount *account);
+const gchar *twitter_option_list_group(PurpleAccount *account);
 const gchar *twitter_option_search_group(PurpleAccount *account);
 const gchar *twitter_option_buddy_group(PurpleAccount *account);
 gint twitter_option_dms_timeout(PurpleAccount *account);

@@ -1,6 +1,7 @@
-#include "twitter_endpoint_timeline.h"
+#include "twitter_endpoint_list.h"
 
 //TODO: Should these be here?
+#if 0
 static long long twitter_account_get_last_home_timeline_id(PurpleAccount *account)
 {
 	return purple_account_get_long_long(account, "twitter_last_home_timeline_id", 0);
@@ -26,24 +27,24 @@ static void twitter_connection_set_last_home_timeline_id(PurpleConnection *gc, l
 	connection_data->last_home_timeline_id = reply_id;
 	twitter_account_set_last_home_timeline_id(purple_connection_get_account(gc), reply_id);
 }
+#endif 
 
-
-static gpointer twitter_timeline_timeout_context_new(GHashTable *components)
+static gpointer twitter_list_timeout_context_new(GHashTable *components)
 {
-	TwitterTimelineTimeoutContext *ctx = g_slice_new0(TwitterTimelineTimeoutContext);
-	ctx->timeline_id = 0;
+	TwitterListTimeoutContext *ctx = g_slice_new0(TwitterListTimeoutContext);
+//	ctx->timeline_id = 0;
 	return ctx;
 }
 
-static void twitter_timeline_timeout_context_free(gpointer _ctx)
+static void twitter_list_timeout_context_free(gpointer _ctx)
 {
-	TwitterTimelineTimeoutContext *ctx;
+	TwitterListTimeoutContext *ctx;
 	g_return_if_fail(_ctx != NULL);
 	ctx = _ctx;
 
-	g_slice_free (TwitterTimelineTimeoutContext, ctx);
-} 
-
+	g_slice_free (TwitterListTimeoutContext, ctx);
+}
+#if 0
 static char *twitter_chat_name_from_timeline_id(const gint timeline_id)
 {
 	return g_strdup("Timeline: Home");
@@ -52,6 +53,29 @@ static char *twitter_timeline_chat_name_from_components(GHashTable *components)
 {
 	return twitter_chat_name_from_timeline_id(0);
 }
+#endif
+static char *twitter_chat_name_from_list(const char *list_name)
+{
+#ifdef _HAZE_
+	return g_strdup_printf("#%s", search);
+#error
+#else
+	char *list_lower= g_utf8_strdown(list_name, -1);
+	char *chat_name = g_strdup_printf("List: %s", list_lower);
+	g_free(list_lower);
+	return chat_name;
+#endif
+}
+
+
+static char *twitter_list_chat_name_from_components(GHashTable *components)
+{
+	const char *list = g_hash_table_lookup(components, "name");
+	return twitter_chat_name_from_list(list);
+}
+
+
+#if 0
 
 static void twitter_get_home_timeline_parse_statuses(TwitterEndpointChat *endpoint_chat, GList *statuses)
 {
@@ -134,8 +158,10 @@ static void twitter_get_home_timeline_all_cb(TwitterRequestor *r,
 	statuses = twitter_statuses_nodes_parse(nodes);
 	twitter_get_home_timeline_parse_statuses(endpoint_chat, statuses);
 }
-static gboolean twitter_endpoint_timeline_interval_start(TwitterEndpointChat *endpoint)
+#endif 
+static gboolean twitter_endpoint_list_interval_start(TwitterEndpointChat *endpoint)
 {
+#if 0
 	PurpleAccount *account = endpoint->account;
 	PurpleConnection *gc = purple_account_get_connection(account);
 	TwitterEndpointChatId *chat_id = twitter_endpoint_chat_id_new(endpoint);
@@ -162,10 +188,12 @@ static gboolean twitter_endpoint_timeline_interval_start(TwitterEndpointChat *en
 				twitter_option_home_timeline_max_tweets(account),
 				chat_id);
 	}
+#endif 
 	return TRUE;
 }
-static gboolean twitter_timeline_timeout(TwitterEndpointChat *endpoint_chat)
+static gboolean twitter_list_timeout(TwitterEndpointChat *endpoint_chat)
 {
+#if 0
 	PurpleAccount *account = endpoint_chat->account;
 	PurpleConnection *gc = purple_account_get_connection(account);
 	TwitterEndpointChatId *chat_id = twitter_endpoint_chat_id_new(endpoint_chat);
@@ -189,28 +217,27 @@ static gboolean twitter_timeline_timeout(TwitterEndpointChat *endpoint_chat)
 				twitter_option_home_timeline_max_tweets(account),
 				chat_id);
 	}
-
+#endif 
 	return TRUE;
 }
-
-static TwitterEndpointChatSettings TwitterEndpointTimelineSettings =
+static TwitterEndpointChatSettings TwitterEndpointListSettings=
 {
-	TWITTER_CHAT_TIMELINE,
+	TWITTER_CHAT_LIST,
 #ifdef _HAZE_
-	'!',
+	'*',
 #endif
-	NULL, // append text; search only MHM
-	twitter_timeline_timeout_context_free, //endpoint_data_free
-	twitter_option_timeline_timeout, //get_default_interval
-	twitter_timeline_chat_name_from_components, //get_name
-	NULL, //verify_components
-	twitter_timeline_timeout,
-	twitter_endpoint_timeline_interval_start,
-	twitter_timeline_timeout_context_new,
+	NULL,
+	twitter_list_timeout_context_free, //endpoint_data_free
+	twitter_option_list_timeout, //get_default_interval
+	twitter_list_chat_name_from_components, //get_name
+	NULL, //verify_components TODO: only in search? MHM
+	twitter_list_timeout,
+	twitter_endpoint_list_interval_start,
+	twitter_list_timeout_context_new,
 };
 
-TwitterEndpointChatSettings *twitter_endpoint_timeline_get_settings(void)
+TwitterEndpointChatSettings *twitter_endpoint_list_get_settings(void)
 {
-	return &TwitterEndpointTimelineSettings;
+	return &TwitterEndpointListSettings;
 }
 

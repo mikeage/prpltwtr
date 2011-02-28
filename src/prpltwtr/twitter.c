@@ -138,9 +138,43 @@ static PurpleChat *twitter_blist_chat_timeline_new(PurpleAccount *account, gint 
 	purple_blist_add_chat(c, g, NULL);
 	return c;
 }
+static PurpleChat *twitter_blist_chat_list_new(PurpleAccount *account, const char *list_name, long long list_id)
+{
+	PurpleGroup *g;
+	PurpleChat *c = twitter_blist_chat_find_list(account, list_name);
+	GHashTable *components;
+	if (c != NULL)
+	{
+		return c;
+	}
+	/* No point in making this a preference (yet?)
+	 * the idea is that this will only be done once, and the user can move the
+	 * chat to wherever they want afterwards */
+	g = purple_find_group(TWITTER_PREF_DEFAULT_LIST_GROUP);
+	if (g == NULL)
+		g = purple_group_new(TWITTER_PREF_DEFAULT_LIST_GROUP);
+
+	components = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, g_free);
+
+	//TODO: fix all of this
+	//1) FIXED: search shouldn't be set, but is currently a hack to fix purple_blist_find_chat (persistent chat, etc)
+	//2) need this to work with multiple timelines.
+	//3) this should be an option. Some people may not want the home timeline
+	g_hash_table_insert(components, "interval",
+			g_strdup_printf("%d", twitter_option_list_timeout(account)));
+	g_hash_table_insert(components, "chat_type",
+			g_strdup_printf("%d", TWITTER_CHAT_LIST));
+	g_hash_table_insert(components, "name", g_strdup(list_name));
+	g_hash_table_insert(components, "list_id",
+			g_strdup_printf("%lld", list_id));
+
+	c = purple_chat_new(account, list_name, components);
+	purple_blist_add_chat(c, g, NULL);
+	return c;
+}
 #endif
 
-static PurpleChat *twitter_blist_chat_new(PurpleAccount *account, const char *searchtext)
+static PurpleChat *twitter_blist_chat_search_new(PurpleAccount *account, const char *searchtext)
 {
 	PurpleGroup *g;
 	PurpleChat *c = twitter_blist_chat_find_search(account, searchtext);
@@ -161,6 +195,7 @@ static PurpleChat *twitter_blist_chat_new(PurpleAccount *account, const char *se
 
 	c = purple_chat_new(account, searchtext, components);
 	purple_blist_add_chat(c, g, NULL);
+
 	return c;
 }
 
@@ -281,6 +316,45 @@ static char *twitter_chat_get_name(GHashTable *components) {
 }
 
 
+static void get_lists_cb(TwitterRequestor *r,
+		xmlnode *node,
+		gpointer user_data)
+{
+	xmlnode *list;
+
+	purple_debug_info (TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+	if (!node)
+		return;
+
+	list = xmlnode_get_child(node, "lists");
+
+	if (!list) {
+		return;
+	}
+
+	for (list = list->child; list; list= list->next) {
+		if (list->name && !g_strcmp0 (list->name, "list")) {
+			long long id;
+			gchar *id_str= xmlnode_get_child_data (list, "id");
+			gchar *name= xmlnode_get_child_data (list, "name");
+			if (id_str) {
+				id = strtoll(id_str, NULL, 10);
+				} else {
+					id=0;
+					purple_debug_info(TWITTER_PROTOCOL_ID, "MHM: error with xmlnode. name = 0x%p, id_str=0x%p\n",name, id_str);
+				}
+#ifdef _HAZE_
+#warning this doesnt work...
+#else
+			purple_debug_info(TWITTER_PROTOCOL_ID, "MHM: list name %s, id %s (%lld)\n", name, id_str, id);
+			// I think there's a segfault here...
+//			twitter_blist_chat_list_new(r->account, name, id);
+#endif
+			g_free (id_str);
+			g_free (name);
+		}
+	}
+}
 static void get_saved_searches_cb(TwitterRequestor *r,
 		xmlnode *node,
 		gpointer user_data)
@@ -299,7 +373,7 @@ static void get_saved_searches_cb(TwitterRequestor *r,
 			purple_prpl_got_user_status(r->account, buddy_name, TWITTER_STATUS_ONLINE, NULL);
 			g_free(buddy_name);
 #else
-			twitter_blist_chat_new(r->account, query);
+			twitter_blist_chat_search_new(r->account, query);
 #endif
 			g_free (query);
 		}
@@ -493,6 +567,8 @@ static void twitter_connected(PurpleAccount *account)
 	/* Retrieve user's saved search queries */
 	twitter_api_get_saved_searches(purple_account_get_requestor(account),
 			get_saved_searches_cb, NULL, NULL);
+
+	twitter_api_get_lists(purple_account_get_requestor(account), get_lists_cb, NULL, NULL);
 
 	/* Install periodic timers to retrieve replies and dms */
 	twitter_connection_foreach_endpoint_im(twitter, twitter_endpoint_im_start_foreach, NULL);
@@ -1003,7 +1079,7 @@ static void twitter_verify_credentials_success_cb(TwitterRequestor *r, xmlnode *
 
 static void twitter_verify_credentials_error_cb(TwitterRequestor *r, const TwitterRequestErrorData *error_data, gpointer user_data)
 {
-	gchar * error = g_strdup_printf(_("Error verify credentials: %s"), error_data->message ? error_data->message : _("unknown error"));
+	gchar * error = g_strdup_printf(_("Error verifying credentials: %s"), error_data->message ? error_data->message : _("unknown error"));
 	switch (error_data->type) {
 		case TWITTER_REQUEST_ERROR_SERVER:
 			twitter_oauth_recoverable_disconnect(r->account, error);

@@ -155,6 +155,16 @@ gint twitter_option_timeline_timeout(PurpleAccount *account)
 {
 	return TWITTER_TIMELINE_REFRESH_DEFAULT;
 }
+
+gint twitter_option_list_timeout(PurpleAccount *account)
+{
+	return TWITTER_LIST_REFRESH_DEFAULT;
+}
+const gchar *twitter_option_list_group(PurpleAccount *account)
+{
+	//TODO: create an option for this
+	return TWITTER_PREF_DEFAULT_LIST_GROUP;
+}
 const gchar *twitter_option_search_group(PurpleAccount *account)
 {
 	//TODO: create an option for this
