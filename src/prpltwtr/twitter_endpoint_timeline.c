@@ -199,7 +199,7 @@ static TwitterEndpointChatSettings TwitterEndpointTimelineSettings =
 #ifdef _HAZE_
 	'!',
 #endif
-	NULL, // append text; search only MHM
+	NULL, // append text; 
 	twitter_timeline_timeout_context_free, //endpoint_data_free
 	twitter_option_timeline_timeout, //get_default_interval
 	twitter_timeline_chat_name_from_components, //get_name

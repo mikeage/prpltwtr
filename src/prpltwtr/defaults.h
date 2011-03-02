@@ -39,6 +39,9 @@
 #define TWITTER_HOME_TIMELINE_INITIAL_COUNT 200
 #define TWITTER_HOME_TIMELINE_PAGE_COUNT 200
 
+#define TWITTER_LIST_INITIAL_COUNT 200
+#define TWITTER_LIST_PAGE_COUNT 200
+
 //timer (mins) to check to see who hasn't said anything in X hours
 #define TWITTER_UPDATE_PRESENCE_TIMEOUT 5
 

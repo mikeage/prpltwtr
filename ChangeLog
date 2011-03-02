@@ -4,6 +4,7 @@ Changelog for current version:
   * Allow customization of the insertion of the search text in tweets: never, prepended, or appended (set on a per-search basis). Default is never.
   * Show rate limit status as the topic for chats and timeline(s)
   * Makefile changes, added support for localization. So far, just Spanish has been added.
+  * List support. Not tested extensively, and probably broken for Haze / Empathy, but seems to work fairly well in Pidgin. Some code cleanup still needs to be done.
 
 Changelog for 0.6.3:
   * Fix make install target

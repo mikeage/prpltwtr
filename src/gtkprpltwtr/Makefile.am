@@ -25,6 +25,7 @@ $(PRPLTWTR_PATH)/twitter_xml.c \
 $(PRPLTWTR_PATH)/twitter_endpoint_chat.c \
 $(PRPLTWTR_PATH)/twitter_endpoint_search.c \
 $(PRPLTWTR_PATH)/twitter_endpoint_timeline.c \
+$(PRPLTWTR_PATH)/twitter_endpoint_list.c \
 $(PRPLTWTR_PATH)/twitter_buddy.c \
 $(PRPLTWTR_PATH)/twitter_conn.c \
 $(PRPLTWTR_PATH)/twitter_endpoint_im.c \

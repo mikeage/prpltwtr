@@ -3,6 +3,7 @@
 
 #include "twitter_endpoint_search.h"
 #include "twitter_endpoint_timeline.h"
+#include "twitter_endpoint_list.h"
 
 static TwitterEndpointChatSettings *TwitterEndpointChatSettingsLookup[TWITTER_CHAT_UNKNOWN];
 
@@ -29,6 +30,7 @@ void twitter_endpoint_chat_init(void)
 {
 	twitter_init_endpoint_chat_settings(twitter_endpoint_search_get_settings());
 	twitter_init_endpoint_chat_settings(twitter_endpoint_timeline_get_settings());
+	twitter_init_endpoint_chat_settings(twitter_endpoint_list_get_settings());
 }
 
 void twitter_endpoint_chat_free(TwitterEndpointChat *ctx)
@@ -167,7 +169,8 @@ static PurpleChat *_twitter_blist_chat_find(PurpleAccount *account, TwitterChatT
 //XXX
 PurpleChat *twitter_blist_chat_find_search(PurpleAccount *account, const char *name)
 {
-	return _twitter_blist_chat_find(account, TWITTER_CHAT_SEARCH, "search", name);
+	PurpleChat *chat = _twitter_blist_chat_find(account, TWITTER_CHAT_SEARCH, "search", name);
+	return chat;
 }
 
 //XXX
@@ -181,9 +184,7 @@ PurpleChat *twitter_blist_chat_find_timeline(PurpleAccount *account, gint timeli
 
 PurpleChat *twitter_blist_chat_find_list(PurpleAccount *account, const char *name)
 {
-//	char *tmp = g_strdup_printf("%lld", list_id);
-	PurpleChat *chat = _twitter_blist_chat_find(account, TWITTER_CHAT_LIST, "name", name);
-//	g_free(tmp);
+	PurpleChat *chat = _twitter_blist_chat_find(account, TWITTER_CHAT_LIST, "list_name", name);
 	return chat;
 }
 
@@ -202,7 +203,7 @@ PurpleChat *twitter_blist_chat_find(PurpleAccount *account, const char *name)
 	} else if (strlen(name) > strlen(list) && !strncmp(list, name, strlen(list))) {
 		c = twitter_blist_chat_find_list(account, name + strlen(list));
 	} else {
-		purple_debug_info(TWITTER_PROTOCOL_ID, "MHM: bad find: assuming search for %s\n", name);
+		purple_debug_error(TWITTER_PROTOCOL_ID, "Invalid call to %s; assuming \"search\" for %s\n", G_STRFUNC, name);
 		c = twitter_blist_chat_find_search(account, name);
 	}
 	return c;

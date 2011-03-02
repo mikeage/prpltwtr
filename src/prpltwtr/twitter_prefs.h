@@ -51,6 +51,9 @@
 #define TWITTER_PREF_HOME_TIMELINE_MAX_TWEETS "home_timeline_max_tweets"
 #define TWITTER_PREF_HOME_TIMELINE_MAX_TWEETS_DEFAULT 100
 
+#define TWITTER_PREF_LIST_MAX_TWEETS "list_max_tweets"
+#define TWITTER_PREF_LIST_MAX_TWEETS_DEFAULT 100
+
 #define TWITTER_PREF_REPLIES_TIMEOUT "refresh_replies_minutes"
 #define	TWITTER_PREF_REPLIES_TIMEOUT_DEFAULT 30
 
@@ -82,6 +85,7 @@
 #define TWITTER_PREF_URL_GET_RATE_LIMIT_STATUS "/account/rate_limit_status.xml"
 #define TWITTER_PREF_URL_GET_FRIENDS "/statuses/friends.xml"
 #define TWITTER_PREF_URL_GET_HOME_TIMELINE "/statuses/home_timeline.xml"
+#define TWITTER_PREF_URL_GET_LIST "/lists/" /* We need to prepend the username and add the ID and then statuses.xml here */
 #define TWITTER_PREF_URL_GET_MENTIONS "/statuses/mentions.xml"
 #define TWITTER_PREF_URL_GET_DMS "/direct_messages.xml"
 #define TWITTER_PREF_URL_UPDATE_STATUS "/statuses/update.xml"
@@ -115,6 +119,7 @@ gboolean twitter_option_sync_status(PurpleAccount *account);
 gboolean twitter_option_use_https(PurpleAccount *account);
 gboolean twitter_option_use_oauth(PurpleAccount *account);
 gint twitter_option_home_timeline_max_tweets(PurpleAccount *account);
+gint twitter_option_list_max_tweets(PurpleAccount *account);
 gboolean twitter_option_default_dm(PurpleAccount *account);
 gboolean twitter_option_enable_conv_icon(PurpleAccount *account);
 

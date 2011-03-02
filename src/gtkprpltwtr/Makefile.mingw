@@ -53,7 +53,7 @@ twitter_convicon.c
 
 OBJECTS = $(C_SRC:%.c=%.o)
 
-BASE_PRPLTWTR_OBJS = twitter_prefs.o twitter_request.o twitter_api.o twitter_search.o twitter_util.o twitter_xml.o twitter_endpoint_chat.o twitter_endpoint_search.o twitter_endpoint_timeline.o twitter_buddy.o twitter_conn.o twitter_endpoint_im.o twitter_endpoint_dm.o twitter_endpoint_reply.o twitter_mbprefs.o
+BASE_PRPLTWTR_OBJS = twitter_prefs.o twitter_request.o twitter_api.o twitter_search.o twitter_util.o twitter_xml.o twitter_endpoint_chat.o twitter_endpoint_search.o twitter_endpoint_timeline.o twitter_endpoint_list.o twitter_buddy.o twitter_conn.o twitter_endpoint_im.o twitter_endpoint_dm.o twitter_endpoint_reply.o twitter_mbprefs.o
 
 PRPLTWTR_OBJS = $(addprefix $(PRPLTWTR_PATH), $(BASE_PRPLTWTR_OBJS))
 

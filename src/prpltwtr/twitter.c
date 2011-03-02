@@ -164,7 +164,7 @@ static PurpleChat *twitter_blist_chat_list_new(PurpleAccount *account, const cha
 			g_strdup_printf("%d", twitter_option_list_timeout(account)));
 	g_hash_table_insert(components, "chat_type",
 			g_strdup_printf("%d", TWITTER_CHAT_LIST));
-	g_hash_table_insert(components, "name", g_strdup(list_name));
+	g_hash_table_insert(components, "list_name", g_strdup(list_name));
 	g_hash_table_insert(components, "list_id",
 			g_strdup_printf("%lld", list_id));
 
@@ -341,14 +341,13 @@ static void get_lists_cb(TwitterRequestor *r,
 				id = strtoll(id_str, NULL, 10);
 				} else {
 					id=0;
-					purple_debug_info(TWITTER_PROTOCOL_ID, "MHM: error with xmlnode. name = 0x%p, id_str=0x%p\n",name, id_str);
+					purple_debug_warning(TWITTER_PROTOCOL_ID, "error with xmlnode. name = 0x%p, id_str=0x%p\n",name, id_str);
 				}
 #ifdef _HAZE_
-#warning this doesnt work...
+			/* TODO */
 #else
-			purple_debug_info(TWITTER_PROTOCOL_ID, "MHM: list name %s, id %s (%lld)\n", name, id_str, id);
-			// I think there's a segfault here...
-//			twitter_blist_chat_list_new(r->account, name, id);
+			purple_debug_info(TWITTER_PROTOCOL_ID, "List found: name %s, id %lld\n", name, id);
+			twitter_blist_chat_list_new(r->account, name, id);
 #endif
 			g_free (id_str);
 			g_free (name);

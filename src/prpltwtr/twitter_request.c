@@ -726,6 +726,7 @@ void twitter_send_xml_request_multipage_do(TwitterRequestor *r,
 	int len = request_data->params->len;
 	twitter_request_params_add(request_data->params, twitter_request_param_new_int("page", request_data->page));
 	twitter_request_params_add(request_data->params, twitter_request_param_new_int("count", request_data->expected_count));
+	twitter_request_params_add(request_data->params, twitter_request_param_new_int("per_page", request_data->expected_count));
 
 	purple_debug_info(TWITTER_PROTOCOL_ID, "%s: page: %d\n", G_STRFUNC, request_data->page);
 
@@ -779,7 +780,7 @@ static gboolean twitter_send_xml_request_multipage_all_success_cb(TwitterRequest
 	request_data_all->nodes = g_list_prepend(request_data_all->nodes, xmlnode_copy(node)); //TODO: update
 	request_data_all->current_count += xmlnode_child_count(node);
 
-	purple_debug_info (TWITTER_PROTOCOL_ID, "%s last_page: %d current_count: %d max_count: %d per page: %d\n", G_STRFUNC, last_page ? 1 : 0, request_data_all->current_count, request_data_all->max_count, request_multi->expected_count);
+	purple_debug_info (TWITTER_PROTOCOL_ID, "%s last_page: %d current_count: %d max_count: %d count: %d\n", G_STRFUNC, last_page ? 1 : 0, request_data_all->current_count, request_data_all->max_count, request_multi->expected_count);
 	if (last_page || (request_data_all->max_count > 0 && request_data_all->current_count >= request_data_all->max_count))
 	{
 		request_data_all->success_callback(r, request_data_all->nodes, request_data_all->user_data);
