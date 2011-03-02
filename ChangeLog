@@ -1,4 +1,6 @@
 Changelog for current version:
+
+Changelog for 0.6.4:
   * Show the error texts from twitter when displaying an error. Should make it easier to understand things like why DMs fail.
   * Don't retreive old tweets when rejoining a search. Behaviour is now similar to a regular timeline.
   * Allow customization of the insertion of the search text in tweets: never, prepended, or appended (set on a per-search basis). Default is never.
