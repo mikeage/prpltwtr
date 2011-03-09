@@ -1,4 +1,5 @@
 Changelog for current version:
+  * Make the list and timeline refresh intervals user set parameters
 
 Changelog for 0.6.4:
   * Show the error texts from twitter when displaying an error. Should make it easier to understand things like why DMs fail.

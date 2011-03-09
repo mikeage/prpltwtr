@@ -93,11 +93,25 @@ GList *twitter_get_protocol_options()
 			TWITTER_PREF_HOME_TIMELINE_MAX_TWEETS_DEFAULT);                        /* default value */
 	options = g_list_append(options, option);
 
+	/* Timeline tweets refresh interval */
+	option = purple_account_option_int_new(
+			_("Refresh timeline every (min)"),      /* text shown to user */
+			TWITTER_PREF_TIMELINE_TIMEOUT,                         /* pref name */
+			TWITTER_PREF_TIMELINE_TIMEOUT_DEFAULT);                        /* default value */
+	options = g_list_append(options, option);
+
 	/* Mentions/replies tweets refresh interval */
 	option = purple_account_option_int_new(
 			_("Refresh replies every (min)"),      /* text shown to user */
 			TWITTER_PREF_REPLIES_TIMEOUT,                         /* pref name */
 			TWITTER_PREF_REPLIES_TIMEOUT_DEFAULT);                        /* default value */
+	options = g_list_append(options, option);
+
+	/* Lists tweets refresh interval */
+	option = purple_account_option_int_new(
+			_("Refresh lists every (min)"),      /* text shown to user */
+			TWITTER_PREF_LIST_TIMEOUT,                         /* pref name */
+			TWITTER_PREF_LIST_TIMEOUT_DEFAULT);                        /* default value */
 	options = g_list_append(options, option);
 
 	/* Dms refresh interval */
@@ -153,12 +167,16 @@ gint twitter_option_search_timeout(PurpleAccount *account)
 
 gint twitter_option_timeline_timeout(PurpleAccount *account)
 {
-	return TWITTER_TIMELINE_REFRESH_DEFAULT;
+	return purple_account_get_int(account,
+			TWITTER_PREF_TIMELINE_TIMEOUT,
+			TWITTER_PREF_TIMELINE_TIMEOUT_DEFAULT);
 }
 
 gint twitter_option_list_timeout(PurpleAccount *account)
 {
-	return TWITTER_LIST_REFRESH_DEFAULT;
+	return purple_account_get_int(account,
+			TWITTER_PREF_LIST_TIMEOUT,
+			TWITTER_PREF_LIST_TIMEOUT_DEFAULT);
 }
 const gchar *twitter_option_list_group(PurpleAccount *account)
 {

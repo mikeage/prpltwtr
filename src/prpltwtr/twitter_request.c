@@ -287,6 +287,7 @@ static void twitter_send_request_cb(PurpleUtilFetchUrlData *url_data, gpointer u
 	if (server_error_message)
 	{
 		purple_debug_info(TWITTER_PROTOCOL_ID, "Response error: %s\n", server_error_message);
+		purple_debug_info(TWITTER_PROTOCOL_ID, "MHM: error is/was |%s|\n", server_error_message);
 		error_type = TWITTER_REQUEST_ERROR_SERVER;
 		error_message = g_strdup(server_error_message);
 	} else {
