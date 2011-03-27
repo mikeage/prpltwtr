@@ -670,7 +670,7 @@ static char *twitter_status_text(PurpleBuddy *buddy) {
 		const char *message = status ? purple_status_get_attr_string(status, "message") : NULL;
 
 		if (message && strlen(message) > 0)
-			return g_strdup(g_markup_escape_text(message, -1));
+			return g_markup_escape_text(message, -1);
 
 	}
 	return NULL;
@@ -1139,6 +1139,9 @@ static void twitter_requestor_pre_send_oauth(TwitterRequestor *r, gboolean *post
 		//TODO: error if couldn't sign
 		return;
 	} 
+
+	g_free(signing_key);
+
 	*requestor_data = *params;
 	*params = oauth_params;
 }
@@ -1408,6 +1411,8 @@ static void twitter_get_info(PurpleConnection *gc, const char *username) {
 			{
 				purple_notify_user_info_add_pair(info, _("Status:"), status_data->text);
 			}
+
+			twitter_user_tweet_free(data);
 		}
 	} else {
 		purple_notify_user_info_add_pair(info, _("Description:"), _("No user info"));
@@ -1511,13 +1516,14 @@ static void twitter_blist_char_attach_search_toggle(PurpleBlistNode *node, gpoin
 	PurpleChat *chat = PURPLE_CHAT(node);
 	PurpleAccount *account = purple_chat_get_account(chat);
 	GHashTable *components = purple_chat_get_components(chat);
-	const char *chat_name = twitter_chat_get_name(components);
+	char *chat_name = twitter_chat_get_name(components);
 	PurpleConversation * conv;
 
 	purple_debug_info(TWITTER_PROTOCOL_ID, "Setting attach for %s to %d\n", chat_name, (int) userdata);
 	conv = purple_find_conversation_with_account(PURPLE_CONV_TYPE_CHAT, chat_name, account);
 	g_hash_table_replace(components, g_strdup("attach_search_text"), (g_strdup_printf("%d",(int) userdata)));
 	purple_signal_emit(purple_conversations_get_handle(), "prpltwtr-changed-attached-search", conv);
+	g_free(chat_name);
 }
 
 static void twitter_blist_chat_auto_open_toggle(PurpleBlistNode *node, gpointer userdata) {
@@ -1525,7 +1531,7 @@ static void twitter_blist_chat_auto_open_toggle(PurpleBlistNode *node, gpointer 
 	PurpleChat *chat = PURPLE_CHAT(node);
 	PurpleAccount *account = purple_chat_get_account(chat);
 	GHashTable *components = purple_chat_get_components(chat);
-	const char *chat_name = twitter_chat_get_name(components);
+	char *chat_name = twitter_chat_get_name(components);
 
 	gboolean new_state = !twitter_blist_chat_is_auto_open(chat);
 
@@ -1545,6 +1551,8 @@ static void twitter_blist_chat_auto_open_toggle(PurpleBlistNode *node, gpointer 
 
 	g_hash_table_replace(components, g_strdup("auto_open"), 
 			(new_state ? g_strdup("1") : g_strdup("0")));
+
+	g_free(chat_name);
 }
 
 //TODO should be handled in twitter_endpoint_reply

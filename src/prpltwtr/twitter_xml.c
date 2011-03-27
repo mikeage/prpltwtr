@@ -368,6 +368,7 @@ void twitter_user_tweet_free(TwitterUserTweet *ut)
 	if (ut->icon_url)
 		g_free(ut->icon_url);
 	g_free(ut);
+	ut = NULL;
 }
 
 GList *twitter_dms_node_parse(xmlnode *dms_node)

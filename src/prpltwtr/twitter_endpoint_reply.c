@@ -124,12 +124,13 @@ static void _process_replies (PurpleAccount *account,
 			gchar *reply_id;
 			twitter_buddy_set_user_data(account, user_data, FALSE);
 			twitter_status_data_update_conv(ctx, data->screen_name, status);
-			twitter_buddy_set_status_data(account, data->screen_name, status);
 
 			/* update user_reply_id_table table */
 			reply_id = g_strdup_printf ("%lld", status->id);
 			g_hash_table_insert (twitter->user_reply_id_table,
 					g_strdup (data->screen_name), reply_id);
+
+			twitter_buddy_set_status_data(account, data->screen_name, status);
 		}
 		twitter_user_tweet_free(data);
 	}

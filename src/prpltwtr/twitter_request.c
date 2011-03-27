@@ -144,7 +144,7 @@ void twitter_request_params_free(TwitterRequestParams *params)
 		return;
 	for (i = 0; i < params->len; i++)
 		twitter_request_param_free(g_array_index(params, TwitterRequestParam *, i));
-	g_array_free(params, FALSE);
+	g_array_free(params, TRUE);
 }
 
 static void twitter_request_params_set_size(TwitterRequestParams *params, guint length)
@@ -287,7 +287,6 @@ static void twitter_send_request_cb(PurpleUtilFetchUrlData *url_data, gpointer u
 	if (server_error_message)
 	{
 		purple_debug_info(TWITTER_PROTOCOL_ID, "Response error: %s\n", server_error_message);
-		purple_debug_info(TWITTER_PROTOCOL_ID, "MHM: error is/was |%s|\n", server_error_message);
 		error_type = TWITTER_REQUEST_ERROR_SERVER;
 		error_message = g_strdup(server_error_message);
 	} else {
@@ -639,12 +638,15 @@ TwitterRequestParams *twitter_request_params_add_oauth_params(PurpleAccount *acc
 	signme = twitter_oauth_get_text_to_sign(post, use_https, url, oauth_params);
 	signature = twitter_oauth_sign(signme, signing_key);
 
+	g_free(signme);
+
 	if (!signature)
 	{
 		twitter_request_params_free(oauth_params);
 		return NULL;
 	} else {
 		twitter_request_params_add(oauth_params, twitter_request_param_new("oauth_signature", signature));
+		g_free(signature);
 		return oauth_params;
 	}
 }

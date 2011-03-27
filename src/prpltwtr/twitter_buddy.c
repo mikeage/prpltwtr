@@ -207,6 +207,7 @@ void twitter_buddy_set_user_data(PurpleAccount *account, TwitterUserData *u, gbo
 		twitter_user_data_free(buddy_data->user);
 	buddy_data->user = u;
 	twitter_buddy_update_icon(b);
+
 }
 
 typedef struct
