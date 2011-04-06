@@ -320,6 +320,7 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 
 				if((i+1) == j) {
 					// empty string
+					i++;
 					continue;
 				}
 				if (memcmp(&text[i+1], username+1, j-(i+1)) && memcmp(&text[i+1], user, j-(i+1))) {
