@@ -9,8 +9,12 @@ AM_INIT_AUTOMAKE([1.9.5])
 REQUIRED_PKG_CONFIG="0.15.0"
 AC_SUBST(REQUIRED_PKG_CONFIG)
 
-REQUIRED_PIDGIN="pidgin >= 2.6 pidgin < 3.0"
-AC_SUBST(REQUIRED_PIDGIN)
+AC_ARG_WITH([pidgin],
+			[AS_HELP_STRING([--without-pidgin],
+							[disable support for pidgin])],
+							[],
+							[with_pidgin=yes])
+
 
 AC_CONFIG_SRCDIR([src/Makefile.mingw])
 AC_CONFIG_HEADER([config.h])
@@ -45,22 +49,44 @@ fi
 
 # Checks for libraries.
 PKG_PROG_PKG_CONFIG([$REQUIRED_PKG_CONFIG])
-PKG_CHECK_MODULES([PIDGIN], [$REQUIRED_PIDGIN],
-	[
-	AC_SUBST(PIDGIN_CFLAGS)
-	AC_SUBST(PIDGIN_LIBS)
-	]
-)
-AC_ARG_VAR([PIDGIN_DATADIR], [datadir of PIDGIN, overriding pkg-config])dnl
-AC_ARG_VAR([PIDGIN_PLUGINDIR], [plugindir of PIDGIN, overriding pkg-config])dnl
-AC_CACHE_CHECK([for PIDGIN][_DATADIR], [pkg_cv_][PIDGIN][_DATADIR],
-	[_PKG_CONFIG([PIDGIN][_DATADIR], [variable=datadir], [pidgin])])
-AC_CACHE_CHECK([for PIDGIN][_PLUGINDIR], [pkg_cv_][PIDGIN][_PLUGINDIR],
-	[_PKG_CONFIG([PIDGIN][_PLUGINDIR], [variable=plugindir], [pidgin])])
-PIDGIN[]_DATADIR=$pkg_cv_[]PIDGIN[]_DATADIR
-PIDGIN[]_PLUGINDIR=$pkg_cv_[]PIDGIN[]_PLUGINDIR
-AC_SUBST(PIDGIN_DATADIR)
-AC_SUBST(PIDGIN_PLUGINDIR)
+AS_IF([test "x$with_pidgin" != xno],
+	  [PKG_CHECK_MODULES([PIDGIN], [pidgin >= 2.6 pidgin < 3.0],
+						 [
+						  AC_SUBST(PIDGIN_CFLAGS)
+						  AC_SUBST(PIDGIN_LIBS)
+						  ]
+						 )
+
+	  AC_ARG_VAR([PIDGIN_DATADIR], [datadir of PIDGIN, overriding pkg-config])dnl
+	  AC_ARG_VAR([PIDGIN_PLUGINDIR], [plugindir of PIDGIN, overriding pkg-config])dnl
+	  AC_CACHE_CHECK([for PIDGIN][_DATADIR], [pkg_cv_][PIDGIN][_DATADIR],
+					 [_PKG_CONFIG([PIDGIN][_DATADIR], [variable=datadir], [pidgin])])
+	  AC_CACHE_CHECK([for PIDGIN][_PLUGINDIR], [pkg_cv_][PIDGIN][_PLUGINDIR],
+					 [_PKG_CONFIG([PIDGIN][_PLUGINDIR], [variable=plugindir], [pidgin])])
+	  PIDGIN[]_DATADIR=$pkg_cv_[]PIDGIN[]_DATADIR
+	  PIDGIN[]_PLUGINDIR=$pkg_cv_[]PIDGIN[]_PLUGINDIR
+	  AC_SUBST(PIDGIN_DATADIR)
+	  AC_SUBST(PIDGIN_PLUGINDIR)
+	  ],[]
+	  )
+
+AM_CONDITIONAL([WITH_PIDGIN], [test "x$with_pidgin" != xno])
+
+PKG_CHECK_MODULES([PURPLE], [purple],
+				  [
+				   AC_SUBST(PURPLE_CFLAGS)
+				   AC_SUBST(PURPLE_LIBS)
+				   ]
+				  )
+
+AC_ARG_VAR([PURPLE_PLUGINDIR], [plugindir of PURPLE, overriding pkg-config])dnl
+AC_CACHE_CHECK([for PURPLE][_DATADIR], [pkg_cv_][PURPLE][_DATADIR],
+			   [_PKG_CONFIG([PURPLE][_DATADIR], [variable=datadir], [purple])])
+AC_CACHE_CHECK([for PURPLE][_PLUGINDIR], [pkg_cv_][PURPLE][_PLUGINDIR],
+			   [_PKG_CONFIG([PURPLE][_PLUGINDIR], [variable=plugindir], [purple])])
+PURPLE[]_DATADIR=$pkg_cv_[]PURPLE[]_DATADIR
+PURPLE[]_PLUGINDIR=$pkg_cv_[]PURPLE[]_PLUGINDIR
+AC_SUBST(PURPLE_PLUGINDIR)
 
 # Checks for header files.
 AC_HEADER_STDC
@@ -92,19 +118,22 @@ AM_MAINTAINER_MODE
 
 # Creating files.
 AC_CONFIG_FILES([Makefile
-data/Makefile
-src/Makefile
-po/Makefile.in
-src/prpltwtr/Makefile
-src/gtkprpltwtr/Makefile
-])
+				 po/Makefile.in
+				 data/Makefile
+				 src/Makefile
+				 src/prpltwtr/Makefile
+				 src/gtkprpltwtr/Makefile])
 AC_OUTPUT
 
 echo
 echo $PACKAGE $VERSION
 echo
-echo Installation directories: $PIDGIN_PLUGINDIR and $PIDGIN_DATADIR
-echo If you want to override, rerun ./configure with the parameters PIDGIN_PLUGINDIR and PIDGIN_DATADIR set appropriately.
+AS_IF([test "x$with_pidgin" != xno],
+[
+ echo Pidgin plugin directory: $PIDGIN_PLUGINDIR . Override by setting PIDGIN_PLUGINDIR
+ echo Pidgin data directory: $PIDGIN_DATADIR . Override by setting PIDGIN_DATADIR 
+],[])
+echo libpurple plugin directory: $PURPLE_PLUGINDIR . Override by setting PURPLE_PLUGINDIR
 echo
 echo next steps:
 echo make

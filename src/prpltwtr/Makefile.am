@@ -2,7 +2,7 @@ EXTRA_DIST = \
 	Makefile.mingw
 
 pkgdir = \
-	$(PIDGIN_PLUGINDIR)
+	$(PURPLE_PLUGINDIR)
 
 PRPLTWTR_SOURCES = \
 defaults.h \
@@ -48,7 +48,7 @@ AM_CFLAGS = \
 prpltwtr_la_LDFLAGS = \
 	-module \
 	-avoid-version \
-	$(PIDGIN_LIBS)
+	$(PURPLE_LIBS)
 
 pkg_LTLIBRARIES = \
 	prpltwtr.la
@@ -58,5 +58,6 @@ prpltwtr_la_SOURCES = \
 
 AM_CPPFLAGS = \
 	$(DEBUG_CFLAGS) \
-	$(PIDGIN_CFLAGS) \
+	$(PURPLE_CFLAGS) \
+	$(PURPLE_PLUGINS) \
 	-DLOCALEDIR=\"$(LIBPURPLE_DATADIR)/locale\"

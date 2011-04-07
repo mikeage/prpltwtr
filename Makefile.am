@@ -9,6 +9,9 @@ EXTRA_DIST = \
 
 SUBDIRS = \
 	src \
-	po \
-    data
+	po
+    
+if WITH_PIDGIN
+SUBDIRS += data
+endif
 	

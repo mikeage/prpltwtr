@@ -51,5 +51,5 @@ gtkprpltwtr_la_SOURCES = \
 AM_CPPFLAGS = \
 	$(DEBUG_CFLAGS) \
 	$(PIDGIN_CFLAGS) \
-	-DLOCALEDIR=\"$(LIBPURPLE_DATADIR)/locale\" \
+	-DLOCALEDIR=\"$(PIDGIN_DATADIR)/locale\" \
 	-I../prpltwtr/
