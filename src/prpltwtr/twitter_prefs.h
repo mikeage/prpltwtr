@@ -80,6 +80,14 @@
 #define TWITTER_PREF_API_BASE "twitter_api_base_url"
 #define TWITTER_PREF_API_BASE_DEFAULT "api.twitter.com/1/"
 
+#define TWITTER_PREF_WEB_BASE "twitter_web_base_url"
+#define TWITTER_PREF_WEB_BASE_DEFAULT "twitter.com/"
+
+#define TWITTER_PREF_URL_OPEN_RETWEETED_OF_MINE "retweeted_of_mine"
+#define TWITTER_PREF_URL_OPEN_FAVORITES "favorites"
+#define TWITTER_PREF_URL_OPEN_REPLIES "replies"
+#define TWITTER_PREF_URL_OPEN_SUGGESTED_FRIENDS "invitations/twitter_suggests"
+
 #define TWITTER_PREF_SEARCH_API_BASE "twitter_search_api_base_url"
 #define TWITTER_PREF_SEARCH_API_BASE_DEFAULT "search.twitter.com/"
 
@@ -132,6 +140,8 @@ gboolean twitter_option_enable_conv_icon(PurpleAccount *account);
 
 const gchar *twitter_option_api_host(PurpleAccount *account);
 const gchar *twitter_option_api_subdir(PurpleAccount *account);
+const gchar *twitter_option_web_host(PurpleAccount *account);
+const gchar *twitter_option_web_subdir(PurpleAccount *account);
 const gchar *twitter_option_search_api_host(PurpleAccount *account);
 const gchar *twitter_option_search_api_subdir(PurpleAccount *account);
 int twitter_option_cutoff_time(PurpleAccount *account);

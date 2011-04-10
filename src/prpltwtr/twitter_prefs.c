@@ -307,6 +307,21 @@ const gchar *twitter_option_api_subdir(PurpleAccount *account)
 				TWITTER_PREF_API_BASE_DEFAULT));
 }
 
+const gchar *twitter_option_web_host(PurpleAccount *account)
+{
+	return twitter_get_host_from_base(
+			purple_account_get_string(account,
+				TWITTER_PREF_WEB_BASE,
+				TWITTER_PREF_WEB_BASE_DEFAULT));
+}
+const gchar *twitter_option_web_subdir(PurpleAccount *account)
+{
+	return twitter_get_subdir_from_base(
+			purple_account_get_string(account,
+				TWITTER_PREF_WEB_BASE,
+				TWITTER_PREF_WEB_BASE_DEFAULT));
+}
+
 const gchar *twitter_option_search_api_host(PurpleAccount *account)
 {
 	return twitter_get_host_from_base(

@@ -748,6 +748,7 @@ static GList *twitter_status_types(PurpleAccount *account)
 /*
  * UI callbacks
  */
+#if 0
 static void twitter_action_get_user_info(PurplePluginAction *action)
 {
 	PurpleConnection *gc = (PurpleConnection *)action->context;
@@ -755,6 +756,7 @@ static void twitter_action_get_user_info(PurplePluginAction *action)
 	twitter_api_get_friends(purple_account_get_requestor(account),
 			twitter_get_friends_cb, NULL, NULL);
 }
+#endif 
 
 static void twitter_action_set_status_ok(PurpleConnection *gc, PurpleRequestFields *fields)
 {
@@ -805,12 +807,22 @@ static GList *twitter_actions(PurplePlugin *plugin, gpointer context)
 	action = purple_plugin_action_new(_("Set status"), twitter_action_set_status);
 	l = g_list_append(l, action);
 
-	action = purple_plugin_action_new(("Rate Limit Status"), twitter_action_get_rate_limit_status);
+	action = purple_plugin_action_new(_("Rate Limit Status"), twitter_action_get_rate_limit_status);
 	l = g_list_append(l, action);
 
 	l = g_list_append(l, NULL);
 
+#if 0
 	action = purple_plugin_action_new(_("Debug - Retrieve users"), twitter_action_get_user_info);
+	l = g_list_append(l, action);
+#endif
+	action = purple_plugin_action_new(_("Open Favorites URL"), twitter_api_web_open_favorites);
+	l = g_list_append(l, action);
+	action = purple_plugin_action_new(_("Open Retweets of Mine"), twitter_api_web_open_retweets_of_mine);
+	l = g_list_append(l, action);
+	action = purple_plugin_action_new(_("Open Replies"), twitter_api_web_open_replies);
+	l = g_list_append(l, action);
+	action = purple_plugin_action_new(_("Open Suggested Friends"), twitter_api_web_open_suggested_friends);
 	l = g_list_append(l, action);
 
 	return l;

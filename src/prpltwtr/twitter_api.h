@@ -173,6 +173,11 @@ void twitter_api_get_saved_searches (TwitterRequestor *r,
         TwitterSendRequestErrorFunc error_func,
         gpointer data);
 
+void twitter_api_web_open_favorites(PurplePluginAction *action);
+void twitter_api_web_open_retweets_of_mine(PurplePluginAction *action);
+void twitter_api_web_open_suggested_friends(PurplePluginAction *action);
+void twitter_api_web_open_replies(PurplePluginAction *action);
+
 /**
  * @rpp: The number of tweets to return per page, up to a max of 100
  */

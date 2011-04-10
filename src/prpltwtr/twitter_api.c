@@ -54,6 +54,28 @@ static const gchar *twitter_api_create_url(PurpleAccount *account,
 			subdir[strlen(subdir) - 1] == '/' && endpoint[0] == '/' ? endpoint + 1 : endpoint);
 	return url;
 }
+static const gchar *twitter_api_create_web_url(PurpleAccount *account,
+		const gchar *endpoint)
+{
+	static char url[1024];
+	const gchar *host = twitter_option_web_host(account);
+	const gchar *subdir = twitter_option_web_subdir(account);
+	gboolean use_https = twitter_option_use_https(account) && purple_ssl_is_supported();
+	g_return_val_if_fail(host != NULL && host[0] != '\0' && endpoint != NULL && endpoint[0] != '\0', NULL);
+	
+	if (subdir == NULL || subdir[0] == '\0')
+		 subdir = "/";
+
+	snprintf(url, 1023, "%s://%s%s%s%s%s",
+			use_https ? "https" : "http",
+			host,
+			subdir[0] == '/' ? "" : "/",
+			subdir,
+			subdir[strlen(subdir) - 1] == '/' || endpoint[0] == '/' ? "" : "/",
+			subdir[strlen(subdir) - 1] == '/' && endpoint[0] == '/' ? endpoint + 1 : endpoint);
+
+	return url;
+}
 
 static const gchar *twitter_option_url_get_rate_limit_status(PurpleAccount *account)
 {
@@ -182,6 +204,41 @@ void twitter_api_get_rate_limit_status(TwitterRequestor *r,
 			twitter_option_url_get_rate_limit_status(r->account), NULL,
 			success_func, error_func, data);
 }
+
+void twitter_api_web_open_favorites(PurplePluginAction *action)
+{
+	PurpleConnection *gc = (PurpleConnection *)action->context;
+	PurpleAccount *account = purple_connection_get_account(gc);
+	const gchar *url = twitter_api_create_web_url(account, TWITTER_PREF_URL_OPEN_FAVORITES);
+	purple_debug_info(TWITTER_PROTOCOL_ID, "MHM: Opening link %s\n", url);
+	purple_notify_uri(NULL, url);
+}
+
+void twitter_api_web_open_replies(PurplePluginAction *action)
+{
+	PurpleConnection *gc = (PurpleConnection *)action->context;
+	PurpleAccount *account = purple_connection_get_account(gc);
+	const gchar *url = twitter_api_create_web_url(account, TWITTER_PREF_URL_OPEN_REPLIES);
+	purple_notify_uri(NULL, url);
+}
+
+void twitter_api_web_open_suggested_friends(PurplePluginAction *action)
+{
+	PurpleConnection *gc = (PurpleConnection *)action->context;
+	PurpleAccount *account = purple_connection_get_account(gc);
+	const gchar *url = twitter_api_create_web_url(account, TWITTER_PREF_URL_OPEN_SUGGESTED_FRIENDS);
+	purple_notify_uri(NULL, url);
+}
+
+void twitter_api_web_open_retweets_of_mine(PurplePluginAction *action)
+{
+	PurpleConnection *gc = (PurpleConnection *)action->context;
+	PurpleAccount *account = purple_connection_get_account(gc);
+	const gchar *url = twitter_api_create_web_url(account, TWITTER_PREF_URL_OPEN_RETWEETED_OF_MINE);
+	purple_notify_uri(NULL, url);
+}
+
+
 void twitter_api_get_friends(TwitterRequestor *r,
 		TwitterSendRequestMultiPageAllSuccessFunc success_func,
 		TwitterSendRequestMultiPageAllErrorFunc error_func,
