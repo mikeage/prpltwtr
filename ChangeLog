@@ -1,4 +1,6 @@
 Changelog for current version:
+
+Changelog for 0.7.0:
   * Make the list and timeline refresh intervals user set parameters
   * Fix some memory leaks
   * Fix infinite loop when "replying to all" if there's an @ without a name after it (a mistake, or a 4sq checking tweet)
