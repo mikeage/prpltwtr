@@ -112,6 +112,18 @@ void twitter_api_send_rt(TwitterRequestor *r,
 		TwitterSendRequestErrorFunc error_func,
 		gpointer data);
 
+void twitter_api_delete_favorite(TwitterRequestor *r,
+		long long id,
+		TwitterSendXmlRequestSuccessFunc success_func,
+		TwitterSendRequestErrorFunc error_func,
+		gpointer data);
+
+void twitter_api_add_favorite(TwitterRequestor *r,
+		long long id,
+		TwitterSendXmlRequestSuccessFunc success_func,
+		TwitterSendRequestErrorFunc error_func,
+		gpointer data);
+
 void twitter_api_report_spammer(TwitterRequestor *r,
 		const gchar *user,
 		TwitterSendXmlRequestSuccessFunc success_func,

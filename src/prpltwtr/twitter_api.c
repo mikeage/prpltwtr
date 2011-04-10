@@ -153,6 +153,26 @@ static const gchar *twitter_option_url_delete_status(PurpleAccount *account, lon
 	return result;
 }
 
+static const gchar *twitter_option_url_add_favorite(PurpleAccount *account, long long id)
+{
+	gchar *url = g_strdup_printf("%s/%lld.xml",
+			TWITTER_PREF_URL_ADD_FAVORITE,
+			id);
+	const gchar *result = twitter_api_create_url(account, url);
+	g_free(url);
+	return result;
+}
+
+static const gchar *twitter_option_url_delete_favorite(PurpleAccount *account, long long id)
+{
+	gchar *url = g_strdup_printf("%s/%lld.xml",
+			TWITTER_PREF_URL_DELETE_FAVORITE,
+			id);
+	const gchar *result = twitter_api_create_url(account, url);
+	g_free(url);
+	return result;
+}
+
 void twitter_api_get_rate_limit_status(TwitterRequestor *r,
 		TwitterSendXmlRequestSuccessFunc success_func,
 		TwitterSendRequestErrorFunc error_func,
@@ -513,6 +533,34 @@ void twitter_api_send_rt(TwitterRequestor *r,
 
 	twitter_send_xml_request(r, TRUE,
 			twitter_option_url_rt(r->account, id), NULL,
+			success_func, error_func, data);
+
+}
+
+void twitter_api_add_favorite(TwitterRequestor *r,
+		long long id,
+		TwitterSendXmlRequestSuccessFunc success_func,
+		TwitterSendRequestErrorFunc error_func,
+		gpointer data)
+{
+	g_return_if_fail(id > 0);
+
+	twitter_send_xml_request(r, TRUE,
+			twitter_option_url_add_favorite(r->account, id), NULL,
+			success_func, error_func, data);
+
+}
+
+void twitter_api_delete_favorite(TwitterRequestor *r,
+		long long id,
+		TwitterSendXmlRequestSuccessFunc success_func,
+		TwitterSendRequestErrorFunc error_func,
+		gpointer data)
+{
+	g_return_if_fail(id > 0);
+
+	twitter_send_xml_request(r, TRUE,
+			twitter_option_url_delete_favorite(r->account, id), NULL,
 			success_func, error_func, data);
 
 }

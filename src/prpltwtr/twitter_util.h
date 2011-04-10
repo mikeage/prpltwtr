@@ -26,6 +26,8 @@
 #define TWITTER_URI_ACTION_DELETE	"delete" //TODO: move?
 #define TWITTER_URI_ACTION_SET_REPLY "setreply" //TODO: move?
 #define TWITTER_URI_ACTION_GET_ORIGINAL "getoriginal" //TODO: move?
+#define TWITTER_URI_ACTION_ADD_FAVORITE "addfavorite" //TODO: move?
+#define TWITTER_URI_ACTION_DELETE_FAVORITE "deletefavorite" //TODO: move?
 #define TWITTER_URI_ACTION_REPORT_SPAM "reportspam" //TODO: move?
 
 gboolean twitter_usernames_match(PurpleAccount *account, const gchar *u1, const gchar *u2);
@@ -53,5 +55,6 @@ char *twitter_format_tweet(PurpleAccount *account,
 		PurpleConversationType conv_type,
 		const gchar *conv_name,
 		gboolean is_tweet,
-		long long in_reply_to_status_id);
+		long long in_reply_to_status_id,
+		gboolean favorited);
 #endif /* UTIL_H_ */

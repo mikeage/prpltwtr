@@ -101,6 +101,8 @@
 #define TWITTER_PREF_URL_VERIFY_CREDENTIALS "/account/verify_credentials.xml"
 #define TWITTER_PREF_URL_RT "/statuses/retweet" /* Yay for inconsistency */
 #define TWITTER_PREF_URL_DELETE_STATUS "/statuses/destroy" /* Yay for inconsistency */
+#define TWITTER_PREF_URL_ADD_FAVORITE "/favorites/create" /* Yay for inconsistency */
+#define TWITTER_PREF_URL_DELETE_FAVORITE "/favorites/destroy" /* Yay for inconsistency */
 #define TWITTER_PREF_URL_GET_STATUS "/statuses/show"
 #define TWITTER_PREF_URL_REPORT_SPAMMER "/report_spam.xml"
 

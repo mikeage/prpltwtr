@@ -70,6 +70,42 @@ static void twitter_send_rt_error_cb(TwitterRequestor *r,
 	g_free(error);
 }
 
+static void twitter_add_favorite_success_cb(TwitterRequestor *r,
+		xmlnode *node,
+		gpointer user_data)
+{
+	TwitterConversationId *conv_id = user_data;
+	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_SYSTEM, _("Tweet favorited"));
+}
+
+static void twitter_add_favorite_error_cb(TwitterRequestor *r,
+		const TwitterRequestErrorData *error_data,
+		gpointer user_data)
+{
+	TwitterConversationId *conv_id = user_data;
+	gchar * error = g_strdup_printf(_("Couldn't favorite tweet: %s"), error_data->message ? error_data->message : _("unknown error"));
+	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_ERROR, error);
+	g_free(error);
+}
+
+static void twitter_delete_favorite_success_cb(TwitterRequestor *r,
+		xmlnode *node,
+		gpointer user_data)
+{
+	TwitterConversationId *conv_id = user_data;
+	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_SYSTEM, _("Tweet un-favorited"));
+}
+
+static void twitter_delete_favorite_error_cb(TwitterRequestor *r,
+		const TwitterRequestErrorData *error_data,
+		gpointer user_data)
+{
+	TwitterConversationId *conv_id = user_data;
+	gchar * error = g_strdup_printf(_("Couldn't un-favorite tweet: %s"), error_data->message ? error_data->message : _("unknown error"));
+	twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_ERROR, error);
+	g_free(error);
+}
+
 static void twitter_report_spammer_success_cb(TwitterRequestor *r,
 		xmlnode *node,
 		gpointer user_data)
@@ -581,6 +617,84 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 		purple_conversation_set_data(conv, "twitter_conv_last_reply_id_manual", (gpointer)0x10101010);
 		purple_debug_info(DEBUG_ID, "Setting reply to %lld for conv %p\n", id, conv);
 		gtkprpltwtr_mark_reply(conv, id_str);
+	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_ADD_FAVORITE)) {
+		TwitterConversationId *conv_id;
+		PurpleConversationType conv_type;
+		gchar *conv_type_str;
+		gchar *conv_name_encoded;
+		const char *id_str;
+		long long id;
+		PurpleConnection *gc = purple_account_get_connection(account);
+		TwitterConnectionData *twitter;
+		if (!gc) {
+			purple_debug_info(DEBUG_ID, "disconnected. Exiting\n.");
+			return FALSE;
+		}
+		twitter = gc->proto_data;
+		conv_name_encoded = g_hash_table_lookup(params, "conv_name");
+		conv_type_str = g_hash_table_lookup(params, "conv_type");
+
+		conv_type = atoi(conv_type_str);
+
+		id_str = g_hash_table_lookup(params, "id");
+		if (id_str == NULL || id_str[0] == '\0')
+		{
+			purple_debug_info(DEBUG_ID, "malformed uri. Invalid id for favoriting\n");
+			return FALSE;
+		}
+		id = strtoll(id_str, NULL, 10);
+		if (id == 0)
+		{
+			purple_debug_info(DEBUG_ID, "malformed uri. Invalid id for favoriting\n");
+			return FALSE;
+		}
+		conv_id = g_new0(TwitterConversationId, 1);
+		conv_id->conv_name = g_strdup(purple_url_decode(conv_name_encoded));
+		conv_id->type = conv_type;
+		twitter_api_add_favorite(purple_account_get_requestor(account),
+				id,
+				twitter_add_favorite_success_cb,
+				twitter_add_favorite_error_cb,
+				conv_id);
+	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_DELETE_FAVORITE)) {
+		TwitterConversationId *conv_id;
+		PurpleConversationType conv_type;
+		gchar *conv_type_str;
+		gchar *conv_name_encoded;
+		const char *id_str;
+		long long id;
+		PurpleConnection *gc = purple_account_get_connection(account);
+		TwitterConnectionData *twitter;
+		if (!gc) {
+			purple_debug_info(DEBUG_ID, "disconnected. Exiting\n.");
+			return FALSE;
+		}
+		twitter = gc->proto_data;
+		conv_name_encoded = g_hash_table_lookup(params, "conv_name");
+		conv_type_str = g_hash_table_lookup(params, "conv_type");
+
+		conv_type = atoi(conv_type_str);
+
+		id_str = g_hash_table_lookup(params, "id");
+		if (id_str == NULL || id_str[0] == '\0')
+		{
+			purple_debug_info(DEBUG_ID, "malformed uri. Invalid id for favoriting\n");
+			return FALSE;
+		}
+		id = strtoll(id_str, NULL, 10);
+		if (id == 0)
+		{
+			purple_debug_info(DEBUG_ID, "malformed uri. Invalid id for favoriting\n");
+			return FALSE;
+		}
+		conv_id = g_new0(TwitterConversationId, 1);
+		conv_id->conv_name = g_strdup(purple_url_decode(conv_name_encoded));
+		conv_id->type = conv_type;
+		twitter_api_delete_favorite(purple_account_get_requestor(account),
+				id,
+				twitter_delete_favorite_success_cb,
+				twitter_delete_favorite_error_cb,
+				conv_id);
 	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_REPORT_SPAM)) {
 		TwitterConversationId *conv_id;
 		gchar * user;
@@ -654,6 +768,16 @@ static void twitter_context_menu_set_reply(GtkWidget *w, const gchar *url)
 	twitter_got_uri_action(url, TWITTER_URI_ACTION_SET_REPLY);
 }
 
+static void twitter_context_menu_add_favorite(GtkWidget *w, const gchar *url)
+{
+	twitter_got_uri_action(url, TWITTER_URI_ACTION_ADD_FAVORITE);
+}
+
+static void twitter_context_menu_delete_favorite(GtkWidget *w, const gchar *url)
+{
+	twitter_got_uri_action(url, TWITTER_URI_ACTION_DELETE_FAVORITE);
+}
+
 static void twitter_context_menu_report_spammer(GtkWidget *w, const gchar *url)
 {
 	twitter_got_uri_action(url, TWITTER_URI_ACTION_REPORT_SPAM);
@@ -698,13 +822,16 @@ static void twitter_url_menu_actions(GtkWidget *menu, const char *url)
 	gsize user_len;
 	gsize in_reply_to_status_id_len;
 	gsize conv_type_len;
+	gsize favorited_len;
 	PurpleConversationType conv_type;
+	gboolean favorited;
 	PurpleAccount *account;
 
 	const gchar *account_name_tmp = url_get_param_value(url, "account", &account_len);
 	const gchar *user_name_tmp = url_get_param_value(url, "user", &user_len);
 	const gchar *in_reply_to_status_id_tmp = url_get_param_value(url, "in_reply_to_status_id", &in_reply_to_status_id_len);
 	const gchar *conv_type_tmp = url_get_param_value(url, "conv_type", &conv_type_len);
+	const gchar *favorited_tmp = url_get_param_value(url, "favorited", &favorited_len);
 	long long in_reply_to_status_id;
 	gchar *account_name, *user_name;
 	if (!account_name_tmp || !user_name_tmp)
@@ -717,6 +844,8 @@ static void twitter_url_menu_actions(GtkWidget *menu, const char *url)
 
 	account_name = g_strndup(account_name_tmp, account_len);
 	user_name = g_strndup(user_name_tmp, user_len);
+
+	favorited = favorited_tmp ? TRUE : FALSE;
 
 	account = purple_accounts_find(account_name, TWITTER_PROTOCOL_ID);
 
@@ -776,6 +905,21 @@ static void twitter_url_menu_actions(GtkWidget *menu, const char *url)
 		item = gtk_image_menu_item_new_with_mnemonic((_("Lock reply")));
 		gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
 		g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_set_reply), (gpointer)url);
+		gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
+	}
+
+	if (favorited)
+	{
+		img = gtk_image_new_from_stock(GTK_STOCK_CANCEL, GTK_ICON_SIZE_MENU);
+		item = gtk_image_menu_item_new_with_mnemonic((_("Delete Favorite")));
+		gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
+		g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_delete_favorite), (gpointer)url);
+		gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
+	} else {
+		img = gtk_image_new_from_stock(GTK_STOCK_ADD, GTK_ICON_SIZE_MENU);
+		item = gtk_image_menu_item_new_with_mnemonic((_("Add Favorite")));
+		gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
+		g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_add_favorite), (gpointer)url);
 		gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
 	}
 
@@ -967,7 +1111,8 @@ static gchar *gtkprpltwtr_format_tweet_cb(PurpleAccount *account,
 		PurpleConversationType conv_type,
 		const gchar *conv_name,
 		gboolean is_tweet,
-		long long in_reply_to_status_id)
+		long long in_reply_to_status_id,
+		gboolean favorited)
 {
 	gchar *linkified_message;
 	GString *tweet;
@@ -989,6 +1134,8 @@ static gchar *gtkprpltwtr_format_tweet_cb(PurpleAccount *account,
 				purple_url_encode(src_user),
 				tweet_id);
 		g_string_append_printf(tweet, "&text=%s", purple_url_encode(message));
+		if (favorited)
+			g_string_append_printf(tweet, "&favorited=TRUE");
 		g_string_append_printf(tweet,
 				"&conv_type=%d&conv_name=%s&in_reply_to_status_id=%lld\">*</a>",
 				conv_type,

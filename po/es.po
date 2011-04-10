@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.6.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-03-02 17:54+0200\n"
+"POT-Creation-Date: 2011-04-10 09:28+0300\n"
 "PO-Revision-Date: 2011-02-23 21:41-0300\n"
 "Last-Translator: Fabián Bonetti <mama21mama@mamalibre.com.ar>\n"
 "Language-Team: \n"
@@ -29,111 +29,138 @@ msgid "Couldn't retweet status: %s"
 msgstr "No se pudo retweet estado: %s"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:68 ../src/gtkprpltwtr/gtkprpltwtr.c:86
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:155 ../src/gtkprpltwtr/gtkprpltwtr.c:173
-#: ../src/prpltwtr/twitter_endpoint_chat.c:581
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:104 ../src/gtkprpltwtr/gtkprpltwtr.c:122
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:191 ../src/gtkprpltwtr/gtkprpltwtr.c:209
+#: ../src/prpltwtr/twitter_endpoint_chat.c:582
 #: ../src/prpltwtr/twitter_endpoint_reply.c:17
-#: ../src/prpltwtr/twitter_endpoint_dm.c:15 ../src/prpltwtr/twitter.c:992
-#: ../src/prpltwtr/twitter.c:1058 ../src/prpltwtr/twitter.c:1082
+#: ../src/prpltwtr/twitter_endpoint_dm.c:15 ../src/prpltwtr/twitter.c:991
+#: ../src/prpltwtr/twitter.c:1057 ../src/prpltwtr/twitter.c:1081
 msgid "unknown error"
 msgstr "error desconocido"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:78
+msgid "Tweet favorited"
+msgstr ""
+
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:86
+#, fuzzy, c-format
+msgid "Couldn't favorite tweet: %s"
+msgstr "No se pudo retweet estado: %s"
+
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:96
+msgid "Tweet un-favorited"
+msgstr ""
+
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:104
+#, fuzzy, c-format
+msgid "Couldn't un-favorite tweet: %s"
+msgstr "No se pudo retweet estado: %s"
+
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:114
 msgid "Successfully reported as spam"
 msgstr "reportado con éxito como Spam"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:86
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:122
 #, c-format
 msgid "Couldn't report spammer: %s"
 msgstr "No se pudo informar spammer: %s"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:155
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:191
 #, c-format
 msgid "Couldn't get status: %s"
 msgstr "No se pudo obtener el estado: %s"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:165
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:201
 msgid "Successfully deleted"
 msgstr "Borrado con éxito"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:173
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:209
 #, c-format
 msgid "Couldn't delete status: %s"
 msgstr "No se pudo borrar el estado: %s"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:278
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:314
 msgid "Clicked URI"
 msgstr "clickear URI"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:279
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:315
 msgid "@name clicked"
 msgstr "@nombre clickear"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:280
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:316
 msgid "Sorry, this has not been implemented yet"
 msgstr "Lo sentimos, este no ha sido implementado"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:723
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:853
 msgid "Retweet"
 msgstr "Retweet"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:729
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:859
 msgid "Old Retweet"
 msgstr "Antiguo Retweet"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:736
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:866
 msgid "Reply"
 msgstr "Responder"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:742
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:872
 msgid "Reply All"
 msgstr "Responder a todos"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:749
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:879
 msgid "Goto Site"
 msgstr "Ir al sitio"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:757
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:887
 msgid "Delete"
 msgstr "Borrar"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:766
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:896
 msgid "In reply to..."
 msgstr "En respuesta a..."
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:775
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:905
 msgid "Lock reply"
 msgstr "Bloqueo de respuesta"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:782
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:914
+msgid "Delete Favorite"
+msgstr ""
+
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:920
+msgid "Add Favorite"
+msgstr ""
+
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:927
 msgid "Report spammer"
 msgstr "Reportar spammer"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:1131
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:1279
 msgid "Enable Icons in Chat"
 msgstr "Habilitar los iconos en charla"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:1134
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:1282
 msgid "Icon Size"
 msgstr "Tamaño de icono"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:1192
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:1340
 msgid "GUI Enhancements for PrplTwtr"
 msgstr "Mejoras del GUI para PrplTwtr"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:1193
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:1341
 msgid "Pidgin specific GUI options for the purple plugin PrplTwtr"
 msgstr "Opciones específicas del GUI del plugin PrplTwtr para Pidgin"
 
 #. plugin handle or PurpleConnection
-#: ../src/prpltwtr/twitter_endpoint_chat.c:470
+#: ../src/prpltwtr/twitter_endpoint_chat.c:471
 msgid "Chat Join"
 msgstr "Unirse al chat"
 
-#: ../src/prpltwtr/twitter_endpoint_chat.c:471
+#: ../src/prpltwtr/twitter_endpoint_chat.c:472
 msgid "Invalid Chat"
 msgstr "Invalido chat"
 
-#: ../src/prpltwtr/twitter_endpoint_chat.c:581
+#: ../src/prpltwtr/twitter_endpoint_chat.c:582
 #, c-format
 msgid "Error sending tweet: %s"
 msgstr "Error enviando tweet: %s"
@@ -194,26 +221,36 @@ msgid "Max historical timeline tweets to retrieve (0: infinite)"
 msgstr "Tweets máximo histórico línea de tiempo para recuperar (0: infinito)"
 
 #: ../src/prpltwtr/twitter_prefs.c:98
-msgid "Refresh replies every (min)"
+#, fuzzy
+msgid "Refresh timeline every (min)"
 msgstr "Actualizar todas las respuestas (min)"
 
 #: ../src/prpltwtr/twitter_prefs.c:105
+msgid "Refresh replies every (min)"
+msgstr "Actualizar todas las respuestas (min)"
+
+#: ../src/prpltwtr/twitter_prefs.c:112
+#, fuzzy
+msgid "Refresh lists every (min)"
+msgstr "Actualizar todas las respuestas (min)"
+
+#: ../src/prpltwtr/twitter_prefs.c:119
 msgid "Refresh direct messages every (min)"
 msgstr "Actualizar todos los mensajes directos (min)"
 
-#: ../src/prpltwtr/twitter_prefs.c:112
+#: ../src/prpltwtr/twitter_prefs.c:126
 msgid "Refresh friendlist every (min)"
 msgstr "Actualizar toda la lista de amigos (min)"
 
-#: ../src/prpltwtr/twitter_prefs.c:119
+#: ../src/prpltwtr/twitter_prefs.c:133
 msgid "Default refresh search results every (min)"
 msgstr "Por defecto cargar todos los resultados de la búsqueda (min)"
 
-#: ../src/prpltwtr/twitter_prefs.c:125
+#: ../src/prpltwtr/twitter_prefs.c:139
 msgid "API Base URL"
 msgstr "API base URL"
 
-#: ../src/prpltwtr/twitter_prefs.c:131
+#: ../src/prpltwtr/twitter_prefs.c:145
 msgid "Search API Base URL"
 msgstr "URL de base de búsqueda de la API"
 
@@ -225,99 +262,99 @@ msgstr "La búsqueda debe ser completada al entrar en una charla de la búsqueda
 msgid "Received Invalid XML"
 msgstr "Recibido XML no válido"
 
-#: ../src/prpltwtr/twitter.c:219 ../src/prpltwtr/twitter.c:1164
+#: ../src/prpltwtr/twitter.c:219 ../src/prpltwtr/twitter.c:1166
 msgid "Unauthorized"
 msgstr "no autorizado"
 
-#: ../src/prpltwtr/twitter.c:227 ../src/prpltwtr/twitter.c:1329
+#: ../src/prpltwtr/twitter.c:227 ../src/prpltwtr/twitter.c:1331
 msgid "Unknown error"
 msgstr "Error desconocido"
 
-#: ../src/prpltwtr/twitter.c:555
+#: ../src/prpltwtr/twitter.c:554
 msgid "Connected"
 msgstr "conectado"
 
-#: ../src/prpltwtr/twitter.c:648
+#: ../src/prpltwtr/twitter.c:647
 msgid "Remaining"
 msgstr "Restante"
 
 #. plugin handle or PurpleConnection
-#: ../src/prpltwtr/twitter.c:650 ../src/prpltwtr/twitter.c:651
+#: ../src/prpltwtr/twitter.c:649 ../src/prpltwtr/twitter.c:650
 msgid "Rate Limit Status"
 msgstr "Tasa de Estado Límite"
 
-#: ../src/prpltwtr/twitter.c:782
+#: ../src/prpltwtr/twitter.c:781
 msgid "Status"
 msgstr "Estado"
 
-#: ../src/prpltwtr/twitter.c:783
+#: ../src/prpltwtr/twitter.c:782
 msgid "Set Account Status"
 msgstr "Estado de cuenta determinado"
 
-#: ../src/prpltwtr/twitter.c:786
+#: ../src/prpltwtr/twitter.c:785
 msgid "_Set"
 msgstr ""
 
-#: ../src/prpltwtr/twitter.c:787
+#: ../src/prpltwtr/twitter.c:786
 msgid "_Cancel"
 msgstr ""
 
-#: ../src/prpltwtr/twitter.c:806
+#: ../src/prpltwtr/twitter.c:805
 msgid "Set status"
 msgstr "Establecer el estado"
 
-#: ../src/prpltwtr/twitter.c:814
+#: ../src/prpltwtr/twitter.c:813
 msgid "Debug - Retrieve users"
 msgstr "Depurar - Recuperar los usuarios"
 
-#: ../src/prpltwtr/twitter.c:846
+#: ../src/prpltwtr/twitter.c:845
 msgid "Connecting..."
 msgstr "Conectando..."
 
-#: ../src/prpltwtr/twitter.c:911
+#: ../src/prpltwtr/twitter.c:910
 msgid "Username mismatch"
 msgstr "Nombre de usuario no coincide"
 
-#: ../src/prpltwtr/twitter.c:925
+#: ../src/prpltwtr/twitter.c:924
 #, c-format
 msgid "Do you wish to change the name on this account to %s?"
 msgstr "¿Desea cambiar el nombre de esta cuenta a %s?"
 
-#: ../src/prpltwtr/twitter.c:933
+#: ../src/prpltwtr/twitter.c:932
 msgid "Mismatched Screen Names"
 msgstr "Conflicto de nombres de pantalla"
 
-#: ../src/prpltwtr/twitter.c:934
+#: ../src/prpltwtr/twitter.c:933
 msgid "Authorized screen name does not match with account screen name"
 msgstr "Nombre de pantalla no autorizado no coincide con el nombre de cuenta"
 
-#: ../src/prpltwtr/twitter.c:942 ../src/prpltwtr/twitter.c:1041
+#: ../src/prpltwtr/twitter.c:941 ../src/prpltwtr/twitter.c:1040
 msgid "Cancel"
 msgstr "Cancelar"
 
-#: ../src/prpltwtr/twitter.c:943
+#: ../src/prpltwtr/twitter.c:942
 msgid "Yes"
 msgstr "Si"
 
-#: ../src/prpltwtr/twitter.c:984
+#: ../src/prpltwtr/twitter.c:983
 msgid "Unknown response getting access token"
 msgstr "Respuesta desconocida obteniendo el token de acceso"
 
-#: ../src/prpltwtr/twitter.c:992
+#: ../src/prpltwtr/twitter.c:991
 #, c-format
 msgid "Error verifying PIN: %s"
 msgstr "Error de verificación de PIN: %s"
 
-#: ../src/prpltwtr/twitter.c:1008
+#: ../src/prpltwtr/twitter.c:1007
 msgid "Canceled PIN entry"
 msgstr "Entrada cancelada del PIN"
 
-#: ../src/prpltwtr/twitter.c:1032
+#: ../src/prpltwtr/twitter.c:1031
 msgid "OAuth Authentication"
 msgstr "Autentificación de OAuth"
 
 #. title
-#: ../src/prpltwtr/twitter.c:1033
+#: ../src/prpltwtr/twitter.c:1032
 msgid "Please enter pin"
 msgstr "Entre por favor el pin"
 
@@ -327,119 +364,119 @@ msgstr "Entre por favor el pin"
 #. multiline,
 #. password
 #. hint
-#: ../src/prpltwtr/twitter.c:1039
+#: ../src/prpltwtr/twitter.c:1038
 msgid "Submit"
 msgstr "Enviar"
 
-#: ../src/prpltwtr/twitter.c:1049
+#: ../src/prpltwtr/twitter.c:1048
 msgid "Invalid response receiving request token"
 msgstr "Respuesta invalida que recibe en solicitud de token"
 
-#: ../src/prpltwtr/twitter.c:1058
+#: ../src/prpltwtr/twitter.c:1057
 #, c-format
 msgid "Error receiving request token: %s"
 msgstr "Error al recibir solicitud de token %s"
 
-#: ../src/prpltwtr/twitter.c:1069
+#: ../src/prpltwtr/twitter.c:1068
 msgid "Could not verify credentials"
 msgstr "No se ha podido verificar las credenciales"
 
-#: ../src/prpltwtr/twitter.c:1082
+#: ../src/prpltwtr/twitter.c:1081
 #, c-format
 msgid "Error verifying credentials: %s"
 msgstr "Error al comprobar las credenciales: %s"
 
-#: ../src/prpltwtr/twitter.c:1134
+#: ../src/prpltwtr/twitter.c:1133
 msgid "Could not sign request"
 msgstr "No se pudo firmar la solicitud"
 
-#: ../src/prpltwtr/twitter.c:1327
+#: ../src/prpltwtr/twitter.c:1329
 msgid "Unknown reply by twitter server"
 msgstr "Respuesta desconocida por el servidor de Twitter"
 
 #. plugin handle or PurpleConnection
-#: ../src/prpltwtr/twitter.c:1332
+#: ../src/prpltwtr/twitter.c:1334
 msgid "Twitter Set Status"
 msgstr "Estado determinado de Twitter"
 
-#: ../src/prpltwtr/twitter.c:1333
+#: ../src/prpltwtr/twitter.c:1335
 msgid "Error setting Twitter Status"
 msgstr "Error al establecer el estado de Twitter"
 
-#: ../src/prpltwtr/twitter.c:1406 ../src/prpltwtr/twitter.c:1414
+#: ../src/prpltwtr/twitter.c:1408 ../src/prpltwtr/twitter.c:1418
 msgid "Description:"
 msgstr "Descripción:"
 
-#: ../src/prpltwtr/twitter.c:1410
+#: ../src/prpltwtr/twitter.c:1412
 msgid "Status:"
 msgstr "Estado:"
 
-#: ../src/prpltwtr/twitter.c:1414
+#: ../src/prpltwtr/twitter.c:1418
 msgid "No user info"
 msgstr "No hay información de usuario"
 
-#: ../src/prpltwtr/twitter.c:1417
+#: ../src/prpltwtr/twitter.c:1421
 msgid "Account Link:"
 msgstr "Cuenta Enlace:"
 
-#: ../src/prpltwtr/twitter.c:1603
+#: ../src/prpltwtr/twitter.c:1610
 #, c-format
 msgid "Automatically open chat on new tweets (Currently: %s)"
 msgstr "Abrir automáticamente el chat en nuevos tweets (Actualmente: %s)"
 
-#: ../src/prpltwtr/twitter.c:1604
+#: ../src/prpltwtr/twitter.c:1611
 msgid "On"
 msgstr ""
 
-#: ../src/prpltwtr/twitter.c:1604
+#: ../src/prpltwtr/twitter.c:1611
 msgid "Off"
 msgstr ""
 
-#: ../src/prpltwtr/twitter.c:1619
+#: ../src/prpltwtr/twitter.c:1626
 #, c-format
 msgid "No%s"
 msgstr ""
 
-#: ../src/prpltwtr/twitter.c:1619 ../src/prpltwtr/twitter.c:1624
-#: ../src/prpltwtr/twitter.c:1629
+#: ../src/prpltwtr/twitter.c:1626 ../src/prpltwtr/twitter.c:1631
+#: ../src/prpltwtr/twitter.c:1636
 msgid " (set)"
 msgstr ""
 
-#: ../src/prpltwtr/twitter.c:1624
+#: ../src/prpltwtr/twitter.c:1631
 #, c-format
 msgid "Prepend%s"
 msgstr "Anteponer%s"
 
-#: ../src/prpltwtr/twitter.c:1629
+#: ../src/prpltwtr/twitter.c:1636
 #, c-format
 msgid "Append%s"
 msgstr "Anexar%s"
 
-#: ../src/prpltwtr/twitter.c:1634
+#: ../src/prpltwtr/twitter.c:1641
 #, c-format
 msgid "Tag all chats with search term:"
 msgstr "Marcar todos los chats con el término de búsqueda:"
 
-#: ../src/prpltwtr/twitter.c:1644
+#: ../src/prpltwtr/twitter.c:1651
 msgid "@Message"
 msgstr "@Mensaje"
 
-#: ../src/prpltwtr/twitter.c:1650
+#: ../src/prpltwtr/twitter.c:1657
 msgid "Direct Message"
 msgstr "Mensaje Directo"
 
-#: ../src/prpltwtr/twitter.c:1656
+#: ../src/prpltwtr/twitter.c:1663
 msgid "Clear Reply Marker"
 msgstr "Limpiar marcador de respuesta"
 
-#: ../src/prpltwtr/twitter.c:1683
+#: ../src/prpltwtr/twitter.c:1690
 msgid "No passwords with OAuth"
 msgstr "No hay contraseñas con OAuth"
 
-#: ../src/prpltwtr/twitter.c:1879
+#: ../src/prpltwtr/twitter.c:1887
 msgid "Twitter for Purple"
 msgstr "Twitter para Pidgin"
 
-#: ../src/prpltwtr/twitter.c:1880
+#: ../src/prpltwtr/twitter.c:1888
 msgid "Access Twitter and compatible sites from within libpurple applications"
 msgstr "Acceso a Twitter y sitios compatibles desde aplicaciones libpurple"

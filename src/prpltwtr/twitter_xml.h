@@ -38,6 +38,7 @@ typedef struct
 	long long in_reply_to_status_id;
 	char *in_reply_to_screen_name;
 	time_t created_at;
+	gboolean favorited;
 } TwitterTweet;
 
 typedef struct

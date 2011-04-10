@@ -223,7 +223,8 @@ void twitter_status_data_update_conv(TwitterEndpointIm *ctx,
 			PURPLE_CONV_TYPE_IM,
 			conv_name,
 			ctx->settings->type == TWITTER_IM_TYPE_AT_MSG,
-			s->in_reply_to_status_id);
+			s->in_reply_to_status_id,
+			s->favorited);
 
 
 	//Account received an im

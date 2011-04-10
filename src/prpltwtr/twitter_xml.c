@@ -272,6 +272,12 @@ TwitterTweet *twitter_status_node_parse(xmlnode *status_node)
 		g_free (data);
 	}
 
+	if ((data = xmlnode_get_child_data(status_node, "favorited"))) {
+		status->favorited = !strcmp(data, "true") ? TRUE : FALSE;
+		g_free (data);
+	} else {
+		status->favorited = FALSE;
+	}
 	status->in_reply_to_screen_name =
 		xmlnode_get_child_data(status_node, "in_reply_to_screen_name");
 
@@ -291,6 +297,7 @@ TwitterTweet *twitter_status_node_parse(xmlnode *status_node)
 		}
 		g_free(rt_text);
 	}
+
 	return status;
 }
 
