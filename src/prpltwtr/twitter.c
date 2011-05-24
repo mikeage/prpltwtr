@@ -993,7 +993,7 @@ static void twitter_oauth_access_token_success_cb(TwitterRequestor *r,
 		}
 	} else {
 		twitter_oauth_disconnect(account, _("Unknown response getting access token"));
-		purple_debug_info(TWITTER_PROTOCOL_ID, "Unknown error receiving access token: %s\n",
+		purple_debug_error(TWITTER_PROTOCOL_ID, "Unknown error receiving access token: %s\n",
 				response);
 	}
 }
@@ -1058,7 +1058,7 @@ static void twitter_oauth_request_token_success_cb(TwitterRequestor *r,
 		g_free(msg);
 	} else {
 		twitter_oauth_disconnect(account, _("Invalid response receiving request token"));
-		purple_debug_info(TWITTER_PROTOCOL_ID, "Unknown error receiving request token: %s\n",
+		purple_debug_error(TWITTER_PROTOCOL_ID, "Unknown error receiving request token: %s\n",
 				response);
 	}
 	g_hash_table_destroy(results);
@@ -1166,7 +1166,7 @@ static void twitter_requestor_post_send_oauth(TwitterRequestor *r, gboolean *pos
 
 static void twitter_requestor_post_failed(TwitterRequestor *r, const TwitterRequestErrorData **error_data)
 {
-	purple_debug_info(TWITTER_PROTOCOL_ID,
+	purple_debug_error(TWITTER_PROTOCOL_ID,
 			"post_failed called for account %s, error %d, message %s\n",
 			r->account->username,
 			(*error_data)->type,

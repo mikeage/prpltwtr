@@ -278,7 +278,7 @@ static void insert_icon_at_mark(GtkTextMark *requested_mark, gpointer user_data)
 	}
 
 	if(!(target_imhtml && target_buffer)) {
-		purple_debug_info(DEBUG_ID, "No target imhtml/target buffer\n");
+		purple_debug_warning(DEBUG_ID, "No target imhtml/target buffer\n");
 		return;
 	}
 
@@ -291,13 +291,13 @@ static void insert_icon_at_mark(GtkTextMark *requested_mark, gpointer user_data)
 	 * thrashing. --yaz */
 
 	if(!conv_icon || !conv_icon->pixbuf) {
-		purple_debug_info(DEBUG_ID, "No pixbuf\n");
+		purple_debug_warning(DEBUG_ID, "No pixbuf\n");
 		return;
 	}
 
 /* We only want to add the icon if the mark is still on screen. If the user cleared the screen with a ctrl-L, this won't be true. TODO -- can we get a callback at the clear and just delete the mark there? */
 	if(TRUE == gtk_text_iter_is_end(&insertion_point)) {
-		purple_debug_info(DEBUG_ID, "Not adding the icon, since the insertion point is no longer in the buffer\n");
+		purple_debug_warning(DEBUG_ID, "Not adding the icon, since the insertion point is no longer in the buffer\n");
 	} else {
 		/* insert icon actually */
 		gtk_text_buffer_insert_pixbuf(target_buffer, &insertion_point, conv_icon->pixbuf);

@@ -83,7 +83,7 @@ static time_t twitter_status_parse_timestamp(const char *timestamp)
 		}
 	}
 
-	purple_debug_info(TWITTER_PROTOCOL_ID, "Can't parse timestamp %s\n", timestamp);
+	purple_debug_error(TWITTER_PROTOCOL_ID, "Can't parse timestamp %s\n", timestamp);
 	return tval;
 }
 

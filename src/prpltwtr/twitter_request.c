@@ -286,7 +286,7 @@ static void twitter_send_request_cb(PurpleUtilFetchUrlData *url_data, gpointer u
 
 	if (server_error_message)
 	{
-		purple_debug_info(TWITTER_PROTOCOL_ID, "Response error: %s\n", server_error_message);
+		purple_debug_error(TWITTER_PROTOCOL_ID, "Response error: %s\n", server_error_message);
 		error_type = TWITTER_REQUEST_ERROR_SERVER;
 		error_message = g_strdup(server_error_message);
 	} else {
@@ -476,7 +476,7 @@ static void twitter_xml_request_success_cb(TwitterRequestor *r, const gchar *res
 	response_node = xmlnode_from_str(response, strlen(response));
 	if (!response_node)
 	{
-		purple_debug_info(TWITTER_PROTOCOL_ID, "Response error: invalid xml\n");
+		purple_debug_error(TWITTER_PROTOCOL_ID, "Response error: invalid xml\n");
 		error_type = TWITTER_REQUEST_ERROR_INVALID_XML;
 		error_message = response;
 	} else {
@@ -484,7 +484,7 @@ static void twitter_xml_request_success_cb(TwitterRequestor *r, const gchar *res
 		{
 			error_type = TWITTER_REQUEST_ERROR_TWITTER_GENERAL;
 			error_message = error_node_text;
-			purple_debug_info(TWITTER_PROTOCOL_ID, "Response error: Twitter error %s\n", error_message);
+			purple_debug_error(TWITTER_PROTOCOL_ID, "Response error: Twitter error %s\n", error_message);
 		}
 	}
 
@@ -585,7 +585,7 @@ static gchar *twitter_oauth_sign(const gchar *txt, const gchar *key)
 	cipher = purple_ciphers_find_cipher("hmac");
 	if (!cipher)
 	{
-		purple_debug_info(TWITTER_PROTOCOL_ID,
+		purple_debug_error(TWITTER_PROTOCOL_ID,
 				"%s: Could not find cipher\n",
 				G_STRFUNC);
 		return NULL;
@@ -593,7 +593,7 @@ static gchar *twitter_oauth_sign(const gchar *txt, const gchar *key)
 	ctx = purple_cipher_context_new(cipher, NULL);
 	if (!ctx)
 	{
-		purple_debug_info(TWITTER_PROTOCOL_ID,
+		purple_debug_error(TWITTER_PROTOCOL_ID,
 				"%s: Could not create cipher context\n",
 				G_STRFUNC);
 		return NULL;
@@ -604,7 +604,7 @@ static gchar *twitter_oauth_sign(const gchar *txt, const gchar *key)
 	purple_cipher_context_append(ctx, (guchar *) txt, strlen(txt));
 	if (!purple_cipher_context_digest(ctx, 20, output, &output_size))
 	{
-		purple_debug_info(TWITTER_PROTOCOL_ID,
+		purple_debug_error(TWITTER_PROTOCOL_ID,
 				"%s: Could not sign text\n",
 				G_STRFUNC);
 		purple_cipher_context_destroy(ctx);

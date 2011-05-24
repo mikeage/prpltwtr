@@ -266,7 +266,7 @@ void twitter_api_web_open_favorites(PurplePluginAction *action)
 	PurpleConnection *gc = (PurpleConnection *)action->context;
 	PurpleAccount *account = purple_connection_get_account(gc);
 	const gchar *url = twitter_api_create_web_url(account, TWITTER_PREF_URL_OPEN_FAVORITES);
-	purple_debug_info(TWITTER_PROTOCOL_ID, "MHM: Opening link %s\n", url);
+	purple_debug_info(TWITTER_PROTOCOL_ID, "Opening link %s\n", url);
 	purple_notify_uri(NULL, url);
 }
 

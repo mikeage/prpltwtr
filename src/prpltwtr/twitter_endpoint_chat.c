@@ -484,7 +484,7 @@ void twitter_endpoint_chat_start(PurpleConnection *gc, TwitterEndpointChatSettin
 	//HAZE only works when the conv has already been created
 	//as opposed to right before the conversation has been created
         if (!purple_find_conversation_with_account(PURPLE_CONV_TYPE_IM, chat_name, account)) {
-                purple_debug_info(TWITTER_PROTOCOL_ID, "Could not find chat %s\n", chat_name);
+                purple_debug_warning(TWITTER_PROTOCOL_ID, "Could not find chat %s\n", chat_name);
 		g_free(chat_name);
 		return;
 	}
@@ -522,7 +522,7 @@ void twitter_endpoint_chat_start(PurpleConnection *gc, TwitterEndpointChatSettin
 			serv_got_joined_chat(gc, chat_id, chat_name);
 		}
         } else {
-                purple_debug_info(TWITTER_PROTOCOL_ID, "Chat %s is already open.\n", chat_name);
+                purple_debug_warning(TWITTER_PROTOCOL_ID, "Chat %s is already open.\n", chat_name);
         }
 #endif
 

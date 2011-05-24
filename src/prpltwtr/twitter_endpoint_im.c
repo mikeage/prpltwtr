@@ -22,7 +22,7 @@ TwitterEndpointIm *twitter_endpoint_im_find(PurpleAccount *account, TwitterImTyp
 		twitter = gc->proto_data;
 		return twitter->endpoint_ims[type];
 	} else {
-		purple_debug_info(TWITTER_PROTOCOL_ID, "No gc available. Disconnected?");
+		purple_debug_warning(TWITTER_PROTOCOL_ID, "No gc available. Disconnected?");
 		return NULL;
 	}
 }
