@@ -1,4 +1,6 @@
 Changelog for current version:
+  * Fix crash with the info dialog
+  * Add information to the info dialog
 
 Changelog for 0.7.0:
   * Make the list and timeline refresh intervals user set parameters

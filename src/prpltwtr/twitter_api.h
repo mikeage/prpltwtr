@@ -211,4 +211,5 @@ void twitter_api_oauth_access_token(TwitterRequestor *r,
 		TwitterSendRequestErrorFunc error_cb,
 		gpointer user_data);
 
+void twitter_api_get_info(PurpleConnection *gc, const char *username);
 #endif

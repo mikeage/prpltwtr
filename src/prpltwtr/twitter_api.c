@@ -33,6 +33,7 @@
  * it with code to include your own defaults.h or similar.  If you're going to
  * provide for translation, you'll also need to setup the gettext macros. */
 #include "twitter_api.h"
+#include "twitter_buddy.h"
 #include "twitter_conn.h"
 
 static const gchar *twitter_api_create_url(PurpleAccount *account,
@@ -195,6 +196,61 @@ static const gchar *twitter_option_url_delete_favorite(PurpleAccount *account, l
 	return result;
 }
 
+void twitter_api_get_info(PurpleConnection *gc, const char *username)
+{
+	//TODO: error check
+	//TODO: fix for buddy not on list?
+	TwitterConnectionData *twitter = gc->proto_data;
+	PurpleNotifyUserInfo *info = purple_notify_user_info_new();
+	PurpleBuddy *b = purple_find_buddy(purple_connection_get_account(gc), username);
+	gchar *url;
+
+	if (b)
+	{
+		TwitterUserTweet *data = twitter_buddy_get_buddy_data(b);
+		if (data)
+		{
+			TwitterUserData *user_data = data->user;
+			TwitterTweet *status_data = data->status;
+
+
+			if (user_data)
+			{
+				purple_notify_user_info_add_pair(info, _("Description"), user_data->description);
+
+				if (user_data->friends_count) {
+					purple_notify_user_info_add_pair(info, _("Friends"), user_data->friends_count);
+				}
+				if (user_data->followers_count) {
+					purple_notify_user_info_add_pair(info, _("Followers"), user_data->followers_count);
+				}
+				if (user_data->statuses_count) {
+					purple_notify_user_info_add_pair(info, _("Tweets"), user_data->statuses_count);
+				}
+			}
+			if (status_data)
+			{
+				purple_notify_user_info_add_pair(info, _("Last status"), status_data->text);
+			}
+
+//			twitter_user_tweet_free(data);
+		}
+	} else {
+		purple_notify_user_info_add_pair(info, _("Description"), _("No user info"));
+	}
+	url = twitter_mb_prefs_get_user_profile_url(twitter->mb_prefs, username);
+	purple_notify_user_info_add_pair(info, _("Account Link"), url);
+	if (url)
+	{
+		g_free(url);
+	}
+	purple_notify_userinfo(gc,
+		username,
+		info,
+		NULL,
+		NULL);
+
+}
 void twitter_api_get_rate_limit_status(TwitterRequestor *r,
 		TwitterSendXmlRequestSuccessFunc success_func,
 		TwitterSendRequestErrorFunc error_func,

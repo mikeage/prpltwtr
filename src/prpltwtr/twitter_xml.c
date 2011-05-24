@@ -238,7 +238,18 @@ TwitterUserData *twitter_user_node_parse(xmlnode *user_node)
 
 	user->name = xmlnode_get_child_data(user_node, "name");
 	user->profile_image_url = xmlnode_get_child_data(user_node, "profile_image_url");
+	user->statuses_count = xmlnode_get_child_data(user_node, "statuses_count");
+	user->friends_count = xmlnode_get_child_data(user_node, "friends_count");
+	user->followers_count = xmlnode_get_child_data(user_node, "followers_count");
 	user->description = xmlnode_get_child_data(user_node, "description");
+
+	{
+		char *xmlnode_str;
+		int len;
+		xmlnode_str = xmlnode_to_str(user_node, &len);
+		purple_debug_info(TWITTER_PROTOCOL_ID, "Parsing user node: |%s|\n", xmlnode_str);
+		g_free(xmlnode_str);
+	}
 
 	return user;
 }
@@ -479,6 +490,13 @@ void twitter_user_data_free(TwitterUserData *user_data)
 		g_free(user_data->profile_image_url);
 	if (user_data->description)
 		g_free(user_data->description);
+	if (user_data->statuses_count)
+		g_free(user_data->statuses_count);
+	if (user_data->friends_count)
+		g_free(user_data->friends_count);
+	if (user_data->followers_count)
+		g_free(user_data->followers_count);
+
 	g_free(user_data);
 	user_data = NULL;
 }

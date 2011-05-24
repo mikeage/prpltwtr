@@ -310,10 +310,14 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 	purple_debug_info(DEBUG_ID, "Account %s got action %s\n", username, cmd_arg);
 	if (!strcmp(cmd_arg, TWITTER_URI_ACTION_USER))
 	{
-		purple_notify_info(purple_account_get_connection(account),
-				_("Clicked URI"),
-				_("@name clicked"),
-				_("Sorry, this has not been implemented yet"));
+		const char *user;
+		user = purple_url_decode(g_hash_table_lookup(params, "text"));
+		if (user == NULL || user[0] == '\0')
+		{
+			purple_debug_error(DEBUG_ID, "No username found!\n");
+			return FALSE;
+		}
+		twitter_api_get_info(purple_account_get_connection(account), user+1); /* +1 to skip the leading @ */
 	} else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_REPLYALL)) {
 		const char *id_str, *user, *text;
 		char others[140];
@@ -1062,7 +1066,7 @@ static char *twitter_linkify(PurpleAccount *account, const char *message)
 	GString *ret;
 	static char symbols[] = "#@";
 	static char *symbol_actions[] = {TWITTER_URI_ACTION_SEARCH, TWITTER_URI_ACTION_USER};
-	static char delims[] = " :"; //I don't know if this is how I want to do this...
+	static char delims[] = " :."; //I don't know if this is how I want to do this...
 	const char *ptr = message;
 	const char *end = message + strlen(message);
 	const char *delim = NULL;

@@ -1398,50 +1398,6 @@ static void twitter_set_info(PurpleConnection *gc, const char *info) {
 			gc->account->username, info);
 }
 
-static void twitter_get_info(PurpleConnection *gc, const char *username) {
-	//TODO: error check
-	//TODO: fix for buddy not on list?
-	TwitterConnectionData *twitter = gc->proto_data;
-	PurpleNotifyUserInfo *info = purple_notify_user_info_new();
-	PurpleBuddy *b = purple_find_buddy(purple_connection_get_account(gc), username);
-	gchar *url;
-
-	if (b)
-	{
-		TwitterUserTweet *data = twitter_buddy_get_buddy_data(b);
-		if (data)
-		{
-			TwitterUserData *user_data = data->user;
-			TwitterTweet *status_data = data->status;
-
-
-			if (user_data)
-			{
-				purple_notify_user_info_add_pair(info, _("Description:"), user_data->description);
-			}
-			if (status_data)
-			{
-				purple_notify_user_info_add_pair(info, _("Status:"), status_data->text);
-			}
-
-			twitter_user_tweet_free(data);
-		}
-	} else {
-		purple_notify_user_info_add_pair(info, _("Description:"), _("No user info"));
-	}
-	url = twitter_mb_prefs_get_user_profile_url(twitter->mb_prefs, username);
-	purple_notify_user_info_add_pair(info, _("Account Link:"), url);
-	if (url)
-	{
-		g_free(url);
-	}
-	purple_notify_userinfo(gc,
-		username,
-		info,
-		NULL,
-		NULL);
-
-}
 
 
 static void twitter_set_status(PurpleAccount *account, PurpleStatus *status) {
@@ -1520,7 +1476,7 @@ static void twitter_get_cb_info(PurpleConnection *gc, int id, const char *who) {
 			"retrieving %s's info for %s in chat room %s\n", who,
 			gc->account->username, conv->name);
 
-	twitter_get_info(gc, who);
+	twitter_api_get_info(gc, who);
 }
 
 static void twitter_blist_char_attach_search_toggle(PurpleBlistNode *node, gpointer userdata)
@@ -1734,7 +1690,7 @@ static PurplePluginProtocolInfo prpl_info =
 	twitter_send_im, //twitter_send_dm,		    /* send_im */
 	twitter_set_info,		   /* set_info */
 	NULL, //twitter_send_typing,		/* send_typing */
-	twitter_get_info,		   /* get_info */
+	twitter_api_get_info,		   /* get_info */
 	twitter_set_status,		 /* set_status */
 	NULL,		   /* set_idle */
 	NULL,//TODO?	      /* change_passwd */

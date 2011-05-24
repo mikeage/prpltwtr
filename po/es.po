@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.6.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-04-10 10:36+0300\n"
+"POT-Creation-Date: 2011-05-24 21:15+0300\n"
 "PO-Revision-Date: 2011-02-23 21:41-0300\n"
 "Last-Translator: Fabián Bonetti <mama21mama@mamalibre.com.ar>\n"
 "Language-Team: \n"
@@ -79,75 +79,63 @@ msgstr "Borrado con éxito"
 msgid "Couldn't delete status: %s"
 msgstr "No se pudo borrar el estado: %s"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:314
-msgid "Clicked URI"
-msgstr "clickear URI"
-
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:315
-msgid "@name clicked"
-msgstr "@nombre clickear"
-
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:316
-msgid "Sorry, this has not been implemented yet"
-msgstr "Lo sentimos, este no ha sido implementado"
-
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:853
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:857
 msgid "Retweet"
 msgstr "Retweet"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:859
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:863
 msgid "Old Retweet"
 msgstr "Antiguo Retweet"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:866
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:870
 msgid "Reply"
 msgstr "Responder"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:872
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:876
 msgid "Reply All"
 msgstr "Responder a todos"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:879
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:883
 msgid "Goto Site"
 msgstr "Ir al sitio"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:887
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:891
 msgid "Delete"
 msgstr "Borrar"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:896
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:900
 msgid "In reply to..."
 msgstr "En respuesta a..."
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:905
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:909
 msgid "Lock reply"
 msgstr "Bloqueo de respuesta"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:914
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:918
 msgid "Delete Favorite"
 msgstr ""
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:920
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:924
 msgid "Add Favorite"
 msgstr ""
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:927
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:931
 msgid "Report spammer"
 msgstr "Reportar spammer"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:1279
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:1283
 msgid "Enable Icons in Chat"
 msgstr "Habilitar los iconos en charla"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:1282
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:1286
 msgid "Icon Size"
 msgstr "Tamaño de icono"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:1340
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:1344
 msgid "GUI Enhancements for PrplTwtr"
 msgstr "Mejoras del GUI para PrplTwtr"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:1341
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:1345
 msgid "Pidgin specific GUI options for the purple plugin PrplTwtr"
 msgstr "Opciones específicas del GUI del plugin PrplTwtr para Pidgin"
 
@@ -164,6 +152,38 @@ msgstr "Invalido chat"
 #, c-format
 msgid "Error sending tweet: %s"
 msgstr "Error enviando tweet: %s"
+
+#: ../src/prpltwtr/twitter_api.c:219 ../src/prpltwtr/twitter_api.c:239
+#, fuzzy
+msgid "Description"
+msgstr "Descripción"
+
+#: ../src/prpltwtr/twitter_api.c:222
+msgid "Friends"
+msgstr ""
+
+#: ../src/prpltwtr/twitter_api.c:225
+msgid "Followers"
+msgstr ""
+
+#: ../src/prpltwtr/twitter_api.c:228
+#, fuzzy
+msgid "Tweets"
+msgstr "Retweet"
+
+#: ../src/prpltwtr/twitter_api.c:233
+#, fuzzy
+msgid "Last status"
+msgstr "Establecer el estado"
+
+#: ../src/prpltwtr/twitter_api.c:239
+msgid "No user info"
+msgstr "No hay información de usuario"
+
+#: ../src/prpltwtr/twitter_api.c:242
+#, fuzzy
+msgid "Account Link"
+msgstr "Cuenta Enlace"
 
 #: ../src/prpltwtr/twitter_endpoint_reply.c:17
 #, c-format
@@ -420,80 +440,76 @@ msgstr "Estado determinado de Twitter"
 msgid "Error setting Twitter Status"
 msgstr "Error al establecer el estado de Twitter"
 
-#: ../src/prpltwtr/twitter.c:1420 ../src/prpltwtr/twitter.c:1430
-msgid "Description:"
-msgstr "Descripción:"
-
-#: ../src/prpltwtr/twitter.c:1424
-msgid "Status:"
-msgstr "Estado:"
-
-#: ../src/prpltwtr/twitter.c:1430
-msgid "No user info"
-msgstr "No hay información de usuario"
-
-#: ../src/prpltwtr/twitter.c:1433
-msgid "Account Link:"
-msgstr "Cuenta Enlace:"
-
-#: ../src/prpltwtr/twitter.c:1622
+#: ../src/prpltwtr/twitter.c:1578
 #, c-format
 msgid "Automatically open chat on new tweets (Currently: %s)"
 msgstr "Abrir automáticamente el chat en nuevos tweets (Actualmente: %s)"
 
-#: ../src/prpltwtr/twitter.c:1623
+#: ../src/prpltwtr/twitter.c:1579
 msgid "On"
 msgstr ""
 
-#: ../src/prpltwtr/twitter.c:1623
+#: ../src/prpltwtr/twitter.c:1579
 msgid "Off"
 msgstr ""
 
-#: ../src/prpltwtr/twitter.c:1638
+#: ../src/prpltwtr/twitter.c:1594
 #, c-format
 msgid "No%s"
 msgstr ""
 
-#: ../src/prpltwtr/twitter.c:1638 ../src/prpltwtr/twitter.c:1643
-#: ../src/prpltwtr/twitter.c:1648
+#: ../src/prpltwtr/twitter.c:1594 ../src/prpltwtr/twitter.c:1599
+#: ../src/prpltwtr/twitter.c:1604
 msgid " (set)"
 msgstr ""
 
-#: ../src/prpltwtr/twitter.c:1643
+#: ../src/prpltwtr/twitter.c:1599
 #, c-format
 msgid "Prepend%s"
 msgstr "Anteponer%s"
 
-#: ../src/prpltwtr/twitter.c:1648
+#: ../src/prpltwtr/twitter.c:1604
 #, c-format
 msgid "Append%s"
 msgstr "Anexar%s"
 
-#: ../src/prpltwtr/twitter.c:1653
+#: ../src/prpltwtr/twitter.c:1609
 #, c-format
 msgid "Tag all chats with search term:"
 msgstr "Marcar todos los chats con el término de búsqueda:"
 
-#: ../src/prpltwtr/twitter.c:1663
+#: ../src/prpltwtr/twitter.c:1619
 msgid "@Message"
 msgstr "@Mensaje"
 
-#: ../src/prpltwtr/twitter.c:1669
+#: ../src/prpltwtr/twitter.c:1625
 msgid "Direct Message"
 msgstr "Mensaje Directo"
 
-#: ../src/prpltwtr/twitter.c:1675
+#: ../src/prpltwtr/twitter.c:1631
 msgid "Clear Reply Marker"
 msgstr "Limpiar marcador de respuesta"
 
-#: ../src/prpltwtr/twitter.c:1702
+#: ../src/prpltwtr/twitter.c:1658
 msgid "No passwords with OAuth"
 msgstr "No hay contraseñas con OAuth"
 
-#: ../src/prpltwtr/twitter.c:1899
+#: ../src/prpltwtr/twitter.c:1855
 msgid "Twitter for Purple"
 msgstr "Twitter para Pidgin"
 
-#: ../src/prpltwtr/twitter.c:1900
+#: ../src/prpltwtr/twitter.c:1856
 msgid "Access Twitter and compatible sites from within libpurple applications"
 msgstr "Acceso a Twitter y sitios compatibles desde aplicaciones libpurple"
+
+#~ msgid "Clicked URI"
+#~ msgstr "clickear URI"
+
+#~ msgid "@name clicked"
+#~ msgstr "@nombre clickear"
+
+#~ msgid "Sorry, this has not been implemented yet"
+#~ msgstr "Lo sentimos, este no ha sido implementado"
+
+#~ msgid "Status:"
+#~ msgstr "Estado:"

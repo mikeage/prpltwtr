@@ -29,6 +29,9 @@ typedef struct
 	char *screen_name;
 	char *profile_image_url;
 	char *description;
+	char *statuses_count;
+	char *friends_count;
+	char *followers_count;
 } TwitterUserData;
 
 typedef struct 
