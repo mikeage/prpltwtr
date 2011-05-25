@@ -1034,6 +1034,7 @@ static void twitter_oauth_request_token_success_cb(TwitterRequestor *r,
 	{
 		gchar *msg = g_strdup_printf("http://twitter.com/oauth/authorize?oauth_token=%s",
 			purple_url_encode(oauth_token));
+		gchar *prompt = g_strdup_printf("%s %s", _("Please enter PIN for"), purple_account_get_username(account));
 
 		twitter->oauth_token = g_strdup(oauth_token);
 		twitter->oauth_token_secret = g_strdup(oauth_token_secret);
@@ -1041,7 +1042,7 @@ static void twitter_oauth_request_token_success_cb(TwitterRequestor *r,
 
 		purple_request_input(twitter,
 				_("OAuth Authentication"), //title
-				_("Please enter pin"), //primary
+				prompt, //primary
 				msg, //secondary
 				NULL, //default
 				FALSE, //multiline,
@@ -1056,6 +1057,7 @@ static void twitter_oauth_request_token_success_cb(TwitterRequestor *r,
 				NULL,
 				account);
 		g_free(msg);
+		g_free(prompt);
 	} else {
 		twitter_oauth_disconnect(account, _("Invalid response receiving request token"));
 		purple_debug_error(TWITTER_PROTOCOL_ID, "Unknown error receiving request token: %s\n",

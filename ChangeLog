@@ -1,4 +1,5 @@
 Changelog for current version:
+  * Switch OAuth keys to request DM permission. You will need to re-authorize Prpltwtr (now called PrplTwtr2)
   * Fix crash with the info dialog
   * Add information to the info dialog
 
