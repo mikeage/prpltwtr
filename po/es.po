@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: 0.6.3\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-05-25 16:02+0300\n"
-"PO-Revision-Date: 2011-02-23 21:41-0300\n"
+"PO-Revision-Date: 2011-05-31 09:05-0300\n"
 "Last-Translator: Fabián Bonetti <mama21mama@mamalibre.com.ar>\n"
 "Language-Team: \n"
 "Language: \n"
@@ -28,19 +28,24 @@ msgstr "Retwitteo exitoso"
 msgid "Couldn't retweet status: %s"
 msgstr "No se pudo retweet estado: %s"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:68 ../src/gtkprpltwtr/gtkprpltwtr.c:86
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:104 ../src/gtkprpltwtr/gtkprpltwtr.c:122
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:191 ../src/gtkprpltwtr/gtkprpltwtr.c:209
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:68
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:86
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:104
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:122
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:191
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:209
 #: ../src/prpltwtr/twitter_endpoint_chat.c:582
 #: ../src/prpltwtr/twitter_endpoint_reply.c:17
-#: ../src/prpltwtr/twitter_endpoint_dm.c:15 ../src/prpltwtr/twitter.c:1003
-#: ../src/prpltwtr/twitter.c:1071 ../src/prpltwtr/twitter.c:1095
+#: ../src/prpltwtr/twitter_endpoint_dm.c:15
+#: ../src/prpltwtr/twitter.c:1003
+#: ../src/prpltwtr/twitter.c:1071
+#: ../src/prpltwtr/twitter.c:1095
 msgid "unknown error"
 msgstr "error desconocido"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:78
 msgid "Tweet favorited"
-msgstr ""
+msgstr "Tweet Favoritos"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:86
 #, fuzzy, c-format
@@ -49,7 +54,7 @@ msgstr "No se pudo retweet estado: %s"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:96
 msgid "Tweet un-favorited"
-msgstr ""
+msgstr "Tweet Favorito desmarcar"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:104
 #, fuzzy, c-format
@@ -113,11 +118,11 @@ msgstr "Bloqueo de respuesta"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:917
 msgid "Delete Favorite"
-msgstr ""
+msgstr "Eliminar Favoritos"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:923
 msgid "Add Favorite"
-msgstr ""
+msgstr "Agregar a Favoritos"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:930
 msgid "Report spammer"
@@ -153,18 +158,19 @@ msgstr "Invalido chat"
 msgid "Error sending tweet: %s"
 msgstr "Error enviando tweet: %s"
 
-#: ../src/prpltwtr/twitter_api.c:219 ../src/prpltwtr/twitter_api.c:239
+#: ../src/prpltwtr/twitter_api.c:219
+#: ../src/prpltwtr/twitter_api.c:239
 #, fuzzy
 msgid "Description"
 msgstr "Descripción"
 
 #: ../src/prpltwtr/twitter_api.c:222
 msgid "Friends"
-msgstr ""
+msgstr "Amigos"
 
 #: ../src/prpltwtr/twitter_api.c:225
 msgid "Followers"
-msgstr ""
+msgstr "Seguidores"
 
 #: ../src/prpltwtr/twitter_api.c:228
 #, fuzzy
@@ -209,8 +215,7 @@ msgstr "Habilitar OAuth (mas seguro, mas alto limite de velocidad)"
 
 #: ../src/prpltwtr/twitter_prefs.c:48
 msgid "Default IM to buddy is a DM"
-msgstr ""
-"la mensajería instantánea por defecto para ese amigo es un mensaje directo"
+msgstr "la mensajería instantánea por defecto para ese amigo es un mensaje directo"
 
 #: ../src/prpltwtr/twitter_prefs.c:55
 msgid "Retrieve tweets history after login"
@@ -222,9 +227,7 @@ msgstr "Disponibilidad de sincronización de mensajes de estado en Twitter"
 
 #: ../src/prpltwtr/twitter_prefs.c:69
 msgid "Add following as friends (NOT recommended for large follower list)"
-msgstr ""
-"Añadir siguientes como amigos (NO se recomienda para la lista de seguidores "
-"grandes)"
+msgstr "Añadir siguientes como amigos (NO se recomienda para la lista de seguidores grandes)"
 
 #: ../src/prpltwtr/twitter_prefs.c:76
 msgid "Add URL link to each tweet"
@@ -232,9 +235,7 @@ msgstr "Añadir enlace URL a cada tweet"
 
 #: ../src/prpltwtr/twitter_prefs.c:83
 msgid "Buddy last tweet hours before set offline (0: Always online)"
-msgstr ""
-"Tweet última hora de amigos online antes de establecer offline (0: Siempre "
-"online)"
+msgstr "Tweet última hora de amigos online antes de establecer offline (0: Siempre online)"
 
 #: ../src/prpltwtr/twitter_prefs.c:91
 msgid "Max historical timeline tweets to retrieve (0: infinite)"
@@ -282,11 +283,13 @@ msgstr "La búsqueda debe ser completada al entrar en una charla de la búsqueda
 msgid "Received Invalid XML"
 msgstr "Recibido XML no válido"
 
-#: ../src/prpltwtr/twitter.c:219 ../src/prpltwtr/twitter.c:1180
+#: ../src/prpltwtr/twitter.c:219
+#: ../src/prpltwtr/twitter.c:1180
 msgid "Unauthorized"
 msgstr "no autorizado"
 
-#: ../src/prpltwtr/twitter.c:227 ../src/prpltwtr/twitter.c:1345
+#: ../src/prpltwtr/twitter.c:227
+#: ../src/prpltwtr/twitter.c:1345
 msgid "Unknown error"
 msgstr "Error desconocido"
 
@@ -299,7 +302,8 @@ msgid "Remaining"
 msgstr "Restante"
 
 #. plugin handle or PurpleConnection
-#: ../src/prpltwtr/twitter.c:649 ../src/prpltwtr/twitter.c:650
+#: ../src/prpltwtr/twitter.c:649
+#: ../src/prpltwtr/twitter.c:650
 #: ../src/prpltwtr/twitter.c:810
 msgid "Rate Limit Status"
 msgstr "Tasa de Estado Límite"
@@ -314,11 +318,11 @@ msgstr "Estado de cuenta determinado"
 
 #: ../src/prpltwtr/twitter.c:787
 msgid "_Set"
-msgstr ""
+msgstr "_Set"
 
 #: ../src/prpltwtr/twitter.c:788
 msgid "_Cancel"
-msgstr ""
+msgstr "_Cancel"
 
 #: ../src/prpltwtr/twitter.c:807
 msgid "Set status"
@@ -330,19 +334,19 @@ msgstr "Depurar - Recuperar los usuarios"
 
 #: ../src/prpltwtr/twitter.c:819
 msgid "Open Favorites URL"
-msgstr ""
+msgstr "Abrir Favoritos URL"
 
 #: ../src/prpltwtr/twitter.c:821
 msgid "Open Retweets of Mine"
-msgstr ""
+msgstr "Abrir Mis Tweets Retwitteados"
 
 #: ../src/prpltwtr/twitter.c:823
 msgid "Open Replies"
-msgstr ""
+msgstr "Abrir Respuestas"
 
 #: ../src/prpltwtr/twitter.c:825
 msgid "Open Suggested Friends"
-msgstr ""
+msgstr "Abrir sugerida amigos"
 
 #: ../src/prpltwtr/twitter.c:857
 msgid "Connecting..."
@@ -365,7 +369,8 @@ msgstr "Conflicto de nombres de pantalla"
 msgid "Authorized screen name does not match with account screen name"
 msgstr "Nombre de pantalla no autorizado no coincide con el nombre de cuenta"
 
-#: ../src/prpltwtr/twitter.c:953 ../src/prpltwtr/twitter.c:1053
+#: ../src/prpltwtr/twitter.c:953
+#: ../src/prpltwtr/twitter.c:1053
 msgid "Cancel"
 msgstr "Cancelar"
 
@@ -448,21 +453,22 @@ msgstr "Abrir automáticamente el chat en nuevos tweets (Actualmente: %s)"
 
 #: ../src/prpltwtr/twitter.c:1581
 msgid "On"
-msgstr ""
+msgstr "On"
 
 #: ../src/prpltwtr/twitter.c:1581
 msgid "Off"
-msgstr ""
+msgstr "Off"
 
 #: ../src/prpltwtr/twitter.c:1596
 #, c-format
 msgid "No%s"
-msgstr ""
+msgstr "No%s"
 
-#: ../src/prpltwtr/twitter.c:1596 ../src/prpltwtr/twitter.c:1601
+#: ../src/prpltwtr/twitter.c:1596
+#: ../src/prpltwtr/twitter.c:1601
 #: ../src/prpltwtr/twitter.c:1606
 msgid " (set)"
-msgstr ""
+msgstr "(set)"
 
 #: ../src/prpltwtr/twitter.c:1601
 #, c-format
@@ -481,7 +487,7 @@ msgstr "Marcar todos los chats con el término de búsqueda:"
 
 #: ../src/prpltwtr/twitter.c:1621
 msgid "@Message"
-msgstr "@Mensaje"
+msgstr "@Message"
 
 #: ../src/prpltwtr/twitter.c:1627
 msgid "Direct Message"
