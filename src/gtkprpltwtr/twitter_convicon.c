@@ -428,7 +428,10 @@ static void twitter_conv_icon_free(TwitterConvIcon *conv_icon)
 	purple_debug_info(DEBUG_ID, "Freeing icon for %s\n", conv_icon->username);
 	if (conv_icon->requested)
 	{
-		purple_util_fetch_url_cancel(conv_icon->fetch_data);
+		if (conv_icon->fetch_data)
+		{
+			purple_util_fetch_url_cancel(conv_icon->fetch_data);
+		}
 		conv_icon->fetch_data = NULL;
 		conv_icon->requested = FALSE;
 	}
