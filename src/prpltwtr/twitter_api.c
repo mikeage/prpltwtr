@@ -95,11 +95,14 @@ static const gchar *twitter_option_url_get_home_timeline(PurpleAccount *account)
 }
 static const gchar *twitter_option_url_get_list(PurpleAccount *account)
 {
+	char ** userparts = g_strsplit(purple_account_get_username(account), "@", 2);
+	const char * sn = userparts[0];
 	gchar *url = g_strdup_printf("%s%s",
-			account->username,
+			sn,
 			TWITTER_PREF_URL_GET_LIST);
 	const gchar *result = twitter_api_create_url(account,
 			url);
+	g_strfreev(userparts);
 	g_free(url);
 	return result;
 }

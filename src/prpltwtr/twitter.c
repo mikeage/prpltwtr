@@ -983,13 +983,17 @@ static void twitter_oauth_access_token_success_cb(TwitterRequestor *r,
 		twitter_account_set_oauth_access_token_secret(account, oauth_token_secret);
 
 		//FIXME: set this to be case insensitive
-		
-		if (response_screen_name 
-			&& !twitter_usernames_match(account, response_screen_name, purple_account_get_username(account)))
 		{
-			twitter_account_username_change_verify(account, response_screen_name);
-		} else {
-			twitter_verify_connection(account);
+			char **userparts = g_strsplit(purple_account_get_username(r->account), "@", 2);
+			const char *username = userparts[0];
+			if (response_screen_name 
+					&& !twitter_usernames_match(account, response_screen_name, username))
+			{
+				twitter_account_username_change_verify(account, response_screen_name);
+			} else {
+				twitter_verify_connection(account);
+			}
+			g_strfreev(userparts);
 		}
 	} else {
 		twitter_oauth_disconnect(account, _("Unknown response getting access token"));
@@ -1077,16 +1081,20 @@ static void twitter_verify_credentials_success_cb(TwitterRequestor *r, xmlnode *
 {
 	PurpleAccount *account = r->account;
 	TwitterUserTweet *user_tweet = twitter_verify_credentials_parse(node);
+	char ** userparts = g_strsplit(purple_account_get_username(r->account), "@", 2);
+	const char *username = userparts[0];
+
 	if (!user_tweet || !user_tweet->screen_name)
 	{
 		twitter_oauth_disconnect(account, _("Could not verify credentials"));
-	} else if (!twitter_usernames_match(account,user_tweet->screen_name, purple_account_get_username(account))) 
+	} else if (!twitter_usernames_match(account,user_tweet->screen_name, username)) 
 	{
 		twitter_account_username_change_verify(account, user_tweet->screen_name);
 	} else 
 	{
 		twitter_verify_connection(account);
 	}
+	g_strfreev(userparts);
 	twitter_user_tweet_free(user_tweet);
 }
 
@@ -1113,14 +1121,17 @@ static void twitter_verify_credentials_error_cb(TwitterRequestor *r, const Twitt
 static void twitter_requestor_pre_send_auth_basic(TwitterRequestor *r, gboolean *post, const char **url, TwitterRequestParams **params, gchar ***header_fields, gpointer *requestor_data)
 {
 	const char *pass = purple_connection_get_password(purple_account_get_connection(r->account));
-	const char *sn = purple_account_get_username(r->account);
+	char ** userparts = g_strsplit(purple_account_get_username(r->account), "@", 2);
+	const char *sn = userparts[0];
 	char *auth_text = g_strdup_printf("%s:%s", sn, pass);
 	char *auth_text_b64 = purple_base64_encode((guchar *) auth_text, strlen(auth_text));
 	*header_fields = g_new(gchar *, 2);
 
+	purple_debug_info(TWITTER_PROTOCOL_ID, "Auth info %s\n", auth_text);
 	(*header_fields)[0] = g_strdup_printf("Authorization: Basic %s", auth_text_b64);
 	(*header_fields)[1] = NULL;
 
+	g_strfreev(userparts);
 	g_free(auth_text);
 	g_free(auth_text_b64);
 }
@@ -1188,6 +1199,7 @@ static void twitter_login(PurpleAccount *account)
 {
 	const gchar *oauth_token;
 	const gchar *oauth_token_secret;
+	char ** userparts;
 	PurpleConnection *gc = purple_account_get_connection(account);
 	TwitterConnectionData *twitter = g_new0(TwitterConnectionData, 1);
 	gc->proto_data = twitter;
@@ -1228,6 +1240,10 @@ static void twitter_login(PurpleAccount *account)
 
 
 	purple_debug_info(TWITTER_PROTOCOL_ID, "logging in %s\n", account->username);
+
+	userparts = g_strsplit(account->username, "@", 2);
+	purple_connection_set_display_name(gc, userparts[0]);
+	g_strfreev(userparts);
 
 	twitter->requestor = g_new0(TwitterRequestor, 1);
 	twitter->requestor->account = account;
@@ -1850,6 +1866,7 @@ static PurplePluginInfo info =
 
 static void twitter_init(PurplePlugin *plugin)
 {
+	PurpleAccountUserSplit *split;
 #ifdef ENABLE_NLS
 	bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
 	bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
@@ -1857,6 +1874,8 @@ static void twitter_init(PurplePlugin *plugin)
 	info.summary     = _("Twitter for Purple");
 	info.description = _("Access Twitter and compatible sites from within libpurple applications");
 
+	split = purple_account_user_split_new(_("Server"), TWITTER_PREF_WEB_BASE_DEFAULT, '@');
+	prpl_info.user_splits = g_list_append(prpl_info.user_splits, split);
 
 	purple_debug_info(TWITTER_PROTOCOL_ID, "starting up\n");
 

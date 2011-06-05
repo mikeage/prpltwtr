@@ -1065,7 +1065,7 @@ static char *twitter_linkify(PurpleAccount *account, const char *message)
 	GString *ret;
 	static char symbols[] = "#@";
 	static char *symbol_actions[] = {TWITTER_URI_ACTION_SEARCH, TWITTER_URI_ACTION_USER};
-	static char delims[] = " :."; //I don't know if this is how I want to do this...
+	static char delims[] = " :.;!?"; //I don't know if this is how I want to do this...
 	const char *ptr = message;
 	const char *end = message + strlen(message);
 	const char *delim = NULL;
@@ -1128,12 +1128,11 @@ static gchar *gtkprpltwtr_format_tweet_cb(PurpleAccount *account,
 
 	if (is_tweet && tweet_id && conv_type != PURPLE_CONV_TYPE_UNKNOWN && conv_name)
 	{
-		const gchar *account_name = purple_account_get_username(account);
 		//TODO: make this an image
 		/* purple_url_encode uses a static array (!) */
 		g_string_append_printf(tweet,
 				" <a href=\"" TWITTER_URI ":///" TWITTER_URI_ACTION_ACTIONS "?account=a%s&user=%s&id=%lld",
-				account_name,
+				purple_account_get_username(account),
 				purple_url_encode(src_user),
 				tweet_id);
 		g_string_append_printf(tweet, "&text=%s", purple_url_encode(message));

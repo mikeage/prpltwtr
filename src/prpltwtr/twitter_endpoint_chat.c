@@ -548,13 +548,16 @@ static void twitter_endpoint_chat_send_success_cb(PurpleAccount *account, xmlnod
 
 	if (ctx && tweet && tweet->text && (conv = twitter_endpoint_chat_find_open_conv(ctx)))
 	{
+		char ** userparts = g_strsplit(purple_account_get_username(account), "@", 2);
+		const char *sn = userparts[0];
 		purple_signal_emit(purple_buddy_icons_get_handle(),
 				"prpltwtr-update-iconurl",
 				account,
 				user_tweet->screen_name,
 				user_tweet->icon_url,
 				user_tweet->status->created_at);
-		twitter_chat_add_tweet(conv, account->username, tweet->text, tweet->id, tweet->created_at, tweet->in_reply_to_status_id, tweet->favorited);
+		twitter_chat_add_tweet(conv, sn, tweet->text, tweet->id, tweet->created_at, tweet->in_reply_to_status_id, tweet->favorited);
+		g_strfreev(userparts);
 	}
 
 #endif

@@ -175,14 +175,21 @@ void twitter_buddy_set_user_data(PurpleAccount *account, TwitterUserData *u, gbo
 {
 	PurpleBuddy *b;
 	TwitterUserTweet *buddy_data;
+	char ** userparts = g_strsplit(purple_account_get_username(account), "@", 2);
+	const char * sn = userparts[0];
 	if (!u || !account)
-		return;
-
-	if (!strcmp(u->screen_name, account->username))
 	{
+		g_strfreev(userparts);
+		return;
+	}
+
+	if (!strcmp(u->screen_name, sn))
+	{
+		g_strfreev(userparts);
 		twitter_user_data_free(u);
 		return;
 	}
+	g_strfreev(userparts);
 
 	b = purple_find_buddy(account, u->screen_name);
 	if (!b && add_missing_buddy)
