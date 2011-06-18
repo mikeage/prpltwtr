@@ -1,5 +1,6 @@
 Changelog for current version:
   * Fix crash when closing a window with pending buddy icons to look up
+  * Identi.ca work. More to come
 
 Changelog for 0.8.0:
   * Switch OAuth keys to request DM permission. You will need to re-authorize Prpltwtr (now called PrplTwtr2)

@@ -884,13 +884,19 @@ static void twitter_url_menu_actions(GtkWidget *menu, const char *url)
 	g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_link), (gpointer)url);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
 
-	if (account && twitter_usernames_match(account, account_name, user_name))
+	if (account)
 	{
-		img = gtk_image_new_from_stock(GTK_STOCK_DELETE, GTK_ICON_SIZE_MENU);
-		item = gtk_image_menu_item_new_with_mnemonic((_("Delete")));
-		gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
-		g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_delete), (gpointer)url);
-		gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
+		char **userparts = g_strsplit(account_name, "@", 2);
+		const char *short_account_name = userparts[0];
+		if (twitter_usernames_match(account, short_account_name, user_name))
+		{
+			img = gtk_image_new_from_stock(GTK_STOCK_DELETE, GTK_ICON_SIZE_MENU);
+			item = gtk_image_menu_item_new_with_mnemonic((_("Delete")));
+			gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
+			g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(twitter_context_menu_delete), (gpointer)url);
+			gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
+		}
+		g_strfreev(userparts);
 	}
 
 	if(in_reply_to_status_id)
