@@ -12,7 +12,7 @@
 #define TWITTER_PREF_CONV_ICON_SIZE PREF_PREFIX "/conv_icon_size"
 #define TWITTER_PREF_CONV_ICON_SIZE_DEFAULT 32
 
-void gtkprpltwtr_prefs_init(PurplePlugin *plugin);
-void gtkprpltwtr_prefs_destroy(PurplePlugin *plugin);
+void            gtkprpltwtr_prefs_init(PurplePlugin * plugin);
+void            gtkprpltwtr_prefs_destroy(PurplePlugin * plugin);
 
 #endif

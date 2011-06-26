@@ -33,11 +33,10 @@
 #include "prpltwtr_xml.h"
 #include "prpltwtr_buddy.h"
 #include "prpltwtr_conn.h"
-#include "prpltwtr_util.h" //TODO remove
+#include "prpltwtr_util.h"                       //TODO remove
 
-typedef struct
-{
-	guint timeline_id;
+typedef struct {
+    guint           timeline_id;
 } TwitterTimelineTimeoutContext;
 
 TwitterEndpointChatSettings *twitter_endpoint_timeline_get_settings(void);

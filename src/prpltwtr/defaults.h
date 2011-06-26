@@ -1,10 +1,10 @@
 #ifndef G_GNUC_NULL_TERMINATED
-#  if __GNUC__ >= 4
-#    define G_GNUC_NULL_TERMINATED __attribute__((__sentinel__))
-#  else
-#    define G_GNUC_NULL_TERMINATED
-#  endif /* __GNUC__ >= 4 */
-#endif /* G_GNUC_NULL_TERMINATED */
+#if __GNUC__ >= 4
+#define G_GNUC_NULL_TERMINATED __attribute__((__sentinel__))
+#else
+#define G_GNUC_NULL_TERMINATED
+#endif                       /* __GNUC__ >= 4 */
+#endif                       /* G_GNUC_NULL_TERMINATED */
 
 #ifdef _WIN32
 #	include <win32dep.h>
@@ -23,7 +23,7 @@
 #else
 #define _(String) ((/* const */ char *) (String))
 #define N_(String) ((/* const */ char *) (String))
-#endif // ENABLE NLS
+#endif                       // ENABLE NLS
 
 /* The number of tweets to return per page, up to a max of 200 */
 #define TWITTER_SEARCH_RPP_DEFAULT 200

@@ -14,24 +14,21 @@
 
 typedef struct _TwitterMbPrefsSettings TwitterMbPrefsSettings;
 
-typedef struct
-{
-	TwitterMbPrefsSettings *settings;
-	PurpleAccount *account;
-	gpointer data;
+typedef struct {
+    TwitterMbPrefsSettings *settings;
+    PurpleAccount  *account;
+    gpointer        data;
 } TwitterMbPrefs;
 
-struct _TwitterMbPrefsSettings
-{
-	gchar *(*get_user_profile_url)(TwitterMbPrefs *prefs, const gchar *who);
-	gchar *(*get_status_url)(TwitterMbPrefs *prefs, const gchar *who, long long tweet_id);
-	void (*mb_prefs_free)(TwitterMbPrefs *mb_prefs);
+struct _TwitterMbPrefsSettings {
+    gchar          *(*get_user_profile_url) (TwitterMbPrefs * prefs, const gchar * who);
+    gchar          *(*get_status_url) (TwitterMbPrefs * prefs, const gchar * who, long long tweet_id);
+    void            (*mb_prefs_free) (TwitterMbPrefs * mb_prefs);
 };
 
-gchar *twitter_mb_prefs_get_user_profile_url(TwitterMbPrefs *mb_prefs, const gchar *who); 
-gchar *twitter_mb_prefs_get_status_url(TwitterMbPrefs *mb_prefs, const gchar *who, long long tweet_id); 
-void twitter_mb_prefs_free(TwitterMbPrefs *mb_prefs); 
-TwitterMbPrefs *twitter_mb_prefs_new(PurpleAccount *account);
-
+gchar          *twitter_mb_prefs_get_user_profile_url(TwitterMbPrefs * mb_prefs, const gchar * who);
+gchar          *twitter_mb_prefs_get_status_url(TwitterMbPrefs * mb_prefs, const gchar * who, long long tweet_id);
+void            twitter_mb_prefs_free(TwitterMbPrefs * mb_prefs);
+TwitterMbPrefs *twitter_mb_prefs_new(PurpleAccount * account);
 
 #endif

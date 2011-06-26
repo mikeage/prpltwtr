@@ -98,7 +98,7 @@
 #define TWITTER_PREF_URL_GET_RATE_LIMIT_STATUS "/account/rate_limit_status.xml"
 #define TWITTER_PREF_URL_GET_FRIENDS "/statuses/friends.xml"
 #define TWITTER_PREF_URL_GET_HOME_TIMELINE "/statuses/home_timeline.xml"
-#define TWITTER_PREF_URL_GET_LIST "/lists/" /* We need to prepend the username and add the ID and then statuses.xml here */
+#define TWITTER_PREF_URL_GET_LIST "/lists/"      /* We need to prepend the username and add the ID and then statuses.xml here */
 #define TWITTER_PREF_URL_GET_MENTIONS "/statuses/mentions.xml"
 #define TWITTER_PREF_URL_GET_DMS "/direct_messages.xml"
 #define TWITTER_PREF_URL_UPDATE_STATUS "/statuses/update.xml"
@@ -107,42 +107,42 @@
 #define TWITTER_PREF_URL_GET_LISTS "/lists.xml"
 #define TWITTER_PREF_URL_GET_SEARCH_RESULTS "/search.atom"
 #define TWITTER_PREF_URL_VERIFY_CREDENTIALS "/account/verify_credentials.xml"
-#define TWITTER_PREF_URL_RT "/statuses/retweet" /* Yay for inconsistency */
-#define TWITTER_PREF_URL_DELETE_STATUS "/statuses/destroy" /* Yay for inconsistency */
-#define TWITTER_PREF_URL_ADD_FAVORITE "/favorites/create" /* Yay for inconsistency */
-#define TWITTER_PREF_URL_DELETE_FAVORITE "/favorites/destroy" /* Yay for inconsistency */
+#define TWITTER_PREF_URL_RT "/statuses/retweet"  /* Yay for inconsistency */
+#define TWITTER_PREF_URL_DELETE_STATUS "/statuses/destroy"  /* Yay for inconsistency */
+#define TWITTER_PREF_URL_ADD_FAVORITE "/favorites/create"   /* Yay for inconsistency */
+#define TWITTER_PREF_URL_DELETE_FAVORITE "/favorites/destroy"   /* Yay for inconsistency */
 #define TWITTER_PREF_URL_GET_STATUS "/statuses/show"
 #define TWITTER_PREF_URL_REPORT_SPAMMER "/report_spam.xml"
 
 /***** END URLS *****/
 
-GList *twitter_get_protocol_options(void);
+GList          *twitter_get_protocol_options(void);
 
-gboolean twitter_option_add_link_to_tweet(PurpleAccount *account);
-gint twitter_option_search_timeout(PurpleAccount *account);
-gint twitter_option_timeline_timeout(PurpleAccount *account);
-gint twitter_option_list_timeout(PurpleAccount *account);
-const gchar *twitter_option_list_group(PurpleAccount *account);
-const gchar *twitter_option_search_group(PurpleAccount *account);
-const gchar *twitter_option_buddy_group(PurpleAccount *account);
-gint twitter_option_dms_timeout(PurpleAccount *account);
-gint twitter_option_replies_timeout(PurpleAccount *account);
-gboolean twitter_option_get_following(PurpleAccount *account);
-gint twitter_option_user_status_timeout(PurpleAccount *account);
-gboolean twitter_option_get_history(PurpleAccount *account);
-gboolean twitter_option_sync_status(PurpleAccount *account);
-gboolean twitter_option_use_https(PurpleAccount *account);
-gboolean twitter_option_use_oauth(PurpleAccount *account);
-gint twitter_option_home_timeline_max_tweets(PurpleAccount *account);
-gint twitter_option_list_max_tweets(PurpleAccount *account);
-gboolean twitter_option_default_dm(PurpleAccount *account);
-gboolean twitter_option_enable_conv_icon(PurpleAccount *account);
+gboolean        twitter_option_add_link_to_tweet(PurpleAccount * account);
+gint            twitter_option_search_timeout(PurpleAccount * account);
+gint            twitter_option_timeline_timeout(PurpleAccount * account);
+gint            twitter_option_list_timeout(PurpleAccount * account);
+const gchar    *twitter_option_list_group(PurpleAccount * account);
+const gchar    *twitter_option_search_group(PurpleAccount * account);
+const gchar    *twitter_option_buddy_group(PurpleAccount * account);
+gint            twitter_option_dms_timeout(PurpleAccount * account);
+gint            twitter_option_replies_timeout(PurpleAccount * account);
+gboolean        twitter_option_get_following(PurpleAccount * account);
+gint            twitter_option_user_status_timeout(PurpleAccount * account);
+gboolean        twitter_option_get_history(PurpleAccount * account);
+gboolean        twitter_option_sync_status(PurpleAccount * account);
+gboolean        twitter_option_use_https(PurpleAccount * account);
+gboolean        twitter_option_use_oauth(PurpleAccount * account);
+gint            twitter_option_home_timeline_max_tweets(PurpleAccount * account);
+gint            twitter_option_list_max_tweets(PurpleAccount * account);
+gboolean        twitter_option_default_dm(PurpleAccount * account);
+gboolean        twitter_option_enable_conv_icon(PurpleAccount * account);
 
-const gchar *twitter_option_api_host(PurpleAccount *account);
-const gchar *twitter_option_api_subdir(PurpleAccount *account);
-const gchar *twitter_option_web_host(PurpleAccount *account);
-const gchar *twitter_option_web_subdir(PurpleAccount *account);
-const gchar *twitter_option_search_api_host(PurpleAccount *account);
-const gchar *twitter_option_search_api_subdir(PurpleAccount *account);
-int twitter_option_cutoff_time(PurpleAccount *account);
+const gchar    *twitter_option_api_host(PurpleAccount * account);
+const gchar    *twitter_option_api_subdir(PurpleAccount * account);
+const gchar    *twitter_option_web_host(PurpleAccount * account);
+const gchar    *twitter_option_web_subdir(PurpleAccount * account);
+const gchar    *twitter_option_search_api_host(PurpleAccount * account);
+const gchar    *twitter_option_search_api_subdir(PurpleAccount * account);
+int             twitter_option_cutoff_time(PurpleAccount * account);
 #endif
