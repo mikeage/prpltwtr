@@ -1,60 +1,75 @@
 EXTRA_DIST = \
 	Makefile.mingw
 
-pkgdir = \
-	$(PURPLE_PLUGINDIR)
+pkgdir = $(PURPLE_PLUGINDIR)
 
 PRPLTWTR_SOURCES = \
-defaults.h \
-twitter_api.c \
-twitter_api.h \
-twitter_buddy.c \
-twitter_buddy.h \
-twitter.c \
-twitter_conn.c \
-twitter_conn.h \
-twitter_endpoint_chat.c \
-twitter_endpoint_chat.h \
-twitter_endpoint_dm.c \
-twitter_endpoint_dm.h \
-twitter_endpoint_im.c \
-twitter_endpoint_im.h \
-twitter_endpoint_reply.c \
-twitter_endpoint_reply.h \
-twitter_endpoint_search.c \
-twitter_endpoint_search.h \
-twitter_endpoint_timeline.c \
-twitter_endpoint_timeline.h \
-twitter_endpoint_list.c \
-twitter_endpoint_list.h \
-twitter.h \
-twitter_mbprefs.c \
-twitter_mbprefs.h \
-twitter_prefs.c \
-twitter_prefs.h \
-twitter_request.c \
-twitter_request.h \
-twitter_search.c \
-twitter_search.h \
-twitter_util.c \
-twitter_util.h \
-twitter_xml.c \
-twitter_xml.h 
-
+	defaults.h \
+	prpltwtr_api.c \
+	prpltwtr_api.h \
+	prpltwtr_buddy.c \
+	prpltwtr_buddy.h \
+	prpltwtr.c \
+	prpltwtr_conn.c \
+	prpltwtr_conn.h \
+	prpltwtr_endpoint_chat.c \
+	prpltwtr_endpoint_chat.h \
+	prpltwtr_endpoint_dm.c \
+	prpltwtr_endpoint_dm.h \
+	prpltwtr_endpoint_im.c \
+	prpltwtr_endpoint_im.h \
+	prpltwtr_endpoint_reply.c \
+	prpltwtr_endpoint_reply.h \
+	prpltwtr_endpoint_search.c \
+	prpltwtr_endpoint_search.h \
+	prpltwtr_endpoint_timeline.c \
+	prpltwtr_endpoint_timeline.h \
+	prpltwtr_endpoint_list.c \
+	prpltwtr_endpoint_list.h \
+	prpltwtr.h \
+	prpltwtr_mbprefs.c \
+	prpltwtr_mbprefs.h \
+	prpltwtr_prefs.c \
+	prpltwtr_prefs.h \
+	prpltwtr_request.c \
+	prpltwtr_request.h \
+	prpltwtr_search.c \
+	prpltwtr_search.h \
+	prpltwtr_util.c \
+	prpltwtr_util.h \
+	prpltwtr_xml.c \
+	prpltwtr_xml.h 
 
 AM_CFLAGS = \
 	$(st)
 
-prpltwtr_la_LDFLAGS = \
+libprpltwtr_la_LDFLAGS = \
+	-module \
+	-avoid-version \
+	$(PURPLE_LIBS)
+
+libprpltwtr_twitter_la_LDFLAGS = \
+	-module \
+	-avoid-version \
+	$(PURPLE_LIBS)
+
+libprpltwtr_statusnet_la_LDFLAGS = \
 	-module \
 	-avoid-version \
 	$(PURPLE_LIBS)
 
 pkg_LTLIBRARIES = \
-	prpltwtr.la
+	libprpltwtr.la \
+	libprpltwtr_twitter.la \
+	libprpltwtr_statusnet.la
 
-prpltwtr_la_SOURCES = \
-	$(PRPLTWTR_SOURCES)
+libprpltwtr_la_SOURCES = $(PRPLTWTR_SOURCES)
+
+libprpltwtr_twitter_la_SOURCES = prpltwtr_plugin_twitter.c prpltwtr_plugin.h
+libprpltwtr_twitter_la_LIBADD = libprpltwtr.la
+
+libprpltwtr_statusnet_la_SOURCES = prpltwtr_plugin_statusnet.c prpltwtr_plugin.h
+libprpltwtr_statusnet_la_LIBADD = libprpltwtr.la
 
 AM_CPPFLAGS = \
 	$(DEBUG_CFLAGS) \

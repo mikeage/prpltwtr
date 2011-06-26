@@ -10,7 +10,7 @@ endif
 
 include $(PIDGIN_TREE_TOP)/libpurple/win32/global.mak
 
-TARGET = gtkprpltwtr
+TARGET = libgtkprpltwtr
 
 DEFINES += -DGETTEXT_PACKAGE=\"prpltwtr\"
 DEFINES += -DPACKAGE_VERSION=\"$(PACKAGE_VERSION)\"
@@ -47,16 +47,11 @@ LIB_PATHS +=		-L$(GTK_TOP)/lib \
 C_SRC = \
 gtkprpltwtr.c \
 gtkprpltwtr_prefs.c \
-twitter_charcount.c \
-twitter_convicon.c
+gtkprpltwtr_charcount.c \
+gtkprpltwtr_convicon.c
 
 
 OBJECTS = $(C_SRC:%.c=%.o)
-
-BASE_PRPLTWTR_OBJS = twitter_prefs.o twitter_request.o twitter_api.o twitter_search.o twitter_util.o twitter_xml.o twitter_endpoint_chat.o twitter_endpoint_search.o twitter_endpoint_timeline.o twitter_endpoint_list.o twitter_buddy.o twitter_conn.o twitter_endpoint_im.o twitter_endpoint_dm.o twitter_endpoint_reply.o twitter_mbprefs.o
-
-PRPLTWTR_OBJS = $(addprefix $(PRPLTWTR_PATH), $(BASE_PRPLTWTR_OBJS))
-
 
 ##
 ## LIBRARIES
@@ -81,8 +76,8 @@ all: $(TARGET).dll
 
 $(OBJECTS): $(PIDGIN_CONFIG_H)
 
-$(TARGET).dll.dbgsym: $(PURPLE_DLL).a $(PIDGIN_DLL).a $(OBJECTS) $(PRPLTWTR_OBJS)
-	$(CC) -shared $(PRPLTWTR_OBJS) $(OBJECTS) $(LIB_PATHS) $(LIBS) $(DLL_LD_FLAGS) -g -o $(TARGET).dll.dbgsym
+$(TARGET).dll.dbgsym: $(PURPLE_DLL).a $(PIDGIN_DLL).a $(OBJECTS) 
+	$(CC) -shared -L$(PRPLTWTR_PATH) -lprpltwtr $(OBJECTS) $(LIB_PATHS) $(LIBS) $(DLL_LD_FLAGS) -g -o $(TARGET).dll.dbgsym
 
 $(TARGET).dll: $(TARGET).dll.dbgsym
 	$(STRIP) -g $(TARGET).dll.dbgsym -o $(TARGET).dll

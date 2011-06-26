@@ -10,7 +10,9 @@ endif
 
 include $(PIDGIN_TREE_TOP)/libpurple/win32/global.mak
 
-TARGET = prpltwtr
+TARGET = libprpltwtr
+TARGET_TWITTER = libprpltwtr_twitter
+TARGET_STATUSNET = libprpltwtr_statusnet
 
 DEFINES += -DGETTEXT_PACKAGE=\"prpltwtr\"
 DEFINES += -DPACKAGE_VERSION=\"$(PACKAGE_VERSION)\"
@@ -42,26 +44,30 @@ LIB_PATHS +=		-L$(GTK_TOP)/lib \
 ##  SOURCES, OBJECTS
 ##
 C_SRC = \
-twitter_api.c \
-twitter_buddy.c \
-twitter.c \
-twitter_conn.c \
-twitter_endpoint_chat.c \
-twitter_endpoint_dm.c \
-twitter_endpoint_im.c \
-twitter_endpoint_reply.c \
-twitter_endpoint_search.c \
-twitter_endpoint_list.c \
-twitter_endpoint_timeline.c \
-twitter_mbprefs.c \
-twitter_prefs.c \
-twitter_request.c \
-twitter_search.c \
-twitter_util.c \
-twitter_xml.c \
+prpltwtr_api.c \
+prpltwtr_buddy.c \
+prpltwtr.c \
+prpltwtr_conn.c \
+prpltwtr_endpoint_chat.c \
+prpltwtr_endpoint_dm.c \
+prpltwtr_endpoint_im.c \
+prpltwtr_endpoint_reply.c \
+prpltwtr_endpoint_search.c \
+prpltwtr_endpoint_list.c \
+prpltwtr_endpoint_timeline.c \
+prpltwtr_mbprefs.c \
+prpltwtr_prefs.c \
+prpltwtr_request.c \
+prpltwtr_search.c \
+prpltwtr_util.c \
+prpltwtr_xml.c \
 
+C_SRC_TWITTER:=prpltwtr_plugin_twitter.c
+C_SRC_STATUSNET:=prpltwtr_plugin_statusnet.c 
 
 OBJECTS = $(C_SRC:%.c=%.o)
+OBJECTS_TWITTER = $(C_SRC_TWITTER:%.c=%.o)
+OBJECTS_STATUSNET = $(C_SRC_STATUSNET:%.c=%.o)
 
 ##
 ## LIBRARIES
@@ -82,7 +88,7 @@ include $(PIDGIN_COMMON_RULES)
 ##
 .PHONY: all install clean installer dist
 
-all: $(TARGET).dll
+all: $(TARGET).dll $(TARGET_TWITTER).dll $(TARGET_STATUSNET).dll
 
 $(OBJECTS): $(PIDGIN_CONFIG_H)
 
@@ -90,6 +96,16 @@ $(TARGET).dll: $(TARGET).dll.dbgsym
 	$(STRIP) -g $(TARGET).dll.dbgsym -o $(TARGET).dll
 $(TARGET).dll.dbgsym: $(PURPLE_DLL).a $(PIDGIN_DLL).a $(OBJECTS) 
 	$(CC) -shared $(OBJECTS) $(LIB_PATHS) $(LIBS) $(DLL_LD_FLAGS) -g -o $(TARGET).dll.dbgsym
+
+$(TARGET_TWITTER).dll: $(TARGET_TWITTER).dll.dbgsym
+	$(STRIP) -g $(TARGET_TWITTER).dll.dbgsym -o $(TARGET_TWITTER).dll
+$(TARGET_TWITTER).dll.dbgsym: $(PURPLE_DLL).a $(PIDGIN_DLL).a $(OBJECTS_TWITTER)
+	$(CC) -shared $(OBJECTS_TWITTER) $(LIB_PATHS) $(LIBS) $(DLL_LD_FLAGS) -L. -lprpltwtr -g -o $(TARGET_TWITTER).dll.dbgsym
+
+$(TARGET_STATUSNET).dll: $(TARGET_STATUSNET).dll.dbgsym
+	$(STRIP) -g $(TARGET_STATUSNET).dll.dbgsym -o $(TARGET_STATUSNET).dll
+$(TARGET_STATUSNET).dll.dbgsym: $(PURPLE_DLL).a $(PIDGIN_DLL).a $(OBJECTS_STATUSNET)
+	$(CC) -shared $(OBJECTS_STATUSNET) $(LIB_PATHS) $(LIBS) $(DLL_LD_FLAGS) -L. -lprpltwtr -g -o $(TARGET_STATUSNET).dll.dbgsym
 
 installer: all dist
 
@@ -99,7 +115,7 @@ dist: all
 ## CLEAN RULES
 ##
 clean:
-	rm -rf $(OBJECTS)
-	rm -rf $(TARGET).dll $(TARGET).dll.dbgsym
+	rm -rf $(OBJECTS) $(OBJECTS_TWITTER) $(OBJECTS_STATUSNET)
+	rm -rf $(TARGET).dll $(TARGET).dll.dbgsym $(TARGET_TWITTER).dll* $(TARGET_STATUSNET).dll*
 
 include $(PIDGIN_COMMON_TARGETS)

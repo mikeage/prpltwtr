@@ -7,12 +7,13 @@
 #include <gtkplugin.h>
 #include <gtkconv.h>
 #include <gtkimhtml.h>
-#include "twitter.h"
-#include "gtkprpltwtr_prefs.h"
-#include "twitter_charcount.h"
-#include "twitter_convicon.h"
-#include "gtkprpltwtr.h"
 #include <ctype.h>
+
+#include "gtkprpltwtr.h"
+#include "prpltwtr.h"
+#include "gtkprpltwtr_prefs.h"
+#include "gtkprpltwtr_charcount.h"
+#include "gtkprpltwtr_convicon.h"
 
 #ifdef WIN32
 #include "win32dep.h"
@@ -274,6 +275,7 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 	const char *username;
 	PurpleAccount *account;
 	const gchar *action;
+	const gchar *protocol_id;
 	PidginConversation *gtkconv;
 	purple_debug_info(DEBUG_ID, "%s PROTO %s CMD_ARG %s\n", G_STRFUNC, proto, cmd_arg);
 
@@ -293,7 +295,8 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
 	}
 
 	//ugly hack to fix username highlighting
-	account = purple_accounts_find(username+1, TWITTER_PROTOCOL_ID);
+	protocol_id = g_hash_table_lookup(params, "protocol_id");
+	account = purple_accounts_find(username+1, protocol_id);
 
 	if (account == NULL)
 	{
@@ -826,6 +829,7 @@ static void twitter_url_menu_actions(GtkWidget *menu, const char *url)
 	gsize in_reply_to_status_id_len;
 	gsize conv_type_len;
 	gsize favorited_len;
+	gsize protocol_id_len;
 	PurpleConversationType conv_type;
 	gboolean favorited;
 	PurpleAccount *account;
@@ -835,6 +839,7 @@ static void twitter_url_menu_actions(GtkWidget *menu, const char *url)
 	const gchar *in_reply_to_status_id_tmp = url_get_param_value(url, "in_reply_to_status_id", &in_reply_to_status_id_len);
 	const gchar *conv_type_tmp = url_get_param_value(url, "conv_type", &conv_type_len);
 	const gchar *favorited_tmp = url_get_param_value(url, "favorited", &favorited_len);
+	const gchar *protocol_id = url_get_param_value(url, "protocol_id", &protocol_id_len);
 	long long in_reply_to_status_id;
 	gchar *account_name, *user_name;
 	if (!account_name_tmp || !user_name_tmp)
@@ -850,7 +855,7 @@ static void twitter_url_menu_actions(GtkWidget *menu, const char *url)
 
 	favorited = favorited_tmp ? TRUE : FALSE;
 
-	account = purple_accounts_find(account_name, TWITTER_PROTOCOL_ID);
+	account = purple_accounts_find(account_name, protocol_id);
 
 	img = gtk_image_new_from_stock(GTK_STOCK_REFRESH, GTK_ICON_SIZE_MENU);
 	item = gtk_image_menu_item_new_with_mnemonic((_("Retweet")));
@@ -1000,7 +1005,11 @@ static void gtkprpltwtr_enable_conv_icon_all_accounts()
 		for (l = accounts; l; l = l->next)
 		{
 			PurpleAccount *account = l->data;
-			if (purple_account_is_connected(account) && !strcmp(TWITTER_PROTOCOL_ID, purple_account_get_protocol_id(account)))
+			if (purple_account_is_connected(account) && (
+						!strcmp(TWITTER_PROTOCOL_ID, purple_account_get_protocol_id(account)) ||
+						!strcmp(STATUSNET_PROTOCOL_ID, purple_account_get_protocol_id(account))
+						)
+			   )
 			{
 				twitter_conv_icon_account_load(account);
 			}
@@ -1015,7 +1024,11 @@ static void gtkprpltwtr_disable_conv_icon_all_accounts()
 	for (l = accounts; l; l = l->next)
 	{
 		PurpleAccount *account = l->data;
-		if (purple_account_is_connected(account) && !strcmp(TWITTER_PROTOCOL_ID, purple_account_get_protocol_id(account)))
+			if (purple_account_is_connected(account) && (
+						!strcmp(TWITTER_PROTOCOL_ID, purple_account_get_protocol_id(account)) ||
+						!strcmp(STATUSNET_PROTOCOL_ID, purple_account_get_protocol_id(account)) 
+						)
+			   )
 		{
 			twitter_conv_icon_account_unload(account);
 		}
@@ -1099,10 +1112,11 @@ static char *twitter_linkify(PurpleAccount *account, const char *message)
 			delim = end;
 		link_text = g_strndup(ptr, delim - ptr);
 		//Added the 'a' before the account name because of a highlighting issue... ugly hack
-		g_string_append_printf(ret, "<a href=\"" TWITTER_URI ":///%s?account=a%s&text=%s\">",
+		g_string_append_printf(ret, "<a href=\"" TWITTER_URI ":///%s?account=a%s&text=%s&protocol_id=%s\">",
 				current_action,
 				purple_account_get_username(account),
-				purple_url_encode(link_text));
+				purple_url_encode(link_text),
+				purple_account_get_protocol_id(account));
 		_g_string_append_escaped_len(ret, link_text, -1);
 		g_string_append(ret, "</a>");
 		ptr = delim;
@@ -1145,10 +1159,11 @@ static gchar *gtkprpltwtr_format_tweet_cb(PurpleAccount *account,
 		if (favorited)
 			g_string_append_printf(tweet, "&favorited=TRUE");
 		g_string_append_printf(tweet,
-				"&conv_type=%d&conv_name=%s&in_reply_to_status_id=%lld\">*</a>",
+				"&conv_type=%d&conv_name=%s&in_reply_to_status_id=%lld&protocol_id=%s\">*</a>",
 				conv_type,
 				purple_url_encode(conv_name),
-				in_reply_to_status_id);
+				in_reply_to_status_id,
+				purple_account_get_protocol_id(account));
 	}
 
 	g_free(linkified_message);

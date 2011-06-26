@@ -63,11 +63,29 @@ SectionIn RO
     SetOverwrite try
 	copy:
 		ClearErrors
+# Original names
 		Delete "$INSTDIR\plugins\prpltwtr.dll"
+		Delete "$INSTDIR\plugins\prpltwtr.dll.dbgsym"
+		Delete "$INSTDIR\plugins\gtkprpltwtr.dll"
+		Delete "$INSTDIR\plugins\gtkprpltwtr.dll.dbgsym"
+
+# New names
+		Delete "$INSTDIR\plugins\libprpltwtr_statusnet.dll"
+		Delete "$INSTDIR\plugins\libprpltwtr_statusnet.dll.dbgsym"
+		Delete "$INSTDIR\plugins\libprpltwtr_twitter.dll"
+		Delete "$INSTDIR\plugins\libprpltwtr_twitter.dll.dbgsym"
+		Delete "$INSTDIR\plugins\libgtkprpltwtr.dll.dbgsym"
+		Delete "$INSTDIR\plugins\libgtkprpltwtr.dll"
+
+		Delete "$INSTDIR\libprpltwtr.dll"
+		Delete "$INSTDIR\libprpltwtr.dll.dbgsym"
 		IfErrors dllbusy
+		SetOutPath "$INSTDIR"
+		File "${BASEDIR}\src\prpltwtr\libprpltwtr.dll"
 		SetOutPath "$INSTDIR\plugins"
-		File "${BASEDIR}\src\prpltwtr\prpltwtr.dll"
-		File "${BASEDIR}\src\gtkprpltwtr\gtkprpltwtr.dll"
+		File "${BASEDIR}\src\prpltwtr\libprpltwtr_statusnet.dll"
+		File "${BASEDIR}\src\prpltwtr\libprpltwtr_twitter.dll"
+		File "${BASEDIR}\src\gtkprpltwtr\libgtkprpltwtr.dll"
 		Goto after_copy
 	dllbusy:
 		MessageBox MB_RETRYCANCEL "prpltwtr.dll is busy. Please close Pidgin (including tray icon) and try again" IDCANCEL cancel
@@ -78,9 +96,12 @@ SectionIn RO
 SectionEnd
 
 Section "${PRODUCT_NAME} dbgsym" SEC02
+		SetOutPath "$INSTDIR"
+		File "${BASEDIR}\src\prpltwtr\libprpltwtr.dll.dbgsym"
 		SetOutPath "$INSTDIR\plugins"
-		File "${BASEDIR}\src\prpltwtr\prpltwtr.dll.dbgsym"
-		File "${BASEDIR}\src\gtkprpltwtr\gtkprpltwtr.dll.dbgsym"
+		File "${BASEDIR}\src\prpltwtr\libprpltwtr_twitter.dll.dbgsym"
+		File "${BASEDIR}\src\prpltwtr\libprpltwtr_statusnet.dll.dbgsym"
+		File "${BASEDIR}\src\gtkprpltwtr\libgtkprpltwtr.dll.dbgsym"
 SectionEnd
 
 Section "${PRODUCT_NAME} localizations" SEC03

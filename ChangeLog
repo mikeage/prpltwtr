@@ -1,6 +1,8 @@
 Changelog for current version:
   * Fix crash when closing a window with pending buddy icons to look up
   * Identi.ca work. More to come
+  * Restore "delete" tweet option
+  * Split the prpltwtr plugin into three: libprpltwtr for the infrastructure, libprpltwtr_twitter for Twitter, and libprpltwtr_statusnet for identi.ca, etc. You may need to manually delete the old versions (but I hope not)
 
 Changelog for 0.8.0:
   * Switch OAuth keys to request DM permission. You will need to re-authorize Prpltwtr (now called PrplTwtr2)
