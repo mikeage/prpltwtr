@@ -26,8 +26,6 @@
 #include <string.h>
 #include <time.h>
 
-#include <glib.h>
-
 /* If you're using this as the basis of a prpl that will be distributed
  * separately from libpurple, remove the internal.h include below and replace
  * it with code to include your own defaults.h or similar.  If you're going to

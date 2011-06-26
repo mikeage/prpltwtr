@@ -1194,7 +1194,6 @@ static void plugin_init(PurplePlugin * plugin)
     info.description = _("Pidgin specific GUI options for the purple plugin PrplTwtr");
 
     gtkprpltwtr_plugin = plugin;
-    twitter_endpoint_chat_init();
     gtkprpltwtr_prefs_init(plugin);
 }
 

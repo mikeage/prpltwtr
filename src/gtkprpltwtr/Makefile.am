@@ -20,8 +20,7 @@ AM_CFLAGS = \
 
 libgtkprpltwtr_la_LDFLAGS = \
 	-module \
-	-avoid-version \
-	$(PIDGIN_LIBS)
+	-avoid-version 
 
 pkg_LTLIBRARIES = \
 	libgtkprpltwtr.la
@@ -31,8 +30,9 @@ libgtkprpltwtr_la_SOURCES = $(GTKPRPLTWTR_SOURCES)
 AM_CPPFLAGS = \
 	$(DEBUG_CFLAGS) \
 	$(PIDGIN_CFLAGS) \
-	-DLOCALEDIR=\"$(PIDGIN_DATADIR)/locale\" \
-	-I$(PRPLTWTR_PATH)
+	$(PIDGIN_PLUGINS) \
+	-I$(PRPLTWTR_PATH) \
+	-DLOCALEDIR=\"$(LIBPURPLE_DATADIR)/locale\"
 
 AM_LDFLAGS = \
 	-L$(PRPLTWTR_PATH) \
