@@ -308,7 +308,7 @@ static void get_lists_cb(TwitterRequestor * r, xmlnode * node, gpointer user_dat
 {
     xmlnode        *list;
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+    purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
     if (!node)
         return;
 
@@ -327,14 +327,15 @@ static void get_lists_cb(TwitterRequestor * r, xmlnode * node, gpointer user_dat
                 id = strtoll(id_str, NULL, 10);
             } else {
                 id = 0;
-                purple_debug_warning(TWITTER_PROTOCOL_ID, "error with xmlnode. name = 0x%p, id_str=0x%p\n", name, id_str);
+                purple_debug_warning(purple_account_get_protocol_id(r->account), "error with xmlnode. name = 0x%p, id_str=0x%p\n", name, id_str);
             }
 #ifdef _HAZE_
             /* TODO */
 #else
-            purple_debug_info(TWITTER_PROTOCOL_ID, "List found: name %s, id %lld\n", name, id);
+            purple_debug_info(purple_account_get_protocol_id(r->account), "List found: name %s, id %lld\n", name, id);
             twitter_blist_chat_list_new(r->account, name, id);
 #endif
+
             g_free(id_str);
             g_free(name);
         }
@@ -345,7 +346,7 @@ static void get_saved_searches_cb(TwitterRequestor * r, xmlnode * node, gpointer
 {
     xmlnode        *search;
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+    purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
 
     for (search = node->child; search; search = search->next) {
         if (search->name && !g_strcmp0(search->name, "saved_search")) {
@@ -486,7 +487,7 @@ static void deleting_conversation_cb(PurpleConversation * conv, gpointer * unuse
         TwitterEndpointChat *ctx = twitter_endpoint_chat_find(account, purple_conversation_get_name(conv));
         if (ctx) {
             //TODO: move to endpoint_chat.c
-            purple_debug_info(TWITTER_PROTOCOL_ID, "destroying haze im chat %s\n", ctx->chat_name);
+            purple_debug_info(purple_account_get_protocol_id(account), "destroying haze im chat %s\n", ctx->chat_name);
             g_hash_table_remove(twitter->chat_contexts, purple_normalize(account, ctx->chat_name));
         }
     }
@@ -506,7 +507,7 @@ static void twitter_connected(PurpleAccount * account)
     TwitterConnectionData *twitter = gc->proto_data;
     int             get_friends_timer_timeout;
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+    purple_debug_info(purple_account_get_protocol_id(account), "%s\n", G_STRFUNC);
 
     twitter->mb_prefs = twitter_mb_prefs_new(account);
 
@@ -608,7 +609,7 @@ const char     *twitter_list_icon(PurpleAccount * account, PurpleBuddy * buddy)
 
 char           *twitter_status_text(PurpleBuddy * buddy)
 {
-    purple_debug_info(TWITTER_PROTOCOL_ID, "getting %s's status text for %s\n", buddy->name, buddy->account->username);
+    purple_debug_info(purple_account_get_protocol_id(buddy->account), "getting %s's status text for %s\n", buddy->name, buddy->account->username);
 
     if (purple_find_buddy(buddy->account, buddy->name)) {
         PurplePresence *presence = purple_buddy_get_presence(buddy);
@@ -629,7 +630,7 @@ void twitter_tooltip_text(PurpleBuddy * buddy, PurpleNotifyUserInfo * info, gboo
     PurpleStatus   *status = purple_presence_get_active_status(presence);
     char           *msg;
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "showing %s tooltip for %s\n", (full) ? "full" : "short", buddy->name);
+    purple_debug_info(purple_account_get_protocol_id(buddy->account), "showing %s tooltip for %s\n", (full) ? "full" : "short", buddy->name);
 
     if ((msg = twitter_status_text(buddy))) {
         purple_notify_user_info_add_pair(info, purple_status_get_name(status), msg);
@@ -893,7 +894,7 @@ static void twitter_oauth_access_token_success_cb(TwitterRequestor * r, const gc
         }
     } else {
         twitter_oauth_disconnect(account, _("Unknown response getting access token"));
-        purple_debug_error(TWITTER_PROTOCOL_ID, "Unknown error receiving access token: %s\n", response);
+        purple_debug_error(purple_account_get_protocol_id(account), "Unknown error receiving access token: %s\n", response);
     }
 }
 
@@ -945,7 +946,7 @@ static void twitter_oauth_request_token_success_cb(TwitterRequestor * r, const g
         g_free(prompt);
     } else {
         twitter_oauth_disconnect(account, _("Invalid response receiving request token"));
-        purple_debug_error(TWITTER_PROTOCOL_ID, "Unknown error receiving request token: %s\n", response);
+        purple_debug_error(purple_account_get_protocol_id(account), "Unknown error receiving request token: %s\n", response);
     }
     g_hash_table_destroy(results);
 }
@@ -1004,7 +1005,7 @@ static void twitter_requestor_pre_send_auth_basic(TwitterRequestor * r, gboolean
     char           *auth_text_b64 = purple_base64_encode((guchar *) auth_text, strlen(auth_text));
     *header_fields = g_new(gchar *, 2);
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "Auth info %s\n", auth_text);
+    purple_debug_info(purple_account_get_protocol_id(r->account), "Auth info %s\n", auth_text);
     (*header_fields)[0] = g_strdup_printf("Authorization: Basic %s", auth_text_b64);
     (*header_fields)[1] = NULL;
 
@@ -1055,7 +1056,7 @@ static void twitter_requestor_post_send_oauth(TwitterRequestor * r, gboolean * p
 
 static void twitter_requestor_post_failed(TwitterRequestor * r, const TwitterRequestErrorData ** error_data)
 {
-    purple_debug_error(TWITTER_PROTOCOL_ID, "post_failed called for account %s, error %d, message %s\n", r->account->username, (*error_data)->type, (*error_data)->message ? (*error_data)->message : "");
+    purple_debug_error(purple_account_get_protocol_id(r->account), "post_failed called for account %s, error %d, message %s\n", r->account->username, (*error_data)->type, (*error_data)->message ? (*error_data)->message : "");
     switch ((*error_data)->type) {
     case TWITTER_REQUEST_ERROR_UNAUTHORIZED:
         twitter_account_invalidate_token(r->account);
@@ -1087,7 +1088,7 @@ void twitter_login(PurpleAccount * account)
 
 #ifdef _HAZE_
         if (!strcmp(purple_account_get_protocol_id(account), TWITTER_PROTOCOL_ID)) {
-            purple_debug_info(TWITTER_PROTOCOL_ID, "Connecting conv signals for first time\n");
+            purple_debug_info(purple_account_get_protocol_id(account), "Connecting conv signals for first time\n");
             purple_signal_connect(purple_conversations_get_handle(), "conversation-created", twitter, PURPLE_CALLBACK(conversation_created_cb), NULL);
             purple_signal_connect(purple_conversations_get_handle(), "deleting-conversation", twitter, PURPLE_CALLBACK(deleting_conversation_cb), NULL);
         }
@@ -1098,7 +1099,7 @@ void twitter_login(PurpleAccount * account)
         if (!purple_prefs_get_bool("/prpltwtr/first-load-complete")) {
             PurplePlugin   *plugin = purple_plugins_find_with_id("gtkprpltwtr");
             if (plugin) {
-                purple_debug_info(TWITTER_PROTOCOL_ID, "Loading gtk plugin\n");
+                purple_debug_info(purple_account_get_protocol_id(account), "Loading gtk plugin\n");
                 purple_plugin_load(plugin);
             }
             purple_prefs_set_bool("/prpltwtr/first-load-complete", TRUE);
@@ -1106,7 +1107,7 @@ void twitter_login(PurpleAccount * account)
 
     }
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "logging in %s\n", account->username);
+    purple_debug_info(purple_account_get_protocol_id(account), "logging in %s\n", account->username);
 
     userparts = g_strsplit(account->username, "@", 2);
     purple_connection_set_display_name(gc, userparts[0]);
@@ -1233,13 +1234,13 @@ int twitter_send_im(PurpleConnection * gc, const char *conv_name, const char *me
 
 #ifdef _HAZE_
     if (conv_name[0] == '#') {
-        purple_debug_info(TWITTER_PROTOCOL_ID, "%s of search %s\n", G_STRFUNC, conv_name);
+        purple_debug_info(purple_account_get_protocol_id(account), "%s of search %s\n", G_STRFUNC, conv_name);
         TwitterEndpointChat *endpoint = twitter_endpoint_chat_find(account, conv_name);
         rv = twitter_endpoint_chat_send(endpoint, stripped_message);
         g_free(stripped_message);
         return rv;
     } else if (twitter_usernames_match(account, conv_name, "Timeline: Home")) {
-        purple_debug_info(TWITTER_PROTOCOL_ID, "%s of home timeline\n", G_STRFUNC);
+        purple_debug_info(purple_account_get_protocol_id(account), "%s of home timeline\n", G_STRFUNC);
         TwitterEndpointChat *endpoint = twitter_endpoint_chat_find(account, conv_name);
         rv = twitter_endpoint_chat_send(endpoint, stripped_message);
         g_free(stripped_message);
@@ -1257,7 +1258,7 @@ int twitter_send_im(PurpleConnection * gc, const char *conv_name, const char *me
 
 void twitter_set_info(PurpleConnection * gc, const char *info)
 {
-    purple_debug_info(TWITTER_PROTOCOL_ID, "setting %s's user info to %s\n", gc->account->username, info);
+    purple_debug_info(purple_account_get_protocol_id(purple_connection_get_account(gc)), "setting %s's user info to %s\n", gc->account->username, info);
 }
 
 void twitter_set_status(PurpleAccount * account, PurpleStatus * status)
@@ -1269,7 +1270,7 @@ void twitter_set_status(PurpleAccount * account, PurpleStatus * status)
 
     //TODO: I'm pretty sure this is broken
     msg = purple_status_get_attr_string(status, "message");
-    purple_debug_info(TWITTER_PROTOCOL_ID, "setting %s's status to %s: %s\n", account->username, purple_status_get_name(status), msg);
+    purple_debug_info(purple_account_get_protocol_id(account), "setting %s's status to %s: %s\n", account->username, purple_status_get_name(status), msg);
 
     if (msg && strcmp("", msg)) {
         //TODO, sucecss && fail
@@ -1288,7 +1289,7 @@ void twitter_add_buddies(PurpleConnection * gc, GList * buddies, GList * groups)
     GList          *buddy = buddies;
     GList          *group = groups;
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "adding multiple buddies\n");
+    purple_debug_info(purple_account_get_protocol_id(purple_connection_get_account(gc)), "adding multiple buddies\n");
 
     while (buddy && group) {
         twitter_add_buddy(gc, (PurpleBuddy *) buddy->data, (PurpleGroup *) group->data);
@@ -1301,7 +1302,7 @@ void twitter_remove_buddy(PurpleConnection * gc, PurpleBuddy * buddy, PurpleGrou
 {
     TwitterUserTweet *twitter_buddy_data = buddy->proto_data;
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "removing %s from %s's buddy list\n", buddy->name, gc->account->username);
+    purple_debug_info(purple_account_get_protocol_id(purple_connection_get_account(gc)), "removing %s from %s's buddy list\n", buddy->name, gc->account->username);
 
     if (!twitter_buddy_data)
         return;
@@ -1314,7 +1315,7 @@ void twitter_remove_buddies(PurpleConnection * gc, GList * buddies, GList * grou
     GList          *buddy = buddies;
     GList          *group = groups;
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "removing multiple buddies\n");
+    purple_debug_info(purple_account_get_protocol_id(purple_connection_get_account(gc)), "removing multiple buddies\n");
 
     while (buddy && group) {
         twitter_remove_buddy(gc, (PurpleBuddy *) buddy->data, (PurpleGroup *) group->data);
@@ -1327,7 +1328,7 @@ void twitter_get_cb_info(PurpleConnection * gc, int id, const char *who)
 {
     //TODO FIX ME
     PurpleConversation *conv = purple_find_chat(gc, id);
-    purple_debug_info(TWITTER_PROTOCOL_ID, "retrieving %s's info for %s in chat room %s\n", who, gc->account->username, conv->name);
+    purple_debug_info(purple_account_get_protocol_id(purple_connection_get_account(gc)), "retrieving %s's info for %s in chat room %s\n", who, gc->account->username, conv->name);
 
     twitter_api_get_info(gc, who);
 }
@@ -1340,7 +1341,7 @@ static void twitter_blist_char_attach_search_toggle(PurpleBlistNode * node, gpoi
     char           *chat_name = twitter_chat_get_name(components);
     PurpleConversation *conv;
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "Setting attach for %s to %d\n", chat_name, (int) userdata);
+    purple_debug_info(purple_account_get_protocol_id(account), "Setting attach for %s to %d\n", chat_name, (int) userdata);
     conv = purple_find_conversation_with_account(PURPLE_CONV_TYPE_CHAT, chat_name, account);
     g_hash_table_replace(components, g_strdup("attach_search_text"), (g_strdup_printf("%d", (int) userdata)));
     purple_signal_emit(purple_conversations_get_handle(), "prpltwtr-changed-attached-search", conv);
@@ -1361,7 +1362,7 @@ static void twitter_blist_chat_auto_open_toggle(PurpleBlistNode * node, gpointer
     if (!new_state && !purple_find_conversation_with_account(PURPLE_CONV_TYPE_CHAT, chat_name, account)
         && (ctx = twitter_endpoint_chat_find(account, chat_name))) {
         TwitterConnectionData *twitter = purple_account_get_connection(account)->proto_data;
-        purple_debug_info(TWITTER_PROTOCOL_ID, "No more auto open, destroying context\n");
+        purple_debug_info(purple_account_get_protocol_id(account), "No more auto open, destroying context\n");
         g_hash_table_remove(twitter->chat_contexts, purple_normalize(account, ctx->chat_name));
     } else if (new_state && !twitter_endpoint_chat_find(account, chat_name)) {
         //Join the chat, but don't automatically open the conversation
@@ -1400,7 +1401,7 @@ static void twitter_blist_buddy_clear_reply(PurpleBlistNode * node, gpointer use
     }
     purple_conversation_set_data(conv, "twitter_conv_last_reply_id_manual", NULL);
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "Cleared reply marker for %p\n", conv);
+    purple_debug_info(purple_account_get_protocol_id(purple_buddy_get_account(buddy)), "Cleared reply marker for %p\n", conv);
     purple_signal_emit(purple_conversations_get_handle(), "prpltwtr-set-reply", conv, NULL);
 }
 
@@ -1418,7 +1419,6 @@ static void twitter_blist_buddy_dm(PurpleBlistNode * node, gpointer userdata)
 GList          *twitter_blist_node_menu(PurpleBlistNode * node)
 {
     GList          *menu = NULL;
-    purple_debug_info(TWITTER_PROTOCOL_ID, "providing buddy list context menu item\n");
 
     if (PURPLE_BLIST_NODE_IS_CHAT(node)) {
         GList          *submenu = NULL;
@@ -1434,6 +1434,7 @@ GList          *twitter_blist_node_menu(PurpleBlistNode * node)
                                                           NULL, /* userdata passed to the callback */
                                                           NULL);    /* child menu items */
         g_free(label);
+        purple_debug_info(purple_account_get_protocol_id(purple_chat_get_account(PURPLE_CHAT(node))), "providing buddy list context menu item\n");
         menu = g_list_append(menu, action);
         if (chat_type == TWITTER_CHAT_SEARCH) {
             TWITTER_ATTACH_SEARCH_TEXT cur_attach_search_text = twitter_blist_chat_attach_search_text(chat);
@@ -1460,6 +1461,7 @@ GList          *twitter_blist_node_menu(PurpleBlistNode * node)
         }
     } else if (PURPLE_BLIST_NODE_IS_BUDDY(node)) {
         PurpleMenuAction *action;
+        purple_debug_info(purple_account_get_protocol_id(purple_buddy_get_account(PURPLE_BUDDY(node))), "providing buddy list context menu item\n");
         if (twitter_option_default_dm(purple_buddy_get_account(PURPLE_BUDDY(node)))) {
             action = purple_menu_action_new(_("@Message"), PURPLE_CALLBACK(twitter_blist_buddy_at_msg), NULL,   /* userdata passed to the callback */
                                             NULL);  /* child menu items */
@@ -1477,7 +1479,7 @@ GList          *twitter_blist_node_menu(PurpleBlistNode * node)
 
 void twitter_set_buddy_icon(PurpleConnection * gc, PurpleStoredImage * img)
 {
-    purple_debug_info(TWITTER_PROTOCOL_ID, "setting %s's buddy icon to %s\n", gc->account->username, purple_imgstore_get_filename(img));
+    purple_debug_info(purple_account_get_protocol_id(purple_connection_get_account(gc)), "setting %s's buddy icon to %s\n", gc->account->username, purple_imgstore_get_filename(img));
 }
 
 void twitter_convo_closed(PurpleConnection * gc, const gchar * conv_name)

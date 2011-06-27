@@ -276,7 +276,7 @@ static void twitter_send_request_cb(PurpleUtilFetchUrlData * url_data, gpointer 
     request_data->requestor->pending_requests = g_list_remove(request_data->requestor->pending_requests, request_data);
 
 #ifdef _DEBUG_
-    purple_debug_info(TWITTER_PROTOCOL_ID, "Received response: %s\n", response_text ? response_text : "NULL");
+    purple_debug_info(purple_account_get_protocol_id(request_data->requestor->account), "Received response: %s\n", response_text ? response_text : "NULL");
 #endif
 
     status_code = twitter_response_text_status_code(response_text);
@@ -284,7 +284,7 @@ static void twitter_send_request_cb(PurpleUtilFetchUrlData * url_data, gpointer 
     url_text = twitter_response_text_data(response_text, len);
 
     if (server_error_message) {
-        purple_debug_error(TWITTER_PROTOCOL_ID, "Response error: %s\n", server_error_message);
+        purple_debug_error(purple_account_get_protocol_id(request_data->requestor->account), "Response error: %s\n", server_error_message);
         error_type = TWITTER_REQUEST_ERROR_SERVER;
         error_message = g_strdup(server_error_message);
     } else {
@@ -342,7 +342,7 @@ static void twitter_send_request_cb(PurpleUtilFetchUrlData * url_data, gpointer 
     } else {
         twitter_response_text_rate_limit(response_text, &(request_data->requestor->rate_limit_remaining), &(request_data->requestor->rate_limit_total));
 
-        purple_debug_info(TWITTER_PROTOCOL_ID, "Valid response, calling success func\n");
+        purple_debug_info(purple_account_get_protocol_id(request_data->requestor->account), "Valid response, calling success func\n");
         if (request_data->success_func)
             request_data->success_func(request_data->requestor, url_text, request_data->user_data);
     }
@@ -365,7 +365,7 @@ static gpointer twitter_send_request_querystring(TwitterRequestor * r, gboolean 
                                                url);
     char           *header_fields_text = (header_fields ? g_strjoinv("\r\n", header_fields) : NULL);
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "Sending %s request to: %s ? %s\n", post ? "POST" : "GET", full_url, query_string ? query_string : "");
+    purple_debug_info(purple_account_get_protocol_id(account), "Sending %s request to: %s ? %s\n", post ? "POST" : "GET", full_url, query_string ? query_string : "");
 
     request_data->requestor = r;
     request_data->user_data = data;
@@ -377,7 +377,7 @@ static gpointer twitter_send_request_querystring(TwitterRequestor * r, gboolean 
                               "Content-Length: %lu\r\n\r\n" "%s", post ? "POST" : "GET", full_url, (!post && query_string ? "?" : ""), (!post && query_string ? query_string : ""), host, header_fields_text ? header_fields_text : "", header_fields_text ? "\r\n" : "", post ? "Content-Type: application/x-www-form-urlencoded\r\n" : "", query_string && post ? (unsigned long) strlen(query_string) : 0, query_string && post ? query_string : "");
 
 #ifdef _DEBUG_
-    purple_debug_info(TWITTER_PROTOCOL_ID, "Sending request: %s\n", request);
+    purple_debug_info(purple_account_get_protocol_id(account), "Sending request: %s\n", request);
 #endif
 
     request_data->request_id = purple_util_fetch_url_request(full_url, TRUE, USER_AGENT, TRUE, request, TRUE, twitter_send_request_cb, request_data);
@@ -427,14 +427,14 @@ static void twitter_xml_request_success_cb(TwitterRequestor * r, const gchar * r
 
     response_node = xmlnode_from_str(response, strlen(response));
     if (!response_node) {
-        purple_debug_error(TWITTER_PROTOCOL_ID, "Response error: invalid xml\n");
+        purple_debug_error(purple_account_get_protocol_id(r->account), "Response error: invalid xml\n");
         error_type = TWITTER_REQUEST_ERROR_INVALID_XML;
         error_message = response;
     } else {
         if ((error_message = twitter_xml_node_parse_error(response_node))) {
             error_type = TWITTER_REQUEST_ERROR_TWITTER_GENERAL;
             error_message = error_node_text;
-            purple_debug_error(TWITTER_PROTOCOL_ID, "Response error: Twitter error %s\n", error_message);
+            purple_debug_error(purple_account_get_protocol_id(r->account), "Response error: Twitter error %s\n", error_message);
         }
     }
 
@@ -449,7 +449,7 @@ static void twitter_xml_request_success_cb(TwitterRequestor * r, const gchar * r
 
         g_free(error_data);
     } else {
-        purple_debug_info(TWITTER_PROTOCOL_ID, "Valid response, calling success func\n");
+        purple_debug_info(purple_account_get_protocol_id(r->account), "Valid response, calling success func\n");
         if (request_data->success_func)
             request_data->success_func(r, response_node, request_data->user_data);
     }
@@ -524,12 +524,12 @@ static gchar   *twitter_oauth_sign(const gchar * txt, const gchar * key)
 
     cipher = purple_ciphers_find_cipher("hmac");
     if (!cipher) {
-        purple_debug_error(TWITTER_PROTOCOL_ID, "%s: Could not find cipher\n", G_STRFUNC);
+        purple_debug_error(GENERIC_PROTOCOL_ID, "%s: Could not find cipher\n", G_STRFUNC);
         return NULL;
     }
     ctx = purple_cipher_context_new(cipher, NULL);
     if (!ctx) {
-        purple_debug_error(TWITTER_PROTOCOL_ID, "%s: Could not create cipher context\n", G_STRFUNC);
+        purple_debug_error(GENERIC_PROTOCOL_ID, "%s: Could not create cipher context\n", G_STRFUNC);
         return NULL;
     }
     purple_cipher_context_set_option(ctx, "hash", "sha1");
@@ -537,7 +537,7 @@ static gchar   *twitter_oauth_sign(const gchar * txt, const gchar * key)
     purple_cipher_context_set_key(ctx, (guchar *) key);
     purple_cipher_context_append(ctx, (guchar *) txt, strlen(txt));
     if (!purple_cipher_context_digest(ctx, 20, output, &output_size)) {
-        purple_debug_error(TWITTER_PROTOCOL_ID, "%s: Could not sign text\n", G_STRFUNC);
+        purple_debug_error(GENERIC_PROTOCOL_ID, "%s: Could not sign text\n", G_STRFUNC);
         purple_cipher_context_destroy(ctx);
         return NULL;
     }
@@ -602,16 +602,16 @@ static void twitter_send_xml_request_multipage_cb(TwitterRequestor * r, xmlnode 
     if (count < request_data->expected_count)
         last_page = TRUE;
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "%s: last_page: %s, count: %d, expected_count: %d\n", G_STRFUNC, last_page ? "yes" : "no", count, request_data->expected_count);
+    purple_debug_info(purple_account_get_protocol_id(r->account), "%s: last_page: %s, count: %d, expected_count: %d\n", G_STRFUNC, last_page ? "yes" : "no", count, request_data->expected_count);
 
     if (!request_data->success_callback) {
         get_next_page = TRUE;
 
-        purple_debug_info(TWITTER_PROTOCOL_ID, "%s no request_data->success_callback, get_next_page: yes\n", G_STRFUNC);
+        purple_debug_info(purple_account_get_protocol_id(r->account), "%s no request_data->success_callback, get_next_page: yes\n", G_STRFUNC);
     } else {
         get_next_page = request_data->success_callback(r, node, last_page, request_data, request_data->user_data);
 
-        purple_debug_info(TWITTER_PROTOCOL_ID, "%s get_next_page: %s\n", G_STRFUNC, get_next_page ? "yes" : "no");
+        purple_debug_info(purple_account_get_protocol_id(r->account), "%s get_next_page: %s\n", G_STRFUNC, get_next_page ? "yes" : "no");
     }
 
     if (last_page || !get_next_page) {
@@ -645,7 +645,7 @@ void twitter_send_xml_request_multipage_do(TwitterRequestor * r, TwitterMultiPag
     twitter_request_params_add(request_data->params, twitter_request_param_new_int("count", request_data->expected_count));
     twitter_request_params_add(request_data->params, twitter_request_param_new_int("per_page", request_data->expected_count));
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "%s: page: %d\n", G_STRFUNC, request_data->page);
+    purple_debug_info(purple_account_get_protocol_id(r->account), "%s: page: %d\n", G_STRFUNC, request_data->page);
 
     twitter_send_xml_request(r, FALSE, request_data->url, request_data->params, twitter_send_xml_request_multipage_cb, twitter_send_xml_request_multipage_error_cb, request_data);
     twitter_request_params_set_size(request_data->params, len);
@@ -679,12 +679,12 @@ static gboolean twitter_send_xml_request_multipage_all_success_cb(TwitterRequest
 {
     TwitterMultiPageAllRequestData *request_data_all = user_data;
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+    purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
 
     request_data_all->nodes = g_list_prepend(request_data_all->nodes, xmlnode_copy(node));  //TODO: update
     request_data_all->current_count += xmlnode_child_count(node);
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "%s last_page: %d current_count: %d max_count: %d count: %d\n", G_STRFUNC, last_page ? 1 : 0, request_data_all->current_count, request_data_all->max_count, request_multi->expected_count);
+    purple_debug_info(purple_account_get_protocol_id(r->account), "%s last_page: %d current_count: %d max_count: %d count: %d\n", G_STRFUNC, last_page ? 1 : 0, request_data_all->current_count, request_data_all->max_count, request_multi->expected_count);
     if (last_page || (request_data_all->max_count > 0 && request_data_all->current_count >= request_data_all->max_count)) {
         request_data_all->success_callback(r, request_data_all->nodes, request_data_all->user_data);
         twitter_multipage_all_request_data_free(request_data_all);
@@ -751,7 +751,7 @@ static void twitter_send_xml_request_with_cursor_cb(TwitterRequestor * r, xmlnod
         request_data->next_cursor = 0;
     }
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "%s next_cursor: %lld\n", G_STRFUNC, request_data->next_cursor);
+    purple_debug_info(purple_account_get_protocol_id(r->account), "%s next_cursor: %lld\n", G_STRFUNC, request_data->next_cursor);
 
     users = xmlnode_get_child(node, "users");
     if (!users && node->name && !strcmp(node->name, "users"))
@@ -805,16 +805,16 @@ void twitter_send_xml_request_with_cursor(TwitterRequestor * r, const char *url,
     twitter_request_params_set_size(request_data->params, len);
 }
 
-void twitter_requestor_free(TwitterRequestor * requestor)
+void twitter_requestor_free(TwitterRequestor * r)
 {
     GList          *l;
-    purple_debug_info(TWITTER_PROTOCOL_ID, "Freeing requestor\n");
-    if (requestor->pending_requests) {
+    purple_debug_info(purple_account_get_protocol_id(r->account), "Freeing requestor\n");
+    if (r->pending_requests) {
         TwitterRequestErrorData *error_data;
         error_data = g_new0(TwitterRequestErrorData, 1);
         error_data->type = TWITTER_REQUEST_ERROR_CANCELED;
         error_data->message = NULL;
-        for (l = requestor->pending_requests; l; l = l->next) {
+        for (l = r->pending_requests; l; l = l->next) {
             TwitterSendRequestData *request_data = l->data;
             //TODO: move this to a ->cancel function
             purple_util_fetch_url_cancel(request_data->request_id);
@@ -822,8 +822,8 @@ void twitter_requestor_free(TwitterRequestor * requestor)
             twitter_requestor_on_error(request_data->requestor, error_data, request_data->error_func, request_data->user_data);
             g_free(request_data);
         }
-        g_list_free(requestor->pending_requests);
+        g_list_free(r->pending_requests);
         g_free(error_data);
     }
-    g_free(requestor);
+    g_free(r);
 }

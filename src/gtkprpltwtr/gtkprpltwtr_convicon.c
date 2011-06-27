@@ -58,7 +58,7 @@ static TwitterConvIcon *twitter_conv_icon_new(PurpleAccount * account, const gch
 {
     TwitterConvIcon *conv_icon = g_new0(TwitterConvIcon, 1);
     conv_icon->username = g_strdup(purple_normalize(account, username));
-    purple_debug_info(DEBUG_ID, "Created conv icon %s\n", conv_icon->username);
+    purple_debug_info(PLUGIN_ID, "Created conv icon %s\n", conv_icon->username);
     return conv_icon;
 }
 
@@ -178,7 +178,7 @@ static TwitterConvIcon *twitter_conv_icon_find(PurpleAccount * account, const ch
         return NULL;
     }
 
-    purple_debug_info(DEBUG_ID, "Looking up %s\n", who);
+    purple_debug_info(PLUGIN_ID, "Looking up %s\n", who);
     conv_icon = g_hash_table_lookup(twitter->icons, purple_normalize(account, who));
     if ((!conv_icon || !conv_icon->pixbuf) && (buddy_icon = purple_buddy_icons_find(account, who))) {
         if (!conv_icon) {
@@ -262,7 +262,7 @@ static void insert_icon_at_mark(GtkTextMark * requested_mark, gpointer user_data
     }
 
     if (!(target_imhtml && target_buffer)) {
-        purple_debug_warning(DEBUG_ID, "No target imhtml/target buffer\n");
+        purple_debug_warning(PLUGIN_ID, "No target imhtml/target buffer\n");
         return;
     }
 
@@ -274,13 +274,13 @@ static void insert_icon_at_mark(GtkTextMark * requested_mark, gpointer user_data
      * thrashing. --yaz */
 
     if (!conv_icon || !conv_icon->pixbuf) {
-        purple_debug_warning(DEBUG_ID, "No pixbuf\n");
+        purple_debug_warning(PLUGIN_ID, "No pixbuf\n");
         return;
     }
 
 /* We only want to add the icon if the mark is still on screen. If the user cleared the screen with a ctrl-L, this won't be true. TODO -- can we get a callback at the clear and just delete the mark there? */
     if (TRUE == gtk_text_iter_is_end(&insertion_point)) {
-        purple_debug_warning(DEBUG_ID, "Not adding the icon, since the insertion point is no longer in the buffer\n");
+        purple_debug_warning(PLUGIN_ID, "Not adding the icon, since the insertion point is no longer in the buffer\n");
     } else {
         /* insert icon actually */
         gtk_text_buffer_insert_pixbuf(target_buffer, &insertion_point, conv_icon->pixbuf);
@@ -288,7 +288,7 @@ static void insert_icon_at_mark(GtkTextMark * requested_mark, gpointer user_data
 
     gtk_text_buffer_delete_mark(target_buffer, requested_mark);
     requested_mark = NULL;
-    purple_debug_info(DEBUG_ID, "inserted icon into conv\n");
+    purple_debug_info(PLUGIN_ID, "inserted icon into conv\n");
 }
 
 static void insert_requested_icon(TwitterConvIcon * conv_icon)
@@ -300,7 +300,7 @@ static void insert_requested_icon(TwitterConvIcon * conv_icon)
 
     mark_list = conv_icon->request_list;
 
-    purple_debug_info(DEBUG_ID, "about to insert icon for pending requests\n");
+    purple_debug_info(PLUGIN_ID, "about to insert icon for pending requests\n");
 
     if (mark_list) {
         g_list_foreach(mark_list, (GFunc) insert_icon_at_mark, conv_icon);
@@ -326,12 +326,12 @@ static void got_page_cb(PurpleUtilFetchUrlData * url_data, gpointer user_data, c
     conv_icon->fetch_data = NULL;
 
     if (len && !error_message && twitter_response_text_status_code(url_text) == 200 && (pic_data = twitter_response_text_data(url_text, len))) {
-        purple_debug_info(DEBUG_ID, "Attempting to create pixbuf\n");
+        purple_debug_info(PLUGIN_ID, "Attempting to create pixbuf\n");
         conv_icon->pixbuf = make_scaled_pixbuf((const guchar *) pic_data, len);
     }
 
     if (conv_icon->pixbuf) {
-        purple_debug_info(DEBUG_ID, "All succeeded, inserting\n");
+        purple_debug_info(PLUGIN_ID, "All succeeded, inserting\n");
         insert_requested_icon(conv_icon);
     }
 }
@@ -359,7 +359,7 @@ void twitter_conv_icon_got_user_icon(PurpleAccount * account, const char *user_n
         //and with a different url
         gboolean        new_icon = !conv_icon->icon_url || (strcmp(url, conv_icon->icon_url) && icon_time > conv_icon->mtime);
 
-        purple_debug_info(DEBUG_ID, "Have icon %s (%lld) for user %s, looking for %s (%lld)\n", conv_icon->icon_url, (long long int) conv_icon->mtime, user_name, url, (long long int) icon_time);
+        purple_debug_info(PLUGIN_ID, "Have icon %s (%lld) for user %s, looking for %s (%lld)\n", conv_icon->icon_url, (long long int) conv_icon->mtime, user_name, url, (long long int) icon_time);
 
         if (icon_time > conv_icon->mtime)
             conv_icon->mtime = icon_time;
@@ -391,7 +391,7 @@ void twitter_conv_icon_got_user_icon(PurpleAccount * account, const char *user_n
     /* Create the URL for an user's icon. */
     if (url) {
         BuddyIconContext *ctx = twitter_buddy_icon_context_new(account, user_name, url);
-        purple_debug_info(DEBUG_ID, "requesting %s for %s\n", url, user_name);
+        purple_debug_info(PLUGIN_ID, "requesting %s for %s\n", url, user_name);
         conv_icon->fetch_data = purple_util_fetch_url_request(url, TRUE, NULL, FALSE, NULL, TRUE, got_page_cb, ctx);
     }
 }
@@ -400,7 +400,7 @@ static void twitter_conv_icon_free(TwitterConvIcon * conv_icon)
 {
     if (!conv_icon)
         return;
-    purple_debug_info(DEBUG_ID, "Freeing icon for %s\n", conv_icon->username);
+    purple_debug_info(PLUGIN_ID, "Freeing icon for %s\n", conv_icon->username);
     if (conv_icon->requested) {
         if (conv_icon->fetch_data) {
             purple_util_fetch_url_cancel(conv_icon->fetch_data);
@@ -441,7 +441,7 @@ static gboolean twitter_conv_icon_displaying_chat_cb(PurpleAccount * account, co
     if (account != account_signal)
         return FALSE;
 
-    purple_debug_info(DEBUG_ID, "called %s\n", G_STRFUNC);
+    purple_debug_info(PLUGIN_ID, "called %s\n", G_STRFUNC);
 
     /* get text buffer */
     imhtml = GTK_IMHTML(PIDGIN_CONVERSATION(conv)->imhtml);
@@ -456,14 +456,14 @@ static gboolean twitter_conv_icon_displaying_chat_cb(PurpleAccount * account, co
     //a single global int. 
     //On another note, we don't insert the icon here because the message may not end up being displayed
     //based on what other plugins do
-    purple_conversation_set_data(conv, TWITTER_PROTOCOL_ID "-icon-ln", GINT_TO_POINTER(linenumber));
+    purple_conversation_set_data(conv, PLUGIN_ID "-icon-ln", GINT_TO_POINTER(linenumber));
 
     return FALSE;
 }
 
 static void twitter_conv_icon_add_conv(TwitterConvIcon * conv_icon, PurpleConversation * conv)
 {
-    GList         **conv_conv_icons = purple_conversation_get_data(conv, TWITTER_PROTOCOL_ID "-conv-icons");
+    GList         **conv_conv_icons = purple_conversation_get_data(conv, PLUGIN_ID "-conv-icons");
     g_return_if_fail(conv_conv_icons != NULL);
 
     if (!g_list_find(conv_icon->convs, conv)) {
@@ -505,14 +505,14 @@ static void twitter_conv_icon_displayed_chat_cb(PurpleAccount * account, const c
 
     twitter = gc->proto_data;
 
-    purple_debug_info(DEBUG_ID, "%s\n", G_STRFUNC);
+    purple_debug_info(PLUGIN_ID, "%s\n", G_STRFUNC);
 
     /* insert icon */
     imhtml = GTK_IMHTML(PIDGIN_CONVERSATION(conv)->imhtml);
     text_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(imhtml));
 
     /* get GtkTextIter in the target line */
-    linenumber = GPOINTER_TO_INT(purple_conversation_get_data(conv, TWITTER_PROTOCOL_ID "-icon-ln"));
+    linenumber = GPOINTER_TO_INT(purple_conversation_get_data(conv, PLUGIN_ID "-icon-ln"));
     gtk_text_buffer_get_iter_at_line(text_buffer, &insertion_point, linenumber);
 
     conv_icon = twitter_conv_icon_find(account, who);
@@ -537,7 +537,7 @@ static void twitter_conv_icon_displayed_chat_cb(PurpleAccount * account, const c
         }
     }
 
-    purple_debug_info(DEBUG_ID, "end %s\n", G_STRFUNC);
+    purple_debug_info(PLUGIN_ID, "end %s\n", G_STRFUNC);
 }
 
 static void twitter_conv_icon_remove_conversation_conv_icons(PurpleConversation * conv)
@@ -545,9 +545,9 @@ static void twitter_conv_icon_remove_conversation_conv_icons(PurpleConversation 
     GList         **conv_icons;
     GList          *l;
     g_return_if_fail(conv != NULL);
-    purple_debug_info(TWITTER_PROTOCOL_ID, "%s conv %s\n", G_STRFUNC, purple_conversation_get_name(conv));
+    purple_debug_info(PLUGIN_ID, "%s conv %s\n", G_STRFUNC, purple_conversation_get_name(conv));
 
-    conv_icons = purple_conversation_get_data(conv, TWITTER_PROTOCOL_ID "-conv-icons");
+    conv_icons = purple_conversation_get_data(conv, PLUGIN_ID "-conv-icons");
 
     if (conv_icons) {
         for (l = *conv_icons; l; l = l->next) {
@@ -567,7 +567,7 @@ static void twitter_conv_icon_deleting_conversation_cb(PurpleConversation * conv
 
     twitter_conv_icon_remove_conversation_conv_icons(conv);
 
-    conv_icons = purple_conversation_get_data(conv, TWITTER_PROTOCOL_ID "-conv-icons");
+    conv_icons = purple_conversation_get_data(conv, PLUGIN_ID "-conv-icons");
     g_free(conv_icons);
 }
 
@@ -578,7 +578,7 @@ static void twitter_conv_icon_conversation_created_cb(PurpleConversation * conv,
         return;
     conv_icons = g_new0(GList *, 1);
 
-    purple_conversation_set_data(conv, TWITTER_PROTOCOL_ID "-conv-icons", conv_icons);
+    purple_conversation_set_data(conv, PLUGIN_ID "-conv-icons", conv_icons);
 }
 
 void twitter_conv_icon_account_load(PurpleAccount * account)

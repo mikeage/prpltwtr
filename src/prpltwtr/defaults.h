@@ -44,6 +44,7 @@
 
 #define TWITTER_PROTOCOL_ID "prpl-twitter"
 #define STATUSNET_PROTOCOL_ID "prpl-statusnet"
+#define GENERIC_PROTOCOL_ID "prpltwtr"
 
 #define TWITTER_OAUTH_KEY "9hDKG0Lty62lPca2XoA"
 #define TWITTER_OAUTH_SECRET "WmCXa0M1Q5k89WTZhnqUhxaebvF3faVkzGWGiwpoZkc"

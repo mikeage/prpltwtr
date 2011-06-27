@@ -123,7 +123,7 @@ static PurpleChat *_twitter_blist_chat_find(PurpleAccount * account, TwitterChat
     g_return_val_if_fail((component_value != NULL) && (*component_value != '\0'), NULL);
 
     normname = g_strdup(purple_normalize(account, component_value));
-    purple_debug_info(TWITTER_PROTOCOL_ID, "Account %s searching for chat %s type %d\n", account->username, component_value == NULL ? "NULL" : component_value, chat_type);
+    purple_debug_info(purple_account_get_protocol_id(account), "Account %s searching for chat %s type %d\n", account->username, component_value == NULL ? "NULL" : component_value, chat_type);
 
     if (normname == NULL) {
         return NULL;
@@ -192,7 +192,7 @@ PurpleChat     *twitter_blist_chat_find(PurpleAccount * account, const char *nam
     } else if (strlen(name) > strlen(list) && !strncmp(list, name, strlen(list))) {
         c = twitter_blist_chat_find_list(account, name + strlen(list));
     } else {
-        purple_debug_error(TWITTER_PROTOCOL_ID, "Invalid call to %s; assuming \"search\" for %s\n", G_STRFUNC, name);
+        purple_debug_error(purple_account_get_protocol_id(account), "Invalid call to %s; assuming \"search\" for %s\n", G_STRFUNC, name);
         c = twitter_blist_chat_find_search(account, name);
     }
     return c;
@@ -230,7 +230,7 @@ static void twitter_chat_add_tweet(PurpleConversation * conv, const char *who, c
     PurpleConvChat *chat;
 #endif
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+    purple_debug_info(purple_account_get_protocol_id(purple_conversation_get_account(conv)), "%s\n", G_STRFUNC);
 
 #ifndef _HAZE_
     chat = purple_conversation_get_chat_data(conv);
@@ -249,11 +249,11 @@ static void twitter_chat_add_tweet(PurpleConversation * conv, const char *who, c
     serv_got_im(purple_conversation_get_gc(conv), conv->name, tweet, PURPLE_MESSAGE_RECV, time);
 #else
     if (!purple_conv_chat_find_user(chat, who)) {
-        purple_debug_info(TWITTER_PROTOCOL_ID, "added %s to chat %s\n", who, purple_conversation_get_name(conv));
+        purple_debug_info(purple_account_get_protocol_id(purple_conversation_get_account(conv)), "added %s to chat %s\n", who, purple_conversation_get_name(conv));
         purple_conv_chat_add_user(chat, who, NULL,  /* user-provided join message, IRC style */
                                   PURPLE_CBFLAGS_NONE, FALSE);  /* show a join message */
     }
-    purple_debug_info(TWITTER_PROTOCOL_ID, "message %s\n", message);
+    purple_debug_info(purple_account_get_protocol_id(purple_conversation_get_account(conv)), "message %s\n", message);
     serv_got_chat_in(purple_conversation_get_gc(conv), purple_conv_chat_get_id(chat), who, PURPLE_MESSAGE_RECV, tweet, time);
 #endif
     g_free(tweet);
@@ -269,7 +269,7 @@ static PurpleConversation *twitter_endpoint_chat_get_conv(TwitterEndpointChat * 
     if (conv == NULL && (blist_chat = twitter_blist_chat_find(endpoint_chat->account, endpoint_chat->chat_name))) {
         if (twitter_blist_chat_is_auto_open(blist_chat)) {
             guint           chat_id;
-            purple_debug_info(TWITTER_PROTOCOL_ID, "%s, recreated conv for auto open chat (%s)\n", G_STRFUNC, endpoint_chat->chat_name);
+            purple_debug_info(purple_account_get_protocol_id(endpoint_chat->account), "%s, recreated conv for auto open chat (%s)\n", G_STRFUNC, endpoint_chat->chat_name);
             chat_id = twitter_get_next_chat_id(endpoint_chat->account);
             conv = serv_got_joined_chat(purple_account_get_connection(endpoint_chat->account), chat_id, endpoint_chat->chat_name);
         }
@@ -331,7 +331,7 @@ void twitter_chat_update_rate_limit(TwitterEndpointChat * endpoint_chat)
 
             status = g_strdup_printf("Rate limit: %d/%d [%s]", endpoint_chat->rate_limit_remaining, endpoint_chat->rate_limit_total, rate_limit_graph);
             purple_conv_chat_set_topic(PURPLE_CONV_CHAT(conv), "system", status);
-            purple_debug_info(TWITTER_PROTOCOL_ID, "Setting title to %s for conv=%p\n", status, conv);
+            purple_debug_info(purple_account_get_protocol_id(purple_conversation_get_account(conv)), "Setting title to %s for conv=%p\n", status, conv);
 
             g_free(status);
         }
@@ -434,7 +434,7 @@ void twitter_endpoint_chat_start(PurpleConnection * gc, TwitterEndpointChatSetti
     //HAZE only works when the conv has already been created
     //as opposed to right before the conversation has been created
     if (!purple_find_conversation_with_account(PURPLE_CONV_TYPE_IM, chat_name, account)) {
-        purple_debug_warning(TWITTER_PROTOCOL_ID, "Could not find chat %s\n", chat_name);
+        purple_debug_warning(purple_account_get_protocol_id(account), "Could not find chat %s\n", chat_name);
         g_free(chat_name);
         return;
     }
@@ -463,7 +463,7 @@ void twitter_endpoint_chat_start(PurpleConnection * gc, TwitterEndpointChatSetti
             serv_got_joined_chat(gc, chat_id, chat_name);
         }
     } else {
-        purple_debug_warning(TWITTER_PROTOCOL_ID, "Chat %s is already open.\n", chat_name);
+        purple_debug_warning(purple_account_get_protocol_id(account), "Chat %s is already open.\n", chat_name);
     }
 #endif
 

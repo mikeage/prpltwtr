@@ -16,11 +16,11 @@ static void twitter_list_timeout_context_free(gpointer _ctx)
 
     ctx->last_tweet_id = 0;
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "%s %s\n", G_STRFUNC, ctx->list_name);
+    purple_debug_info(GENERIC_PROTOCOL_ID, "%s %s\n", G_STRFUNC, ctx->list_name);
     g_free(ctx->list_name);
     ctx->list_name = NULL;
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "%s %s\n", G_STRFUNC, ctx->list_id);
+    purple_debug_info(GENERIC_PROTOCOL_ID, "%s %s\n", G_STRFUNC, ctx->list_id);
     g_free(ctx->list_id);
     ctx->list_id = NULL;
 
@@ -52,7 +52,7 @@ static void twitter_get_list_parse_statuses(TwitterEndpointChat * endpoint_chat,
     GList          *l;
     TwitterUserTweet *user_tweet;
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+    purple_debug_info(purple_account_get_protocol_id(endpoint_chat->account), "%s\n", G_STRFUNC);
 
     g_return_if_fail(endpoint_chat != NULL);
     gc = purple_account_get_connection(endpoint_chat->account);
@@ -86,7 +86,7 @@ static void twitter_get_list_cb(TwitterRequestor * r, xmlnode * node, gpointer u
     TwitterEndpointChat *endpoint_chat;
     GList          *statuses;
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+    purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
 
     g_return_if_fail(chat_id != NULL);
     endpoint_chat = twitter_endpoint_chat_find_by_id(chat_id);
@@ -109,7 +109,7 @@ static void twitter_get_list_all_cb(TwitterRequestor * r, GList * nodes, gpointe
     TwitterEndpointChat *endpoint_chat;
     GList          *statuses;
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+    purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
 
     g_return_if_fail(chat_id != NULL);
     endpoint_chat = twitter_endpoint_chat_find_by_id(chat_id);
@@ -125,46 +125,46 @@ static void twitter_get_list_all_cb(TwitterRequestor * r, GList * nodes, gpointe
     twitter_get_list_parse_statuses(endpoint_chat, statuses);
 }
 
-static gboolean twitter_endpoint_list_interval_start(TwitterEndpointChat * endpoint)
+static gboolean twitter_endpoint_list_interval_start(TwitterEndpointChat * endpoint_chat)
 {
-    PurpleAccount  *account = endpoint->account;
-    TwitterListTimeoutContext *ctx = endpoint->endpoint_data;
+    PurpleAccount  *account = endpoint_chat->account;
+    TwitterListTimeoutContext *ctx = endpoint_chat->endpoint_data;
     //PurpleConnection *gc = purple_account_get_connection(account);
-    TwitterEndpointChatId *chat_id = twitter_endpoint_chat_id_new(endpoint);
+    TwitterEndpointChatId *chat_id = twitter_endpoint_chat_id_new(endpoint_chat);
     gchar          *key = g_strdup_printf("list_%s", ctx->list_name);
 
-    ctx->last_tweet_id = purple_account_get_long_long(endpoint->account, key, -1);
+    ctx->last_tweet_id = purple_account_get_long_long(endpoint_chat->account, key, -1);
     g_free(key);
-    purple_debug_info(TWITTER_PROTOCOL_ID, "Resuming list for %s from %lld\n", ctx->list_name, ctx->last_tweet_id);
+    purple_debug_info(purple_account_get_protocol_id(account), "Resuming list for %s from %lld\n", ctx->list_name, ctx->last_tweet_id);
 
     if (ctx->last_tweet_id == 0) {
-        purple_debug_info(TWITTER_PROTOCOL_ID, "Retrieving %s statuses for first time\n", ctx->list_name);
-        twitter_api_get_list(purple_account_get_requestor(endpoint->account), ctx->list_id, ctx->last_tweet_id, TWITTER_LIST_INITIAL_COUNT, 1, twitter_get_list_cb, NULL, chat_id);
+        purple_debug_info(purple_account_get_protocol_id(account), "Retrieving %s statuses for first time\n", ctx->list_name);
+        twitter_api_get_list(purple_account_get_requestor(account), ctx->list_id, ctx->last_tweet_id, TWITTER_LIST_INITIAL_COUNT, 1, twitter_get_list_cb, NULL, chat_id);
     } else {
-        purple_debug_info(TWITTER_PROTOCOL_ID, "Retrieving %s statuses since %lld\n", ctx->list_name, ctx->last_tweet_id);
+        purple_debug_info(purple_account_get_protocol_id(account), "Retrieving %s statuses since %lld\n", ctx->list_name, ctx->last_tweet_id);
         twitter_api_get_list_all(purple_account_get_requestor(account), ctx->list_id, ctx->last_tweet_id, twitter_get_list_all_cb, NULL, twitter_option_list_max_tweets(account), chat_id);
     }
 
     return TRUE;
 }
 
-static gboolean twitter_list_timeout(TwitterEndpointChat * endpoint)
+static gboolean twitter_list_timeout(TwitterEndpointChat * endpoint_chat)
 {
-    PurpleAccount  *account = endpoint->account;
-    TwitterListTimeoutContext *ctx = endpoint->endpoint_data;
+    PurpleAccount  *account = endpoint_chat->account;
+    TwitterListTimeoutContext *ctx = endpoint_chat->endpoint_data;
     //PurpleConnection *gc = purple_account_get_connection(account);
-    TwitterEndpointChatId *chat_id = twitter_endpoint_chat_id_new(endpoint);
+    TwitterEndpointChatId *chat_id = twitter_endpoint_chat_id_new(endpoint_chat);
     gchar          *key = g_strdup_printf("list_%s", ctx->list_name);
 
-    ctx->last_tweet_id = purple_account_get_long_long(endpoint->account, key, -1);
+    ctx->last_tweet_id = purple_account_get_long_long(endpoint_chat->account, key, -1);
     g_free(key);
-    purple_debug_info(TWITTER_PROTOCOL_ID, "Resuming list for %s from %lld\n", ctx->list_name, ctx->last_tweet_id);
+    purple_debug_info(purple_account_get_protocol_id(account), "Resuming list for %s from %lld\n", ctx->list_name, ctx->last_tweet_id);
 
     if (ctx->last_tweet_id == 0) {
-        purple_debug_info(TWITTER_PROTOCOL_ID, "Retrieving %s statuses for first time\n", ctx->list_name);
-        twitter_api_get_list(purple_account_get_requestor(endpoint->account), ctx->list_id, ctx->last_tweet_id, TWITTER_LIST_INITIAL_COUNT, 1, twitter_get_list_cb, NULL, chat_id);
+        purple_debug_info(purple_account_get_protocol_id(account), "Retrieving %s statuses for first time\n", ctx->list_name);
+        twitter_api_get_list(purple_account_get_requestor(account), ctx->list_id, ctx->last_tweet_id, TWITTER_LIST_INITIAL_COUNT, 1, twitter_get_list_cb, NULL, chat_id);
     } else {
-        purple_debug_info(TWITTER_PROTOCOL_ID, "Retrieving %s statuses since %lld\n", ctx->list_name, ctx->last_tweet_id);
+        purple_debug_info(purple_account_get_protocol_id(account), "Retrieving %s statuses since %lld\n", ctx->list_name, ctx->last_tweet_id);
         twitter_api_get_list_all(purple_account_get_requestor(account), ctx->list_id, ctx->last_tweet_id, twitter_get_list_all_cb, NULL, twitter_option_list_max_tweets(account), chat_id);
     }
 

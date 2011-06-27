@@ -22,7 +22,7 @@ TwitterEndpointIm *twitter_endpoint_im_find(PurpleAccount * account, TwitterImTy
         twitter = gc->proto_data;
         return twitter->endpoint_ims[type];
     } else {
-        purple_debug_warning(TWITTER_PROTOCOL_ID, "No gc available. Disconnected?");
+        purple_debug_warning(purple_account_get_protocol_id(account), "No gc available. Disconnected?");
         return NULL;
     }
 }
@@ -181,7 +181,7 @@ void twitter_status_data_update_conv(TwitterEndpointIm * ctx, char *buddy_name, 
         return;
 
     if (s->id && s->id > twitter_endpoint_im_get_since_id(ctx)) {
-        purple_debug_info(TWITTER_PROTOCOL_ID, "saving %s\n", G_STRFUNC);
+        purple_debug_info(purple_account_get_protocol_id(account), "saving %s\n", G_STRFUNC);
         twitter_endpoint_im_set_since_id(ctx, s->id);
     }
 

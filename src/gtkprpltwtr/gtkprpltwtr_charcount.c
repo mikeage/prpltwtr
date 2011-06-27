@@ -127,7 +127,7 @@ static void changed_cb(GtkTextBuffer * textbuffer, gpointer user_data)
     g_snprintf(count, sizeof (count) - 1, "%u", gtk_text_buffer_get_char_count(textbuffer) + append_text_len);
 
     box = gtkconv->toolbar;
-    counter = g_object_get_data(G_OBJECT(box), TWITTER_PROTOCOL_ID "-counter");
+    counter = g_object_get_data(G_OBJECT(box), PLUGIN_ID "-counter");
     if (counter)
         gtk_label_set_text(GTK_LABEL(counter), count);
 }
@@ -156,7 +156,7 @@ static void insert_text_cb(GtkTextBuffer *textbuffer, GtkTextIter *position, gch
 			new_text_length + ccc->append_text_len);
 
 	box = gtkconv->toolbar;
-	counter = g_object_get_data(G_OBJECT(box), TWITTER_PROTOCOL_ID "-counter");
+	counter = g_object_get_data(G_OBJECT(box), PLUGIN_ID "-counter");
 	if (counter)
 		gtk_label_set_text(GTK_LABEL(counter), count);
 }
@@ -179,7 +179,7 @@ static void delete_text_cb(GtkTextBuffer *textbuffer, GtkTextIter *start_pos, Gt
 			(gtk_text_iter_get_offset(end_pos) - gtk_text_iter_get_offset(start_pos)));
 
 	box = gtkconv->toolbar;
-	counter = g_object_get_data(G_OBJECT(box), TWITTER_PROTOCOL_ID "-counter");
+	counter = g_object_get_data(G_OBJECT(box), PLUGIN_ID "-counter");
 	if (counter)
 		gtk_label_set_text(GTK_LABEL(counter), count);
 }
@@ -202,14 +202,14 @@ static void detach_from_gtkconv(PidginConversation * gtkconv, gpointer null)
        (GFunc)delete_text_cb, gtkconv); */
 
     box = gtkconv->toolbar;
-    counter = g_object_steal_data(G_OBJECT(box), TWITTER_PROTOCOL_ID "-counter");
+    counter = g_object_steal_data(G_OBJECT(box), PLUGIN_ID "-counter");
     if (counter)
         gtk_container_remove(GTK_CONTAINER(box), counter);
-    sep = g_object_steal_data(G_OBJECT(box), TWITTER_PROTOCOL_ID "-sep");
+    sep = g_object_steal_data(G_OBJECT(box), PLUGIN_ID "-sep");
     if (sep)
         gtk_container_remove(GTK_CONTAINER(box), sep);
 
-    ccc = g_object_steal_data(G_OBJECT(box), TWITTER_PROTOCOL_ID "-ccc");
+    ccc = g_object_steal_data(G_OBJECT(box), PLUGIN_ID "-ccc");
     g_signal_handlers_disconnect_by_func(G_OBJECT(gtkconv->entry_buffer), G_CALLBACK(changed_cb), ccc);
     if (ccc) {
         conv_char_count_free(ccc);
@@ -236,7 +236,7 @@ static void attach_to_gtkconv(PidginConversation * gtkconv, gpointer null)
     g_snprintf(count, sizeof (count) - 1, "%u", ccc->append_text_len);
 
     box = gtkconv->toolbar;
-    counter = g_object_get_data(G_OBJECT(box), TWITTER_PROTOCOL_ID "-counter");
+    counter = g_object_get_data(G_OBJECT(box), PLUGIN_ID "-counter");
     g_return_if_fail(counter == NULL);
 
     counter = gtk_label_new(NULL);
@@ -245,15 +245,15 @@ static void attach_to_gtkconv(PidginConversation * gtkconv, gpointer null)
     gtk_box_pack_end(GTK_BOX(box), counter, FALSE, FALSE, 0);
     gtk_widget_show_all(counter);
 
-    g_object_set_data(G_OBJECT(box), TWITTER_PROTOCOL_ID "-counter", counter);
+    g_object_set_data(G_OBJECT(box), PLUGIN_ID "-counter", counter);
 
     sep = gtk_vseparator_new();
     gtk_box_pack_end(GTK_BOX(box), sep, FALSE, FALSE, 0);
     gtk_widget_show_all(sep);
 
-    g_object_set_data(G_OBJECT(box), TWITTER_PROTOCOL_ID "-sep", sep);
+    g_object_set_data(G_OBJECT(box), PLUGIN_ID "-sep", sep);
 
-    g_object_set_data(G_OBJECT(box), TWITTER_PROTOCOL_ID "-ccc", ccc);
+    g_object_set_data(G_OBJECT(box), PLUGIN_ID "-ccc", ccc);
 
     /* connect signals, etc. */
     /*g_signal_connect(G_OBJECT(gtkconv->entry_buffer), "insert_text",
@@ -274,7 +274,7 @@ void twitter_charcount_update_append_text_cb(PurpleConversation * conv)
     ConvCharCount  *ccc;
     gchar          *append_text;
 
-    ccc = g_object_get_data(G_OBJECT(gtkconv->toolbar), TWITTER_PROTOCOL_ID "-ccc");
+    ccc = g_object_get_data(G_OBJECT(gtkconv->toolbar), PLUGIN_ID "-ccc");
 
     append_text = twitter_conv_get_append_text(gtkconv->active_conv);
     ccc->append_text = append_text ? g_utf8_strdown(append_text, -1) : NULL;

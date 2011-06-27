@@ -2,6 +2,5 @@
 #define _GTKPRPLTWTR_
 
 #define PLUGIN_ID "gtkprpltwtr"
-#define DEBUG_ID PLUGIN_ID
 
 #endif

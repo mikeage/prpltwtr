@@ -240,7 +240,7 @@ void twitter_api_web_open_favorites(PurplePluginAction * action)
     PurpleConnection *gc = (PurpleConnection *) action->context;
     PurpleAccount  *account = purple_connection_get_account(gc);
     const gchar    *url = twitter_api_create_web_url(account, TWITTER_PREF_URL_OPEN_FAVORITES);
-    purple_debug_info(TWITTER_PROTOCOL_ID, "Opening link %s\n", url);
+    purple_debug_info(purple_account_get_protocol_id(account), "Opening link %s\n", url);
     purple_notify_uri(NULL, url);
 }
 
@@ -270,7 +270,7 @@ void twitter_api_web_open_retweets_of_mine(PurplePluginAction * action)
 
 void twitter_api_get_friends(TwitterRequestor * r, TwitterSendRequestMultiPageAllSuccessFunc success_func, TwitterSendRequestMultiPageAllErrorFunc error_func, gpointer data)
 {
-    purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+    purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
 
     twitter_send_xml_request_with_cursor(r, twitter_option_url_get_friends(r->account), NULL, -1, success_func, error_func, data);
 }
@@ -285,7 +285,7 @@ static void twitter_api_send_request_single(TwitterRequestor * r, const gchar * 
     if (since_id > 0)
         twitter_request_params_add(params, twitter_request_param_new_int("since_id", since_id));
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+    purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
 
     twitter_send_xml_request(r, FALSE, url, params, success_func, error_func, data);
 
@@ -313,7 +313,7 @@ static void twitter_api_get_all_since(TwitterRequestor * r, const gchar * url, l
     if (since_id > 0)
         twitter_request_params_add(params, twitter_request_param_new_ll("since_id", since_id));
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+    purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
 
     twitter_send_xml_request_multipage_all(r, url, params, success_func, error_func, count, max_count, data);
     twitter_request_params_free(params);
@@ -502,7 +502,7 @@ static void twitter_api_send_dms_error_cb(TwitterRequestor * r, const TwitterReq
 {
     TwitterMultiMessageContext *ctx = _ctx;
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+    purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
 
     if (ctx->error_func && !ctx->error_func(r->account, error_data, ctx->user_data)) {
         //TODO: verify this doesn't leak
@@ -520,7 +520,7 @@ static void twitter_api_send_dms_success_cb(TwitterRequestor * r, xmlnode * node
     TwitterMultiMessageContext *ctx = _ctx;
     gboolean        last = FALSE;
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+    purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
 
     if (++ctx->statuses_index >= ctx->statuses->len) {
         //TODO: verify this doesn't leak
@@ -544,7 +544,7 @@ void twitter_api_send_dms(TwitterRequestor * r, const gchar * who, GArray * stat
 {
     TwitterMultiMessageContext *ctx;
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+    purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
     g_return_if_fail(statuses && statuses->len);
 
     ctx = g_new0(TwitterMultiMessageContext, 1);
@@ -561,7 +561,7 @@ void twitter_api_send_dms(TwitterRequestor * r, const gchar * who, GArray * stat
 void twitter_api_get_lists(TwitterRequestor * r, TwitterSendXmlRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
 {
     const gchar    *url = twitter_option_url_get_lists(r->account);
-    purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+    purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
 
     if (url && url[0] != '\0') {
         twitter_send_xml_request(r, FALSE, url, NULL, success_func, error_func, data);
@@ -571,7 +571,7 @@ void twitter_api_get_lists(TwitterRequestor * r, TwitterSendXmlRequestSuccessFun
 void twitter_api_get_saved_searches(TwitterRequestor * r, TwitterSendXmlRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
 {
     const gchar    *url = twitter_option_url_get_saved_searches(r->account);
-    purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+    purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
 
     if (url && url[0] != '\0') {
         twitter_send_xml_request(r, FALSE, url, NULL, success_func, error_func, data);

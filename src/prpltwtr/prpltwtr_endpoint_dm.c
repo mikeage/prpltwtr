@@ -74,12 +74,12 @@ static gboolean twitter_get_dms_all_timeout_error_cb(TwitterRequestor * r, const
     return TRUE;                                 //restart timer and try again
 }
 
-static void twitter_get_dms_get_last_since_id_success_cb(TwitterRequestor * requestor, xmlnode * node, gpointer user_data)
+static void twitter_get_dms_get_last_since_id_success_cb(TwitterRequestor * r, xmlnode * node, gpointer user_data)
 {
-    TwitterLastSinceIdRequest *r = user_data;
+    TwitterLastSinceIdRequest *last = user_data;
     long long       id = 0;
     xmlnode        *status_node = xmlnode_get_child(node, "direct_message");
-    purple_debug_info(TWITTER_PROTOCOL_ID, "%s\n", G_STRFUNC);
+    purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
     if (status_node != NULL) {
         TwitterTweet   *status_data = twitter_dm_node_parse(status_node);
         if (status_data != NULL) {
@@ -88,15 +88,15 @@ static void twitter_get_dms_get_last_since_id_success_cb(TwitterRequestor * requ
             twitter_status_data_free(status_data);
         }
     }
-    r->success_cb(requestor->account, id, r->user_data);
-    g_free(r);
+    last->success_cb(r->account, id, last->user_data);
+    g_free(last);
 }
 
-static void twitter_get_last_since_id_error_cb(TwitterRequestor * requestor, const TwitterRequestErrorData * error_data, gpointer user_data)
+static void twitter_get_last_since_id_error_cb(TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data)
 {
-    TwitterLastSinceIdRequest *r = user_data;
-    r->error_cb(requestor->account, error_data, r->user_data);
-    g_free(r);
+    TwitterLastSinceIdRequest *last = user_data;
+    last->error_cb(r->account, error_data, last->user_data);
+    g_free(last);
 }
 
 static void twitter_get_dms_last_since_id(PurpleAccount * account, void (*success_cb) (PurpleAccount * account, long long id, gpointer user_data), void (*error_cb) (PurpleAccount * account, const TwitterRequestErrorData * error_data, gpointer user_data), gpointer user_data)

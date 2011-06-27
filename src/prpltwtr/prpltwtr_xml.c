@@ -76,7 +76,7 @@ static time_t twitter_status_parse_timestamp(const char *timestamp)
         }
     }
 
-    purple_debug_error(TWITTER_PROTOCOL_ID, "Can't parse timestamp %s\n", timestamp);
+    purple_debug_error(GENERIC_PROTOCOL_ID, "Can't parse timestamp %s\n", timestamp);
     return tval;
 }
 
@@ -198,7 +198,7 @@ TwitterSearchResults *twitter_search_results_node_parse(xmlnode * response_node)
     //TODO: test and remove
     search_results = g_list_sort(search_results, (GCompareFunc) _twitter_search_results_sort);
 
-    purple_debug_info(TWITTER_PROTOCOL_ID, "refresh_url: %s, max_id: %lld\n", refresh_url, max_id);
+    purple_debug_info(GENERIC_PROTOCOL_ID, "refresh_url: %s, max_id: %lld\n", refresh_url, max_id);
 
     return twitter_search_results_new(search_results, g_strdup(refresh_url), max_id);
 }
