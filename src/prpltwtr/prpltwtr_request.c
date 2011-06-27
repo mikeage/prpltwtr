@@ -234,10 +234,18 @@ static gboolean twitter_response_text_rate_limit(const gchar * response_text, in
 
 const gchar    *twitter_response_text_data(const gchar * response_text, gsize len)
 {
-    const gchar    *data = g_strstr_len(response_text, len, "\r\n\r\n");
+    const gchar    *data;
+
+    if (!response_text) {
+        return NULL;
+    }
+
+    data = g_strstr_len(response_text, len, "\r\n\r\n");
+
     if (data) {
         return data + 4;
     }
+
     return NULL;
 }
 

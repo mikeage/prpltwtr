@@ -1084,12 +1084,15 @@ void twitter_login(PurpleAccount * account)
      */
     if (!TWITTER_SIGNALS_CONNECTED) {
         TWITTER_SIGNALS_CONNECTED = TRUE;
-#ifdef _HAZE_
-        purple_debug_info(TWITTER_PROTOCOL_ID, "Connecting conv signals for first time\n");
-        purple_signal_connect(purple_conversations_get_handle(), "conversation-created", twitter, PURPLE_CALLBACK(conversation_created_cb), NULL);
-        purple_signal_connect(purple_conversations_get_handle(), "deleting-conversation", twitter, PURPLE_CALLBACK(deleting_conversation_cb), NULL);
 
+#ifdef _HAZE_
+        if (!strcmp(purple_account_get_protocol_id(account), TWITTER_PROTOCOL_ID)) {
+            purple_debug_info(TWITTER_PROTOCOL_ID, "Connecting conv signals for first time\n");
+            purple_signal_connect(purple_conversations_get_handle(), "conversation-created", twitter, PURPLE_CALLBACK(conversation_created_cb), NULL);
+            purple_signal_connect(purple_conversations_get_handle(), "deleting-conversation", twitter, PURPLE_CALLBACK(deleting_conversation_cb), NULL);
+        }
 #endif
+
         purple_prefs_add_none("/prpltwtr");
         purple_prefs_add_bool("/prpltwtr/first-load-complete", FALSE);
         if (!purple_prefs_get_bool("/prpltwtr/first-load-complete")) {
@@ -1613,12 +1616,14 @@ void prpltwtr_plugin_init(PurplePlugin * plugin)
 
 void twitter_destroy(PurplePlugin * plugin)
 {
-    purple_debug_info(TWITTER_PROTOCOL_ID, "shutting down\n");
-    purple_signal_unregister(purple_accounts_get_handle(), "prpltwtr-connecting");
-    purple_signal_unregister(purple_accounts_get_handle(), "prpltwtr-disconnected");
-    purple_signal_unregister(purple_buddy_icons_get_handle(), "prpltwtr-update-buddyicon");
-    purple_signal_unregister(purple_buddy_icons_get_handle(), "prpltwtr-update-iconurl");
-    purple_signal_unregister(purple_conversations_get_handle(), "prpltwtr-format-tweet");
-    purple_signal_unregister(purple_conversations_get_handle(), "prpltwtr-received-im");
-    purple_signals_disconnect_by_handle(plugin);
+    purple_debug_info(plugin->info->id, "shutting down\n");
+    if (!strcmp(plugin->info->id, TWITTER_PROTOCOL_ID)) {
+        purple_signal_unregister(purple_accounts_get_handle(), "prpltwtr-connecting");
+        purple_signal_unregister(purple_accounts_get_handle(), "prpltwtr-disconnected");
+        purple_signal_unregister(purple_buddy_icons_get_handle(), "prpltwtr-update-buddyicon");
+        purple_signal_unregister(purple_buddy_icons_get_handle(), "prpltwtr-update-iconurl");
+        purple_signal_unregister(purple_conversations_get_handle(), "prpltwtr-format-tweet");
+        purple_signal_unregister(purple_conversations_get_handle(), "prpltwtr-received-im");
+        purple_signals_disconnect_by_handle(plugin);
+    }
 }
