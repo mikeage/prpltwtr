@@ -26,11 +26,13 @@ static gint twitter_get_next_chat_id(PurpleAccount * account)
     return ++twitter->chat_id;
 }
 
-void twitter_endpoint_chat_init(void)
+void twitter_endpoint_chat_init(const char *protocol_id)
 {
     twitter_init_endpoint_chat_settings(twitter_endpoint_search_get_settings());
     twitter_init_endpoint_chat_settings(twitter_endpoint_timeline_get_settings());
-    twitter_init_endpoint_chat_settings(twitter_endpoint_list_get_settings());
+    if (!strcmp(protocol_id, TWITTER_PROTOCOL_ID)) {
+        twitter_init_endpoint_chat_settings(twitter_endpoint_list_get_settings());
+    }
 }
 
 void twitter_endpoint_chat_free(TwitterEndpointChat * ctx)

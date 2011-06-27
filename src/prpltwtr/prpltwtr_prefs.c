@@ -26,7 +26,19 @@
 #include <string.h>
 #include <version.h>
 
-GList          *twitter_get_protocol_options()
+static GList   *get_protocol_options(const char *protocol_id);
+
+GList          *prpltwtr_twitter_get_protocol_options()
+{
+    return get_protocol_options(TWITTER_PROTOCOL_ID);
+}
+
+GList          *prpltwtr_statusnet_get_protocol_options()
+{
+    return get_protocol_options(STATUSNET_PROTOCOL_ID);
+}
+
+static GList   *get_protocol_options(const char *protocol_id)
 {
     GList          *options = NULL;
     PurpleAccountOption *option;
@@ -36,8 +48,10 @@ GList          *twitter_get_protocol_options()
                                             TWITTER_PREF_USE_HTTPS_DEFAULT);    /* default value */
     options = g_list_append(NULL, option);
 
-    option = purple_account_option_bool_new(_("Enable OAuth (more secure, higher rate limit)"), TWITTER_PREF_USE_OAUTH, TWITTER_PREF_USE_OAUTH_DEFAULT);
-    options = g_list_append(options, option);
+    if (!strcmp(protocol_id, STATUSNET_PROTOCOL_ID)) {
+        option = purple_account_option_bool_new(_("Enable OAuth (more secure, higher rate limit)"), TWITTER_PREF_USE_OAUTH, FALSE);
+        options = g_list_append(options, option);
+    }
 
     /* Default sending im to buddy is to dm */
     option = purple_account_option_bool_new(_("Default IM to buddy is a DM"), TWITTER_PREF_DEFAULT_DM, TWITTER_PREF_DEFAULT_DM_DEFAULT);
@@ -83,17 +97,19 @@ GList          *twitter_get_protocol_options()
                                            TWITTER_PREF_REPLIES_TIMEOUT_DEFAULT);   /* default value */
     options = g_list_append(options, option);
 
-    /* Lists tweets refresh interval */
-    option = purple_account_option_int_new(_("Refresh lists every (min)"),  /* text shown to user */
-                                           TWITTER_PREF_LIST_TIMEOUT,   /* pref name */
-                                           TWITTER_PREF_LIST_TIMEOUT_DEFAULT);  /* default value */
-    options = g_list_append(options, option);
-
     /* Dms refresh interval */
     option = purple_account_option_int_new(_("Refresh direct messages every (min)"),    /* text shown to user */
                                            TWITTER_PREF_DMS_TIMEOUT,    /* pref name */
                                            TWITTER_PREF_DMS_TIMEOUT_DEFAULT);   /* default value */
     options = g_list_append(options, option);
+
+    if (!strcmp(protocol_id, TWITTER_PROTOCOL_ID)) {
+        /* Lists tweets refresh interval */
+        option = purple_account_option_int_new(_("Refresh lists every (min)"),  /* text shown to user */
+                                               TWITTER_PREF_LIST_TIMEOUT,   /* pref name */
+                                               TWITTER_PREF_LIST_TIMEOUT_DEFAULT);  /* default value */
+        options = g_list_append(options, option);
+    }
 
     /* Friendlist refresh interval */
     option = purple_account_option_int_new(_("Refresh friendlist every (min)"), /* text shown to user */
@@ -107,15 +123,12 @@ GList          *twitter_get_protocol_options()
                                            TWITTER_PREF_SEARCH_TIMEOUT_DEFAULT);    /* default value */
     options = g_list_append(options, option);
 
-    option = purple_account_option_string_new(_("API Base URL"),    /* text shown to user */
-                                              TWITTER_PREF_API_BASE,    /* pref name */
-                                              TWITTER_PREF_API_BASE_DEFAULT);   /* default value */
-    options = g_list_append(options, option);
-
-    option = purple_account_option_string_new(_("Search API Base URL"), /* text shown to user */
-                                              TWITTER_PREF_SEARCH_API_BASE, /* pref name */
-                                              TWITTER_PREF_SEARCH_API_BASE_DEFAULT);    /* default value */
-    options = g_list_append(options, option);
+    if (!strcmp(protocol_id, STATUSNET_PROTOCOL_ID)) {
+        option = purple_account_option_string_new(_("API Base URL"),    /* text shown to user */
+                                                  TWITTER_PREF_API_BASE,    /* pref name */
+                                                  STATUSNET_PREF_API_BASE_DEFAULT); /* default value */
+        options = g_list_append(options, option);
+    }
 
     return options;
 }
@@ -234,12 +247,20 @@ static const gchar *twitter_get_subdir_from_base(const gchar * base)
 
 const gchar    *twitter_option_api_host(PurpleAccount * account)
 {
-    return twitter_get_host_from_base(purple_account_get_string(account, TWITTER_PREF_API_BASE, TWITTER_PREF_API_BASE_DEFAULT));
+    if (!strcmp(purple_account_get_protocol_id(account), TWITTER_PROTOCOL_ID)) {
+        return twitter_get_host_from_base(purple_account_get_string(account, TWITTER_PREF_API_BASE, TWITTER_PREF_API_BASE_DEFAULT));
+    } else {
+        return twitter_get_host_from_base(purple_account_get_string(account, TWITTER_PREF_API_BASE, STATUSNET_PREF_API_BASE_DEFAULT));
+    }
 }
 
 const gchar    *twitter_option_api_subdir(PurpleAccount * account)
 {
-    return twitter_get_subdir_from_base(purple_account_get_string(account, TWITTER_PREF_API_BASE, TWITTER_PREF_API_BASE_DEFAULT));
+    if (!strcmp(purple_account_get_protocol_id(account), TWITTER_PROTOCOL_ID)) {
+        return twitter_get_subdir_from_base(purple_account_get_string(account, TWITTER_PREF_API_BASE, TWITTER_PREF_API_BASE_DEFAULT));
+    } else {
+        return twitter_get_subdir_from_base(purple_account_get_string(account, TWITTER_PREF_API_BASE, TWITTER_PREF_API_BASE_DEFAULT));
+    }
 }
 
 const gchar    *twitter_option_web_host(PurpleAccount * account)
@@ -254,12 +275,20 @@ const gchar    *twitter_option_web_subdir(PurpleAccount * account)
 
 const gchar    *twitter_option_search_api_host(PurpleAccount * account)
 {
-    return twitter_get_host_from_base(purple_account_get_string(account, TWITTER_PREF_SEARCH_API_BASE, TWITTER_PREF_SEARCH_API_BASE_DEFAULT));
+    if (!strcmp(purple_account_get_protocol_id(account), TWITTER_PROTOCOL_ID)) {
+        return twitter_get_host_from_base(purple_account_get_string(account, TWITTER_PREF_SEARCH_API_BASE, TWITTER_PREF_SEARCH_API_BASE_DEFAULT));
+    } else {
+        return twitter_get_host_from_base(purple_account_get_string(account, TWITTER_PREF_SEARCH_API_BASE, STATUSNET_PREF_API_BASE_DEFAULT));
+    }
 }
 
 const gchar    *twitter_option_search_api_subdir(PurpleAccount * account)
 {
-    return twitter_get_subdir_from_base(purple_account_get_string(account, TWITTER_PREF_SEARCH_API_BASE, TWITTER_PREF_SEARCH_API_BASE_DEFAULT));
+    if (!strcmp(purple_account_get_protocol_id(account), TWITTER_PROTOCOL_ID)) {
+        return twitter_get_subdir_from_base(purple_account_get_string(account, TWITTER_PREF_SEARCH_API_BASE, TWITTER_PREF_SEARCH_API_BASE_DEFAULT));
+    } else {
+        return twitter_get_subdir_from_base(purple_account_get_string(account, TWITTER_PREF_SEARCH_API_BASE, STATUSNET_PREF_API_BASE_DEFAULT));
+    }
 }
 
 int twitter_option_cutoff_time(PurpleAccount * account)

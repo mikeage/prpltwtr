@@ -37,7 +37,7 @@
 #define TWITTER_PREF_USE_HTTPS_DEFAULT TRUE
 
 #define TWITTER_PREF_USE_OAUTH "use_oauth"
-#define TWITTER_PREF_USE_OAUTH_DEFAULT TRUE
+#define TWITTER_PREF_USE_OAUTH_DEFAULT FALSE
 
 #define TWITTER_PREF_RETRIEVE_HISTORY "retrieve_tweets_history_after_login"
 #define TWITTER_PREF_RETRIEVE_HISTORY_DEFAULT TRUE
@@ -49,10 +49,10 @@
 #define TWITTER_PREF_ADD_URL_TO_TWEET_DEFAULT TRUE
 
 #define TWITTER_PREF_HOME_TIMELINE_MAX_TWEETS "home_timeline_max_tweets"
-#define TWITTER_PREF_HOME_TIMELINE_MAX_TWEETS_DEFAULT 100
+#define TWITTER_PREF_HOME_TIMELINE_MAX_TWEETS_DEFAULT 200
 
 #define TWITTER_PREF_LIST_MAX_TWEETS "list_max_tweets"
-#define TWITTER_PREF_LIST_MAX_TWEETS_DEFAULT 100
+#define TWITTER_PREF_LIST_MAX_TWEETS_DEFAULT 200
 
 #define TWITTER_PREF_TIMELINE_TIMEOUT "refresh_timeline_minutes"
 #define TWITTER_PREF_TIMELINE_TIMEOUT_DEFAULT 1
@@ -79,6 +79,7 @@
 
 #define TWITTER_PREF_API_BASE "twitter_api_base_url"
 #define TWITTER_PREF_API_BASE_DEFAULT "api.twitter.com/1/"
+#define STATUSNET_PREF_API_BASE_DEFAULT "identi.ca/api"
 
 #define TWITTER_PREF_WEB_BASE "twitter_web_base_url"
 #define TWITTER_PREF_WEB_BASE_DEFAULT "twitter.com/"
@@ -116,7 +117,8 @@
 
 /***** END URLS *****/
 
-GList          *twitter_get_protocol_options(void);
+GList          *prpltwtr_twitter_get_protocol_options(void);
+GList          *prpltwtr_statusnet_get_protocol_options(void);
 
 gboolean        twitter_option_add_link_to_tweet(PurpleAccount * account);
 gint            twitter_option_search_timeout(PurpleAccount * account);

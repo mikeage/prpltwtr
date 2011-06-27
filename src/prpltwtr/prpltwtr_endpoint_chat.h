@@ -85,7 +85,7 @@ TwitterEndpointChat *twitter_endpoint_chat_find_by_id(TwitterEndpointChatId * ch
 
 TwitterEndpointChat *twitter_endpoint_chat_new(TwitterEndpointChatSettings * settings, TwitterChatType type, PurpleAccount * account, const gchar * chat_name, GHashTable * components);
 
-void            twitter_endpoint_chat_init(void);
+void            twitter_endpoint_chat_init(const char *protocol_id);
 void            twitter_endpoint_chat_free(TwitterEndpointChat * ctx);
 
 void            twitter_endpoint_chat_start(PurpleConnection * gc, TwitterEndpointChatSettings * settings, GHashTable * components, gboolean open_conv);
@@ -114,6 +114,5 @@ void            twitter_chat_got_user_tweets(TwitterEndpointChat * endpoint_chat
 int             twitter_endpoint_chat_send(TwitterEndpointChat * ctx, const gchar * message);
 
 TwitterEndpointChatSettings *twitter_get_endpoint_chat_settings(TwitterChatType type);
-void            twitter_endpoint_chat_init(void);
 
 #endif

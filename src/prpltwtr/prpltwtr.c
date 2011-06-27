@@ -524,10 +524,13 @@ static void twitter_connected(PurpleAccount * account)
     purple_prpl_got_user_status(account, "Timeline: Home", TWITTER_STATUS_ONLINE, NULL);
 #endif
 
-    /* Retrieve user's saved search queries */
-    twitter_api_get_saved_searches(purple_account_get_requestor(account), get_saved_searches_cb, NULL, NULL);
+    /* Status.net doesn't support lists or saved searches */
+    if (!strcmp(purple_account_get_protocol_id(account), TWITTER_PROTOCOL_ID)) {
+        /* Retrieve user's saved search queries */
+        twitter_api_get_saved_searches(purple_account_get_requestor(account), get_saved_searches_cb, NULL, NULL);
 
-    twitter_api_get_lists(purple_account_get_requestor(account), get_lists_cb, NULL, NULL);
+        twitter_api_get_lists(purple_account_get_requestor(account), get_lists_cb, NULL, NULL);
+    }
 
     /* Install periodic timers to retrieve replies and dms */
     twitter_connection_foreach_endpoint_im(twitter, twitter_endpoint_im_start_foreach, NULL);
@@ -1563,23 +1566,15 @@ void prpltwtr_plugin_init(PurplePlugin * plugin)
     bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
 #endif                       /* ENABLE_NLS */
 
+    purple_debug_info(plugin->info->id, "starting up\n");
+
     if (!strcmp(plugin->info->id, TWITTER_PROTOCOL_ID)) {
         plugin->info->summary = _("Twitter for Purple");
         plugin->info->description = _("Access Twitter from within libpurple applications");
-    } else {
-        plugin->info->summary = _("Status.net for Purple (Twitter API)");
-        plugin->info->description = _("Access status.net microblogging servers from within libpurple applications");
 
-        split = purple_account_user_split_new(_("Server"), TWITTER_PREF_WEB_BASE_DEFAULT, '@');
+        ((PurplePluginProtocolInfo *) plugin->info->extra_info)->protocol_options = prpltwtr_twitter_get_protocol_options();
 
-        ((PurplePluginProtocolInfo *) plugin->info->extra_info)->user_splits = g_list_append(((PurplePluginProtocolInfo *) plugin->info->extra_info)->user_splits, split);
-    }
-
-    purple_debug_info(plugin->info->id, "starting up\n");
-
-    ((PurplePluginProtocolInfo *) plugin->info->extra_info)->protocol_options = twitter_get_protocol_options();
-
-    if (!strcmp(plugin->info->id, TWITTER_PROTOCOL_ID)) {
+        /* Only register signals once; we'll use the prpltwtr_twitter plugin */
         purple_signal_register(purple_accounts_get_handle(), "prpltwtr-connecting", purple_marshal_VOID__POINTER, NULL, 1, purple_value_new(PURPLE_TYPE_SUBTYPE, PURPLE_SUBTYPE_ACCOUNT));
 
         purple_signal_register(purple_accounts_get_handle(), "prpltwtr-disconnected", purple_marshal_VOID__POINTER, NULL, 1, purple_value_new(PURPLE_TYPE_SUBTYPE, PURPLE_SUBTYPE_ACCOUNT));
@@ -1611,9 +1606,18 @@ void prpltwtr_plugin_init(PurplePlugin * plugin)
 
         purple_signal_register(purple_conversations_get_handle(), "prpltwtr-changed-attached-search", twitter_marshal_changed_attached_search, NULL, 1, purple_value_new(PURPLE_TYPE_SUBTYPE, PURPLE_SUBTYPE_CONVERSATION)  // conv
             );
+    } else {
+        plugin->info->summary = _("Status.net for Purple (Twitter API)");
+        plugin->info->description = _("Access status.net microblogging servers from within libpurple applications");
+
+        split = purple_account_user_split_new(_("Server"), _("server name"), '@');
+
+        ((PurplePluginProtocolInfo *) plugin->info->extra_info)->user_splits = g_list_append(((PurplePluginProtocolInfo *) plugin->info->extra_info)->user_splits, split);
+
+        ((PurplePluginProtocolInfo *) plugin->info->extra_info)->protocol_options = prpltwtr_statusnet_get_protocol_options();
     }
 
-    twitter_endpoint_chat_init();
+    twitter_endpoint_chat_init(plugin->info->id);
 }
 
 void twitter_destroy(PurplePlugin * plugin)

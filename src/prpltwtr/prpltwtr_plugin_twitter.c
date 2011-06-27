@@ -29,7 +29,7 @@
 #include "prpltwtr_mbprefs.h"
 
 static PurplePluginProtocolInfo prpl_info = {
-    OPT_PROTO_CHAT_TOPIC | OPT_PROTO_PASSWORD_OPTIONAL, /* options */
+    OPT_PROTO_CHAT_TOPIC | OPT_PROTO_NO_PASSWORD,   /* options */
     NULL,                                        /* user_splits, initialized in twitter_init() */
     NULL,                                        /* protocol_options, initialized in twitter_init() */
     {                                            /* icon_spec, a PurpleBuddyIconSpec */
