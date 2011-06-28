@@ -820,9 +820,11 @@ void twitter_requestor_free(TwitterRequestor * r)
         for (l = r->pending_requests; l; l = l->next) {
             TwitterSendRequestData *request_data = l->data;
             //TODO: move this to a ->cancel function
-            purple_util_fetch_url_cancel(request_data->request_id);
-            //TODO: created a ->free callback
-            twitter_requestor_on_error(request_data->requestor, error_data, request_data->error_func, request_data->user_data);
+			if (request_data->request_id) {
+				purple_util_fetch_url_cancel(request_data->request_id);
+				//TODO: created a ->free callback
+				twitter_requestor_on_error(request_data->requestor, error_data, request_data->error_func, request_data->user_data);
+			}
             g_free(request_data);
         }
         g_list_free(r->pending_requests);

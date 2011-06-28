@@ -385,15 +385,16 @@ static const gchar *twitter_option_url_oauth_access_token(PurpleAccount * accoun
 static const gchar *twitter_oauth_create_url(PurpleAccount * account, const gchar * endpoint)
 {
     static char     url[1024];
+	char            host[256];
 
     g_return_val_if_fail(endpoint != NULL && endpoint[0] != '\0', NULL);
 
     if (!strcmp(purple_account_get_protocol_id(account), TWITTER_PROTOCOL_ID)) {
-        snprintf(url, 1023, "twitter.com/oauth");
+        snprintf(host, 255, "twitter.com/oauth");
     } else {
-        snprintf(url, 1023, "%s/oauth", purple_account_get_string(account, TWITTER_PREF_API_BASE, STATUSNET_PREF_API_BASE_DEFAULT));
+        snprintf(host, 255, "%s/oauth", purple_account_get_string(account, TWITTER_PREF_API_BASE, STATUSNET_PREF_API_BASE_DEFAULT));
     }
 
-    snprintf(url, 1023, "%s%s%s", url, url[strlen(url) - 1] == '/' || endpoint[0] == '/' ? "" : "/", url[strlen(url) - 1] == '/' && endpoint[0] == '/' ? endpoint + 1 : endpoint);
+    snprintf(url, 1023, "%s%s%s", host, host[strlen(host) - 1] == '/' || endpoint[0] == '/' ? "" : "/", host[strlen(host) - 1] == '/' && endpoint[0] == '/' ? endpoint + 1 : endpoint);
     return url;
 }
