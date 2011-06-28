@@ -49,7 +49,7 @@ static PurplePluginProtocolInfo prpl_info = {
     twitter_blist_node_menu,                     /* blist_node_menu */
     twitter_chat_info,                           /* chat_info */
     twitter_chat_info_defaults,                  /* chat_info_defaults */
-    twitter_login,                               /* login */
+    prpltwtr_login,                              /* login */
     twitter_close,                               /* close */
     twitter_send_im,                             //twitter_send_dm,       /* send_im */
     twitter_set_info,                            /* set_info */
@@ -103,7 +103,7 @@ static PurplePluginProtocolInfo prpl_info = {
     NULL,                                        /* send_attention */
     NULL,                                        /* get_attention type */
     sizeof (PurplePluginProtocolInfo),           /* struct_size */
-    twitter_get_account_text_table,              /* get_account_text_table */
+    prpltwtr_get_account_text_table_statusnet,   /* get_account_text_table */
     NULL,                                        /* initiate_media */
     NULL,                                        /* get_media_caps */
     NULL,                                        /* get_moods */

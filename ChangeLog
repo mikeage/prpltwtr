@@ -1,6 +1,6 @@
 Changelog for current version:
   * Fix crash when closing a window with pending buddy icons to look up
-  * Identi.ca work. More to come
+  * Identi.ca work. Twitter requires OAuth (no longer an option); status.net sites can use either. Note that you'll need to register your own custom application if you want to use OAuth with status.net sites and provide the consumer key and secret in the account options.
   * Restore "delete" tweet option
   * Split the prpltwtr plugin into three: libprpltwtr for the infrastructure, libprpltwtr_twitter for Twitter, and libprpltwtr_statusnet for identi.ca, etc. You may need to manually delete the old versions (but I hope not)
 

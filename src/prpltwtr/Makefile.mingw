@@ -44,6 +44,7 @@ LIB_PATHS +=		-L$(GTK_TOP)/lib \
 ##  SOURCES, OBJECTS
 ##
 C_SRC = \
+prpltwtr_auth.c \
 prpltwtr_api.c \
 prpltwtr_buddy.c \
 prpltwtr.c \

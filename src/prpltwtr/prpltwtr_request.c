@@ -40,6 +40,7 @@
 #include "prpltwtr_request.h"
 #include "prpltwtr_util.h"
 #include "prpltwtr_conn.h"
+#include "prpltwtr_auth.h"
 
 #define USER_AGENT "Mozilla/4.0 (compatible; MSIE 5.5)"
 
@@ -555,9 +556,11 @@ TwitterRequestParams *twitter_request_params_add_oauth_params(PurpleAccount * ac
     if (oauth_params == NULL)
         oauth_params = twitter_request_params_new();
 
-    twitter_request_params_add(oauth_params, twitter_request_param_new("oauth_consumer_key", TWITTER_OAUTH_KEY));
+    twitter_request_params_add(oauth_params, twitter_request_param_new("oauth_consumer_key", prpltwtr_auth_get_oauth_key(account)));
     twitter_request_params_add(oauth_params, twitter_request_param_new_ll("oauth_nonce", twitter_oauth_generate_nonce()));
     twitter_request_params_add(oauth_params, twitter_request_param_new("oauth_signature_method", "HMAC-SHA1"));
+    /* Added for status.net. Twitter doesn't seem to care */
+    twitter_request_params_add(oauth_params, twitter_request_param_new("oauth_callback", "oob"));
     twitter_request_params_add(oauth_params, twitter_request_param_new_ll("oauth_timestamp", time(NULL)));
     if (token)
         twitter_request_params_add(oauth_params, twitter_request_param_new("oauth_token", token));

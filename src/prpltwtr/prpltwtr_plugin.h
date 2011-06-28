@@ -1,14 +1,13 @@
 void            twitter_destroy(PurplePlugin * plugin);
 void            twitter_tooltip_text(PurpleBuddy * buddy, PurpleNotifyUserInfo * info, gboolean full);
 GList          *twitter_actions(PurplePlugin * plugin, gpointer context);
-GHashTable     *twitter_get_account_text_table(PurpleAccount * account);
+GHashTable     *prpltwtr_get_account_text_table_statusnet(PurpleAccount * account);
 const char     *twitter_list_icon(PurpleAccount * account, PurpleBuddy * buddy);
 char           *twitter_status_text(PurpleBuddy * buddy);
 GList          *twitter_status_types(PurpleAccount * account);
 GList          *twitter_blist_node_menu(PurpleBlistNode * node);
 GList          *twitter_chat_info(PurpleConnection * gc);
 GHashTable     *twitter_chat_info_defaults(PurpleConnection * gc, const char *chat_name);
-void            twitter_login(PurpleAccount * account);
 void            twitter_close(PurpleConnection * gc);
 int             twitter_send_im(PurpleConnection * gc, const char *conv_name, const char *message, PurpleMessageFlags flags);
 void            twitter_set_info(PurpleConnection * gc, const char *info);

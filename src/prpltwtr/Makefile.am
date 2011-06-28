@@ -5,6 +5,8 @@ pkgdir = $(PURPLE_PLUGINDIR)
 
 PRPLTWTR_SOURCES = \
 	defaults.h \
+	prpltwtr_auth.c \
+	prpltwtr_auth.h \
 	prpltwtr_api.c \
 	prpltwtr_api.h \
 	prpltwtr_buddy.c \

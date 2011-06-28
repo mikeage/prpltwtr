@@ -78,11 +78,14 @@
 #define TWITTER_PREF_DEFAULT_DM_DEFAULT FALSE
 
 #define TWITTER_PREF_API_BASE "twitter_api_base_url"
-#define TWITTER_PREF_API_BASE_DEFAULT "api.twitter.com/1/"
+#define TWITTER_PREF_API_BASE_DEFAULT "api.twitter.com/1"
 #define STATUSNET_PREF_API_BASE_DEFAULT "identi.ca/api"
 
+#define TWITTER_PREF_CONSUMER_KEY "consumer_key"
+#define TWITTER_PREF_CONSUMER_SECRET "consumer_secret"
+
 #define TWITTER_PREF_WEB_BASE "twitter_web_base_url"
-#define TWITTER_PREF_WEB_BASE_DEFAULT "twitter.com/"
+#define TWITTER_PREF_WEB_BASE_DEFAULT "twitter.com"
 
 #define TWITTER_PREF_URL_OPEN_RETWEETED_OF_MINE "retweeted_of_mine"
 #define TWITTER_PREF_URL_OPEN_FAVORITES "favorites"
@@ -90,7 +93,7 @@
 #define TWITTER_PREF_URL_OPEN_SUGGESTED_FRIENDS "invitations/twitter_suggests"
 
 #define TWITTER_PREF_SEARCH_API_BASE "twitter_search_api_base_url"
-#define TWITTER_PREF_SEARCH_API_BASE_DEFAULT "search.twitter.com/"
+#define TWITTER_PREF_SEARCH_API_BASE_DEFAULT "search.twitter.com"
 
 #define TWITTER_ONLINE_CUTOFF_TIME_HOURS "online_cutoff_time_hours"
 #define TWITTER_ONLINE_CUTOFF_TIME_HOURS_DEFAULT 24

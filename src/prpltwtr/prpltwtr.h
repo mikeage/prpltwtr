@@ -22,8 +22,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02111-1301  USA
  */
 
-#ifndef _TWITTER_H_
-#define _TWITTER_H_
+#ifndef _PRPLTWTR_H_
+#define _PRPLTWTR_H_
 #include "defaults.h"
 
 #include <errno.h>
@@ -52,6 +52,7 @@
 #include <sslconn.h>
 #include <request.h>
 
+#include "prpltwtr_auth.h"
 #include "prpltwtr_xml.h"
 #include "prpltwtr_prefs.h"
 #include "prpltwtr_request.h"
@@ -67,4 +68,9 @@
 #include "prpltwtr_conn.h"
 
 #include "prpltwtr_plugin.h"
+
+void            prpltwtr_login(PurpleAccount * account);
+void            prpltwtr_recoverable_disconnect(PurpleAccount * account, const char *message);
+void            prpltwtr_disconnect(PurpleAccount * account, const char *message);
+void            prpltwtr_verify_connection(PurpleAccount * account);
 #endif

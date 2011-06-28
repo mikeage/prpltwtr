@@ -51,6 +51,10 @@ static GList   *get_protocol_options(const char *protocol_id)
     if (!strcmp(protocol_id, STATUSNET_PROTOCOL_ID)) {
         option = purple_account_option_bool_new(_("Enable OAuth (more secure, higher rate limit)"), TWITTER_PREF_USE_OAUTH, FALSE);
         options = g_list_append(options, option);
+        option = purple_account_option_string_new(_("Custom Consumer Key"), TWITTER_PREF_CONSUMER_KEY, "");
+        options = g_list_append(options, option);
+        option = purple_account_option_string_new(_("Custom Consumer Secret"), TWITTER_PREF_CONSUMER_SECRET, "");
+        options = g_list_append(options, option);
     }
 
     /* Default sending im to buddy is to dm */
@@ -208,7 +212,11 @@ gboolean twitter_option_use_https(PurpleAccount * account)
 
 gboolean twitter_option_use_oauth(PurpleAccount * account)
 {
-    return purple_account_get_bool(account, TWITTER_PREF_USE_OAUTH, TWITTER_PREF_USE_OAUTH_DEFAULT);
+    if (!strcmp(purple_account_get_protocol_id(account), TWITTER_PROTOCOL_ID)) {
+        return TRUE;
+    } else {
+        return purple_account_get_bool(account, TWITTER_PREF_USE_OAUTH, TWITTER_PREF_USE_OAUTH_DEFAULT);
+    }
 }
 
 gint twitter_option_home_timeline_max_tweets(PurpleAccount * account)
@@ -259,7 +267,7 @@ const gchar    *twitter_option_api_subdir(PurpleAccount * account)
     if (!strcmp(purple_account_get_protocol_id(account), TWITTER_PROTOCOL_ID)) {
         return twitter_get_subdir_from_base(purple_account_get_string(account, TWITTER_PREF_API_BASE, TWITTER_PREF_API_BASE_DEFAULT));
     } else {
-        return twitter_get_subdir_from_base(purple_account_get_string(account, TWITTER_PREF_API_BASE, TWITTER_PREF_API_BASE_DEFAULT));
+        return twitter_get_subdir_from_base(purple_account_get_string(account, TWITTER_PREF_API_BASE, STATUSNET_PREF_API_BASE_DEFAULT));
     }
 }
 

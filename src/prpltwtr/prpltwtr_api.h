@@ -85,9 +85,5 @@ void            twitter_api_search_refresh(TwitterRequestor * r, const char *ref
 
 void            twitter_api_verify_credentials(TwitterRequestor * r, TwitterSendXmlRequestSuccessFunc success_cb, TwitterSendRequestErrorFunc error_cb, gpointer user_data);
 
-void            twitter_api_oauth_request_token(TwitterRequestor * r, TwitterSendRequestSuccessFunc success_cb, TwitterSendRequestErrorFunc error_cb, gpointer user_data);
-
-void            twitter_api_oauth_access_token(TwitterRequestor * r, const gchar * oauth_verifier, TwitterSendRequestSuccessFunc success_cb, TwitterSendRequestErrorFunc error_cb, gpointer user_data);
-
 void            twitter_api_get_info(PurpleConnection * gc, const char *username);
 #endif

@@ -111,18 +111,17 @@ void twitter_mb_prefs_free(TwitterMbPrefs * mb_prefs)
 
 TwitterMbPrefs *twitter_mb_prefs_new(PurpleAccount * account)
 {
-    const gchar    *host = twitter_option_api_host(account);
-    const gchar    *ptr;
-    int             twitter_domain_len = strlen("twitter.com");
-    int             host_len;
-    if ((ptr = strchr(host, '/')))
-        host_len = ptr - host;
-    else
-        host_len = strlen(host);
-    if (host_len == twitter_domain_len && !strncmp(host, "twitter.com", twitter_domain_len))
+    if (!strcmp(purple_account_get_protocol_id(account), TWITTER_PROTOCOL_ID)) {
         return mb_prefs_new_twitter(account);
-    else if (host_len > twitter_domain_len && !strncmp(host + host_len - twitter_domain_len - 1, ".twitter.com", twitter_domain_len + 1))
-        return mb_prefs_new_twitter(account);
-    else
+    } else {
+        const gchar    *host = twitter_option_api_host(account);
+        const gchar    *ptr;
+        int             host_len;
+        if ((ptr = strchr(host, '/'))) {
+            host_len = ptr - host;
+        } else {
+            host_len = strlen(host);
+        }
         return mb_prefs_new_statusnet(account, host, host_len);
+    }
 }

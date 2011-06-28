@@ -580,7 +580,6 @@ void twitter_api_get_saved_searches(TwitterRequestor * r, TwitterSendXmlRequestS
 
 void twitter_api_search(TwitterRequestor * r, const char *keyword, long long since_id, guint rpp, TwitterSearchSuccessFunc success_func, TwitterSearchErrorFunc error_func, gpointer data)
 {
-    /* http://search.twitter.com/search.atom + query (e.g. ?q=n900) */
     TwitterRequestParams *params = twitter_request_params_new();
     twitter_request_params_add(params, twitter_request_param_new("q", keyword));
     twitter_request_params_add(params, twitter_request_param_new_int("rpp", rpp));
@@ -607,19 +606,6 @@ void twitter_api_search_refresh(TwitterRequestor * r, const char *refresh_url,  
     }
     g_strfreev(pieces);
     twitter_search(r, params, success_func, error_func, data);
-    twitter_request_params_free(params);
-}
-
-void twitter_api_oauth_request_token(TwitterRequestor * r, TwitterSendRequestSuccessFunc success_cb, TwitterSendRequestErrorFunc error_cb, gpointer user_data)
-{
-    twitter_send_request(r, FALSE, "twitter.com/oauth/request_token", NULL, success_cb, error_cb, user_data);
-}
-
-void twitter_api_oauth_access_token(TwitterRequestor * r, const gchar * oauth_verifier, TwitterSendRequestSuccessFunc success_cb, TwitterSendRequestErrorFunc error_cb, gpointer user_data)
-{
-    TwitterRequestParams *params = twitter_request_params_new();
-    twitter_request_params_add(params, twitter_request_param_new("oauth_verifier", oauth_verifier));
-    twitter_send_request(r, FALSE, "twitter.com/oauth/access_token", params, success_cb, error_cb, user_data);
     twitter_request_params_free(params);
 }
 
