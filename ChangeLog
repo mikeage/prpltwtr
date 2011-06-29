@@ -1,4 +1,4 @@
-Changelog for current version:
+Changelog for 0.9.0:
   * Fix crash when closing a window with pending buddy icons to look up
   * Identi.ca work. Twitter requires OAuth (no longer an option); status.net sites can use either. Note that you'll need to register your own custom application if you want to use OAuth with status.net sites and provide the consumer key and secret in the account options.
   * Restore "delete" tweet option
