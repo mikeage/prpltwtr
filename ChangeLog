@@ -3,6 +3,7 @@ Changelog for current version:
   * Identi.ca work. Twitter requires OAuth (no longer an option); status.net sites can use either. Note that you'll need to register your own custom application if you want to use OAuth with status.net sites and provide the consumer key and secret in the account options.
   * Restore "delete" tweet option
   * Split the prpltwtr plugin into three: libprpltwtr for the infrastructure, libprpltwtr_twitter for Twitter, and libprpltwtr_statusnet for identi.ca, etc. You may need to manually delete the old versions (but I hope not)
+  * Let the user choose the default alias. Suggested by @space_tiger. If you already added your friends as buddies, the fastest thing to do is delete the group and let prpltwtr re-add them after changing this option.
 
 Changelog for 0.8.0:
   * Switch OAuth keys to request DM permission. You will need to re-authorize Prpltwtr (now called PrplTwtr2)

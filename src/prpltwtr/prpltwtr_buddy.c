@@ -174,7 +174,15 @@ void twitter_buddy_set_user_data(PurpleAccount * account, TwitterUserData * u, g
     b = purple_find_buddy(account, u->screen_name);
     if (!b && add_missing_buddy) {
         /* set alias as screenname (name) */
-        gchar          *alias = g_strdup_printf("%s | %s", u->name, u->screen_name);
+        const gchar    *alias_type = twitter_option_alias_format(account);
+        gchar          *alias;
+        if (!strcmp(alias_type, TWITTER_PREF_ALIAS_FORMAT_FULLNAME)) {
+            alias = g_strdup_printf("%s", u->name);
+        } else if (!strcmp(alias_type, TWITTER_PREF_ALIAS_FORMAT_NICK)) {
+            alias = g_strdup_printf("%s", u->screen_name);
+        } else {
+            alias = g_strdup_printf("%s | %s", u->name, u->screen_name);
+        }
         b = twitter_buddy_new(account, u->screen_name, alias);
         g_free(alias);
     }

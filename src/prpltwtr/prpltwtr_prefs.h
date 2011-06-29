@@ -45,6 +45,12 @@
 #define TWITTER_PREF_SYNC_STATUS "sync_availability_status_message_to_twitter"
 #define TWITTER_PREF_SYNC_STATUS_DEFAULT FALSE
 
+#define TWITTER_PREF_ALIAS_FORMAT "alias_format"
+#define TWITTER_PREF_ALIAS_FORMAT_ALL "all"
+#define TWITTER_PREF_ALIAS_FORMAT_NICK "nick"
+#define TWITTER_PREF_ALIAS_FORMAT_FULLNAME "fullname"
+#define TWITTER_PREF_ALIAS_FORMAT_DEFAULT TWITTER_PREF_ALIAS_FORMAT_ALL
+
 #define TWITTER_PREF_ADD_URL_TO_TWEET "add_url_link_to_each_tweet"
 #define TWITTER_PREF_ADD_URL_TO_TWEET_DEFAULT TRUE
 
@@ -123,6 +129,7 @@
 GList          *prpltwtr_twitter_get_protocol_options(void);
 GList          *prpltwtr_statusnet_get_protocol_options(void);
 
+const gchar    *twitter_option_alias_format(PurpleAccount * account);
 gboolean        twitter_option_add_link_to_tweet(PurpleAccount * account);
 gint            twitter_option_search_timeout(PurpleAccount * account);
 gint            twitter_option_timeline_timeout(PurpleAccount * account);

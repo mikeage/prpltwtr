@@ -73,6 +73,34 @@ static GList   *get_protocol_options(const char *protocol_id)
     option = purple_account_option_bool_new(_("Add following as friends (NOT recommended for large follower list)"), TWITTER_PREF_GET_FRIENDS, TWITTER_PREF_GET_FRIENDS_DEFAULT);
     options = g_list_append(options, option);
 
+	/* If adding following as friends, what should be the default alias? */
+	{
+		static const gchar *alias_keys[] = {
+			N_("<nickname> | <full name>"),
+			N_("<nickname> only"),
+			N_("<full name> only"),
+			NULL
+		};
+		static const gchar *alias_values[] = {
+			TWITTER_PREF_ALIAS_FORMAT_ALL,
+			TWITTER_PREF_ALIAS_FORMAT_NICK,
+			TWITTER_PREF_ALIAS_FORMAT_FULLNAME,
+			NULL
+		};
+		GList *alias_options= NULL;
+		int i;
+
+		for (i = 0; alias_keys[i]; i++) {
+			PurpleKeyValuePair *kvp = g_new0(PurpleKeyValuePair, 1);
+			kvp->key = g_strdup(_(alias_keys[i]));
+			kvp->value = g_strdup(alias_values[i]);
+			alias_options= g_list_append(alias_options, kvp);
+		}
+
+		option = purple_account_option_list_new(_("Set default alias to:"), TWITTER_PREF_ALIAS_FORMAT, alias_options);
+		options = g_list_append(options, option);
+	}
+
     /* Add URL link to each tweet */
     option = purple_account_option_bool_new(_("Add URL link to each tweet"), TWITTER_PREF_ADD_URL_TO_TWEET, TWITTER_PREF_ADD_URL_TO_TWEET_DEFAULT);
     options = g_list_append(options, option);
@@ -135,6 +163,11 @@ static GList   *get_protocol_options(const char *protocol_id)
     }
 
     return options;
+}
+
+const gchar * twitter_option_alias_format(PurpleAccount * account)
+{
+	return purple_account_get_string(account, TWITTER_PREF_ALIAS_FORMAT, TWITTER_PREF_ALIAS_FORMAT_DEFAULT);
 }
 
 gboolean twitter_option_add_link_to_tweet(PurpleAccount * account)
