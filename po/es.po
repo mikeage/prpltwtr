@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.6.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-06-26 12:30+0300\n"
+"POT-Creation-Date: 2011-06-29 09:54+0300\n"
 "PO-Revision-Date: 2011-05-31 09:05-0300\n"
 "Last-Translator: Fabián Bonetti <mama21mama@mamalibre.com.ar>\n"
 "Language-Team: \n"
@@ -19,287 +19,181 @@ msgstr ""
 "X-Poedit-Country: Argentina\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:61
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:56
 msgid "Successfully retweeted"
 msgstr "Retwitteo exitoso"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:69
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:62
 #, c-format
 msgid "Couldn't retweet status: %s"
 msgstr "No se pudo retweet estado: %s"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:69 ../src/gtkprpltwtr/gtkprpltwtr.c:87
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:105 ../src/gtkprpltwtr/gtkprpltwtr.c:123
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:192 ../src/gtkprpltwtr/gtkprpltwtr.c:210
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:62 ../src/gtkprpltwtr/gtkprpltwtr.c:76
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:90 ../src/gtkprpltwtr/gtkprpltwtr.c:104
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:168 ../src/gtkprpltwtr/gtkprpltwtr.c:182
+#: ../src/prpltwtr/prpltwtr_auth.c:200 ../src/prpltwtr/prpltwtr_auth.c:274
+#: ../src/prpltwtr/prpltwtr_auth.c:332
 #: ../src/prpltwtr/prpltwtr_endpoint_dm.c:15
-#: ../src/prpltwtr/prpltwtr_endpoint_reply.c:17
-#: ../src/prpltwtr/prpltwtr.c:1004 ../src/prpltwtr/prpltwtr.c:1072
-#: ../src/prpltwtr/prpltwtr.c:1100
-#: ../src/prpltwtr/prpltwtr_endpoint_chat.c:585
+#: ../src/prpltwtr/prpltwtr_endpoint_reply.c:16
+#: ../src/prpltwtr/prpltwtr_endpoint_chat.c:519
 msgid "unknown error"
 msgstr "error desconocido"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:79
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:70
 msgid "Tweet favorited"
 msgstr "Tweet Favoritos"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:87
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:76
 #, fuzzy, c-format
 msgid "Couldn't favorite tweet: %s"
 msgstr "No se pudo retweet estado: %s"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:97
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:84
 msgid "Tweet un-favorited"
 msgstr "Tweet Favorito desmarcar"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:105
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:90
 #, fuzzy, c-format
 msgid "Couldn't un-favorite tweet: %s"
 msgstr "No se pudo retweet estado: %s"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:115
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:98
 msgid "Successfully reported as spam"
 msgstr "reportado con éxito como Spam"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:123
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:104
 #, c-format
 msgid "Couldn't report spammer: %s"
 msgstr "No se pudo informar spammer: %s"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:192
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:168
 #, c-format
 msgid "Couldn't get status: %s"
 msgstr "No se pudo obtener el estado: %s"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:202
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:176
 msgid "Successfully deleted"
 msgstr "Borrado con éxito"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:210
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:182
 #, c-format
 msgid "Couldn't delete status: %s"
 msgstr "No se pudo borrar el estado: %s"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:861
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:776
 msgid "Retweet"
 msgstr "Retweet"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:867
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:782
 msgid "Old Retweet"
 msgstr "Antiguo Retweet"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:874
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:788
 msgid "Reply"
 msgstr "Responder"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:880
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:794
 msgid "Reply All"
 msgstr "Responder a todos"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:887
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:800
 msgid "Goto Site"
 msgstr "Ir al sitio"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:899
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:810
 msgid "Delete"
 msgstr "Borrar"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:910
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:820
 msgid "In reply to..."
 msgstr "En respuesta a..."
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:919
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:828
 msgid "Lock reply"
 msgstr "Bloqueo de respuesta"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:928
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:836
 msgid "Delete Favorite"
 msgstr "Eliminar Favoritos"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:934
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:842
 msgid "Add Favorite"
 msgstr "Agregar a Favoritos"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:941
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:849
 msgid "Report spammer"
 msgstr "Reportar spammer"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:1302
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:1133
 msgid "Enable Icons in Chat"
 msgstr "Habilitar los iconos en charla"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:1305
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:1136
 msgid "Icon Size"
 msgstr "Tamaño de icono"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:1363
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:1193
 msgid "GUI Enhancements for PrplTwtr"
 msgstr "Mejoras del GUI para PrplTwtr"
 
-#: ../src/gtkprpltwtr/gtkprpltwtr.c:1364
+#: ../src/gtkprpltwtr/gtkprpltwtr.c:1194
 msgid "Pidgin specific GUI options for the purple plugin PrplTwtr"
 msgstr "Opciones específicas del GUI del plugin PrplTwtr para Pidgin"
 
-#: ../src/prpltwtr/prpltwtr_api.c:222 ../src/prpltwtr/prpltwtr_api.c:242
-#, fuzzy
-msgid "Description"
-msgstr "Descripción"
+#: ../src/prpltwtr/prpltwtr_auth.c:122
+msgid "Could not sign request"
+msgstr "No se pudo firmar la solicitud"
 
-#: ../src/prpltwtr/prpltwtr_api.c:225
-msgid "Friends"
-msgstr "Amigos"
-
-#: ../src/prpltwtr/prpltwtr_api.c:228
-msgid "Followers"
-msgstr "Seguidores"
-
-#: ../src/prpltwtr/prpltwtr_api.c:231
-#, fuzzy
-msgid "Tweets"
-msgstr "Retweet"
-
-#: ../src/prpltwtr/prpltwtr_api.c:236
-#, fuzzy
-msgid "Last status"
-msgstr "Establecer el estado"
-
-#: ../src/prpltwtr/prpltwtr_api.c:242
-msgid "No user info"
-msgstr "No hay información de usuario"
-
-#: ../src/prpltwtr/prpltwtr_api.c:245
-#, fuzzy
-msgid "Account Link"
-msgstr "Cuenta Enlace"
-
-#: ../src/prpltwtr/prpltwtr_endpoint_dm.c:15
-#, c-format
-msgid "Error sending DM: %s"
-msgstr "Error enviando DM: %s"
-
-#: ../src/prpltwtr/prpltwtr_endpoint_reply.c:17
-#, c-format
-msgid "Error sending reply: %s"
-msgstr "Error enviando respuesta: %s"
-
-#: ../src/prpltwtr/prpltwtr_endpoint_reply.c:94
-msgid "Could not retrieve replies, giving up trying"
-msgstr "No se pudo recuperar respuestas, renunciando a intentar"
-
-#: ../src/prpltwtr/prpltwtr.c:213
-msgid "Received Invalid XML"
-msgstr "Recibido XML no válido"
-
-#: ../src/prpltwtr/prpltwtr.c:217 ../src/prpltwtr/prpltwtr.c:1188
-msgid "Unauthorized"
-msgstr "no autorizado"
-
-#: ../src/prpltwtr/prpltwtr.c:225 ../src/prpltwtr/prpltwtr.c:1358
-msgid "Unknown error"
-msgstr "Error desconocido"
-
-#: ../src/prpltwtr/prpltwtr.c:551
-msgid "Connected"
-msgstr "conectado"
-
-#: ../src/prpltwtr/prpltwtr.c:644
-msgid "Remaining"
-msgstr "Restante"
-
-#. plugin handle or PurpleConnection
-#: ../src/prpltwtr/prpltwtr.c:646 ../src/prpltwtr/prpltwtr.c:647
-#: ../src/prpltwtr/prpltwtr.c:807
-msgid "Rate Limit Status"
-msgstr "Tasa de Estado Límite"
-
-#: ../src/prpltwtr/prpltwtr.c:780
-msgid "Status"
-msgstr "Estado"
-
-#: ../src/prpltwtr/prpltwtr.c:781
-msgid "Set Account Status"
-msgstr "Estado de cuenta determinado"
-
-#: ../src/prpltwtr/prpltwtr.c:784
-msgid "_Set"
-msgstr "_Set"
-
-#: ../src/prpltwtr/prpltwtr.c:785
-msgid "_Cancel"
-msgstr "_Cancel"
-
-#: ../src/prpltwtr/prpltwtr.c:804
-msgid "Set status"
-msgstr "Establecer el estado"
-
-#: ../src/prpltwtr/prpltwtr.c:813
-msgid "Debug - Retrieve users"
-msgstr "Depurar - Recuperar los usuarios"
-
-#: ../src/prpltwtr/prpltwtr.c:816
-msgid "Open Favorites URL"
-msgstr "Abrir Favoritos URL"
-
-#: ../src/prpltwtr/prpltwtr.c:818
-msgid "Open Retweets of Mine"
-msgstr "Abrir Mis Tweets Retwitteados"
-
-#: ../src/prpltwtr/prpltwtr.c:820
-msgid "Open Replies"
-msgstr "Abrir Respuestas"
-
-#: ../src/prpltwtr/prpltwtr.c:822
-msgid "Open Suggested Friends"
-msgstr "Abrir sugerida amigos"
-
-#: ../src/prpltwtr/prpltwtr.c:854
-msgid "Connecting..."
-msgstr "Conectando..."
-
-#: ../src/prpltwtr/prpltwtr.c:919
-msgid "Username mismatch"
-msgstr "Nombre de usuario no coincide"
-
-#: ../src/prpltwtr/prpltwtr.c:933
-#, c-format
-msgid "Do you wish to change the name on this account to %s?"
-msgstr "¿Desea cambiar el nombre de esta cuenta a %s?"
-
-#: ../src/prpltwtr/prpltwtr.c:941
-msgid "Mismatched Screen Names"
-msgstr "Conflicto de nombres de pantalla"
-
-#: ../src/prpltwtr/prpltwtr.c:942
-msgid "Authorized screen name does not match with account screen name"
-msgstr "Nombre de pantalla no autorizado no coincide con el nombre de cuenta"
-
-#: ../src/prpltwtr/prpltwtr.c:950 ../src/prpltwtr/prpltwtr.c:1054
-msgid "Cancel"
-msgstr "Cancelar"
-
-#: ../src/prpltwtr/prpltwtr.c:951
-msgid "Yes"
-msgstr "Si"
-
-#: ../src/prpltwtr/prpltwtr.c:996
+#: ../src/prpltwtr/prpltwtr_auth.c:194
 msgid "Unknown response getting access token"
 msgstr "Respuesta desconocida obteniendo el token de acceso"
 
-#: ../src/prpltwtr/prpltwtr.c:1004
+#: ../src/prpltwtr/prpltwtr_auth.c:200
 #, c-format
 msgid "Error verifying PIN: %s"
 msgstr "Error de verificación de PIN: %s"
 
-#: ../src/prpltwtr/prpltwtr.c:1020
-msgid "Canceled PIN entry"
-msgstr "Entrada cancelada del PIN"
+#: ../src/prpltwtr/prpltwtr_auth.c:228
+msgid "Username mismatch"
+msgstr "Nombre de usuario no coincide"
 
-#: ../src/prpltwtr/prpltwtr.c:1038
+#: ../src/prpltwtr/prpltwtr_auth.c:243
+#, c-format
+msgid "Do you wish to change the name on this account to %s?"
+msgstr "¿Desea cambiar el nombre de esta cuenta a %s?"
+
+#: ../src/prpltwtr/prpltwtr_auth.c:249
+msgid "Mismatched Screen Names"
+msgstr "Conflicto de nombres de pantalla"
+
+#: ../src/prpltwtr/prpltwtr_auth.c:249
+msgid "Authorized screen name does not match with account screen name"
+msgstr "Nombre de pantalla no autorizado no coincide con el nombre de cuenta"
+
+#. ok text
+#: ../src/prpltwtr/prpltwtr_auth.c:249 ../src/prpltwtr/prpltwtr_auth.c:320
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: ../src/prpltwtr/prpltwtr_auth.c:249
+msgid "Yes"
+msgstr "Si"
+
+#: ../src/prpltwtr/prpltwtr_auth.c:262
+msgid "Could not verify credentials"
+msgstr "No se ha podido verificar las credenciales"
+
+#: ../src/prpltwtr/prpltwtr_auth.c:274
+#, c-format
+msgid "Error verifying credentials: %s"
+msgstr "Error al comprobar las credenciales: %s"
+
+#: ../src/prpltwtr/prpltwtr_auth.c:306
 #, fuzzy
 msgid "Please enter PIN for"
 msgstr "Entre por favor el pin"
 
-#: ../src/prpltwtr/prpltwtr.c:1045
+#: ../src/prpltwtr/prpltwtr_auth.c:312
 msgid "OAuth Authentication"
 msgstr "Autentificación de OAuth"
 
@@ -310,215 +204,361 @@ msgstr "Autentificación de OAuth"
 #. multiline,
 #. password
 #. hint
-#: ../src/prpltwtr/prpltwtr.c:1052
+#: ../src/prpltwtr/prpltwtr_auth.c:319
 msgid "Submit"
 msgstr "Enviar"
 
-#: ../src/prpltwtr/prpltwtr.c:1063
+#: ../src/prpltwtr/prpltwtr_auth.c:325
 msgid "Invalid response receiving request token"
 msgstr "Respuesta invalida que recibe en solicitud de token"
 
-#: ../src/prpltwtr/prpltwtr.c:1072
+#: ../src/prpltwtr/prpltwtr_auth.c:332
 #, c-format
 msgid "Error receiving request token: %s"
 msgstr "Error al recibir solicitud de token %s"
 
-#: ../src/prpltwtr/prpltwtr.c:1086
-msgid "Could not verify credentials"
-msgstr "No se ha podido verificar las credenciales"
+#: ../src/prpltwtr/prpltwtr_auth.c:367
+msgid "Canceled PIN entry"
+msgstr "Entrada cancelada del PIN"
 
-#: ../src/prpltwtr/prpltwtr.c:1100
+#: ../src/prpltwtr/prpltwtr_api.c:204 ../src/prpltwtr/prpltwtr_api.c:222
+#, fuzzy
+msgid "Description"
+msgstr "Descripción"
+
+#: ../src/prpltwtr/prpltwtr_api.c:207
+msgid "Friends"
+msgstr "Amigos"
+
+#: ../src/prpltwtr/prpltwtr_api.c:210
+msgid "Followers"
+msgstr "Seguidores"
+
+#: ../src/prpltwtr/prpltwtr_api.c:213
+#, fuzzy
+msgid "Tweets"
+msgstr "Retweet"
+
+#: ../src/prpltwtr/prpltwtr_api.c:217
+#, fuzzy
+msgid "Last status"
+msgstr "Establecer el estado"
+
+#: ../src/prpltwtr/prpltwtr_api.c:222
+msgid "No user info"
+msgstr "No hay información de usuario"
+
+#: ../src/prpltwtr/prpltwtr_api.c:225
+#, fuzzy
+msgid "Account Link"
+msgstr "Cuenta Enlace"
+
+#: ../src/prpltwtr/prpltwtr_endpoint_dm.c:15
 #, c-format
-msgid "Error verifying credentials: %s"
-msgstr "Error al comprobar las credenciales: %s"
+msgid "Error sending DM: %s"
+msgstr "Error enviando DM: %s"
 
-#: ../src/prpltwtr/prpltwtr.c:1155
-msgid "Could not sign request"
-msgstr "No se pudo firmar la solicitud"
+#: ../src/prpltwtr/prpltwtr_endpoint_reply.c:16
+#, c-format
+msgid "Error sending reply: %s"
+msgstr "Error enviando respuesta: %s"
 
-#: ../src/prpltwtr/prpltwtr.c:1356
+#: ../src/prpltwtr/prpltwtr_endpoint_reply.c:77
+msgid "Could not retrieve replies, giving up trying"
+msgstr "No se pudo recuperar respuestas, renunciando a intentar"
+
+#: ../src/prpltwtr/prpltwtr.c:181
+msgid "Received Invalid XML"
+msgstr "Recibido XML no válido"
+
+#: ../src/prpltwtr/prpltwtr.c:185 ../src/prpltwtr/prpltwtr.c:792
+msgid "Unauthorized"
+msgstr "no autorizado"
+
+#: ../src/prpltwtr/prpltwtr.c:193 ../src/prpltwtr/prpltwtr.c:928
+msgid "Unknown error"
+msgstr "Error desconocido"
+
+#: ../src/prpltwtr/prpltwtr.c:491
+msgid "Connected"
+msgstr "conectado"
+
+#: ../src/prpltwtr/prpltwtr.c:573
+msgid "Remaining"
+msgstr "Restante"
+
+#. plugin handle or PurpleConnection
+#: ../src/prpltwtr/prpltwtr.c:575 ../src/prpltwtr/prpltwtr.c:714
+msgid "Rate Limit Status"
+msgstr "Tasa de Estado Límite"
+
+#: ../src/prpltwtr/prpltwtr.c:693
+msgid "Status"
+msgstr "Estado"
+
+#: ../src/prpltwtr/prpltwtr.c:693
+msgid "Set Account Status"
+msgstr "Estado de cuenta determinado"
+
+#: ../src/prpltwtr/prpltwtr.c:693
+msgid "_Set"
+msgstr "_Set"
+
+#: ../src/prpltwtr/prpltwtr.c:693
+msgid "_Cancel"
+msgstr "_Cancel"
+
+#: ../src/prpltwtr/prpltwtr.c:711
+msgid "Set status"
+msgstr "Establecer el estado"
+
+#: ../src/prpltwtr/prpltwtr.c:718
+msgid "Debug - Retrieve users"
+msgstr "Depurar - Recuperar los usuarios"
+
+#: ../src/prpltwtr/prpltwtr.c:724
+msgid "Open Favorites URL"
+msgstr "Abrir Favoritos URL"
+
+#: ../src/prpltwtr/prpltwtr.c:726
+msgid "Open Retweets of Mine"
+msgstr "Abrir Mis Tweets Retwitteados"
+
+#: ../src/prpltwtr/prpltwtr.c:728
+msgid "Open Replies"
+msgstr "Abrir Respuestas"
+
+#: ../src/prpltwtr/prpltwtr.c:730
+msgid "Open Suggested Friends"
+msgstr "Abrir sugerida amigos"
+
+#: ../src/prpltwtr/prpltwtr.c:761
+msgid "Connecting..."
+msgstr "Conectando..."
+
+#: ../src/prpltwtr/prpltwtr.c:926
 msgid "Unknown reply by twitter server"
 msgstr "Respuesta desconocida por el servidor de Twitter"
 
 #. plugin handle or PurpleConnection
-#: ../src/prpltwtr/prpltwtr.c:1361
+#: ../src/prpltwtr/prpltwtr.c:931
 msgid "Twitter Set Status"
 msgstr "Estado determinado de Twitter"
 
-#: ../src/prpltwtr/prpltwtr.c:1362
+#: ../src/prpltwtr/prpltwtr.c:931
 msgid "Error setting Twitter Status"
 msgstr "Error al establecer el estado de Twitter"
 
-#: ../src/prpltwtr/prpltwtr.c:1588
+#: ../src/prpltwtr/prpltwtr.c:1145
 #, c-format
 msgid "Automatically open chat on new tweets (Currently: %s)"
 msgstr "Abrir automáticamente el chat en nuevos tweets (Actualmente: %s)"
 
-#: ../src/prpltwtr/prpltwtr.c:1589
+#: ../src/prpltwtr/prpltwtr.c:1146
 msgid "On"
 msgstr "On"
 
-#: ../src/prpltwtr/prpltwtr.c:1589
+#: ../src/prpltwtr/prpltwtr.c:1146
 msgid "Off"
 msgstr "Off"
 
-#: ../src/prpltwtr/prpltwtr.c:1604
+#: ../src/prpltwtr/prpltwtr.c:1160
 #, c-format
 msgid "No%s"
 msgstr "No%s"
 
-#: ../src/prpltwtr/prpltwtr.c:1604 ../src/prpltwtr/prpltwtr.c:1609
-#: ../src/prpltwtr/prpltwtr.c:1614
+#: ../src/prpltwtr/prpltwtr.c:1160 ../src/prpltwtr/prpltwtr.c:1165
+#: ../src/prpltwtr/prpltwtr.c:1170
 msgid " (set)"
 msgstr "(set)"
 
-#: ../src/prpltwtr/prpltwtr.c:1609
+#: ../src/prpltwtr/prpltwtr.c:1165
 #, c-format
 msgid "Prepend%s"
 msgstr "Anteponer%s"
 
-#: ../src/prpltwtr/prpltwtr.c:1614
+#: ../src/prpltwtr/prpltwtr.c:1170
 #, c-format
 msgid "Append%s"
 msgstr "Anexar%s"
 
-#: ../src/prpltwtr/prpltwtr.c:1619
+#: ../src/prpltwtr/prpltwtr.c:1175
 #, c-format
 msgid "Tag all chats with search term:"
 msgstr "Marcar todos los chats con el término de búsqueda:"
 
-#: ../src/prpltwtr/prpltwtr.c:1629
+#: ../src/prpltwtr/prpltwtr.c:1184
 msgid "@Message"
 msgstr "@Message"
 
-#: ../src/prpltwtr/prpltwtr.c:1635
+#: ../src/prpltwtr/prpltwtr.c:1187
 msgid "Direct Message"
 msgstr "Mensaje Directo"
 
-#: ../src/prpltwtr/prpltwtr.c:1641
+#: ../src/prpltwtr/prpltwtr.c:1191
 msgid "Clear Reply Marker"
 msgstr "Limpiar marcador de respuesta"
 
-#: ../src/prpltwtr/prpltwtr.c:1667
+#: ../src/prpltwtr/prpltwtr.c:1216
 msgid "No passwords with OAuth"
 msgstr "No hay contraseñas con OAuth"
 
-#: ../src/prpltwtr/prpltwtr.c:1742
+#: ../src/prpltwtr/prpltwtr.c:1288
 msgid "Twitter for Purple"
 msgstr "Twitter para Pidgin"
 
-#: ../src/prpltwtr/prpltwtr.c:1743
+#: ../src/prpltwtr/prpltwtr.c:1289
 #, fuzzy
 msgid "Access Twitter from within libpurple applications"
 msgstr "Acceso a Twitter y sitios compatibles desde aplicaciones libpurple"
 
-#: ../src/prpltwtr/prpltwtr.c:1745
+#: ../src/prpltwtr/prpltwtr.c:1326
 #, fuzzy
 msgid "Status.net for Purple (Twitter API)"
 msgstr "Twitter para Pidgin"
 
-#: ../src/prpltwtr/prpltwtr.c:1746
+#: ../src/prpltwtr/prpltwtr.c:1327
 #, fuzzy
 msgid ""
 "Access status.net microblogging servers from within libpurple applications"
 msgstr "Acceso a Twitter y sitios compatibles desde aplicaciones libpurple"
 
-#: ../src/prpltwtr/prpltwtr.c:1748
+#: ../src/prpltwtr/prpltwtr.c:1329
 msgid "Server"
 msgstr ""
 
-#: ../src/prpltwtr/prpltwtr_endpoint_search.c:56
+#: ../src/prpltwtr/prpltwtr.c:1329
+msgid "server name"
+msgstr ""
+
+#: ../src/prpltwtr/prpltwtr_endpoint_search.c:53
 msgid "Search must be filled in when joining a search chat"
 msgstr "La búsqueda debe ser completada al entrar en una charla de la búsqueda"
 
-#: ../src/prpltwtr/prpltwtr_prefs.c:35
+#: ../src/prpltwtr/prpltwtr_prefs.c:46
 msgid "Enable HTTPS"
 msgstr "Habilitar HTTPS"
 
-#: ../src/prpltwtr/prpltwtr_prefs.c:41
+#: ../src/prpltwtr/prpltwtr_prefs.c:52
 msgid "Enable OAuth (more secure, higher rate limit)"
 msgstr "Habilitar OAuth (mas seguro, mas alto limite de velocidad)"
 
-#: ../src/prpltwtr/prpltwtr_prefs.c:48
+#: ../src/prpltwtr/prpltwtr_prefs.c:54
+msgid "Custom Consumer Key"
+msgstr ""
+
+#: ../src/prpltwtr/prpltwtr_prefs.c:56
+msgid "Custom Consumer Secret"
+msgstr ""
+
+#. Default sending im to buddy is to dm
+#: ../src/prpltwtr/prpltwtr_prefs.c:61
 msgid "Default IM to buddy is a DM"
 msgstr ""
 "la mensajería instantánea por defecto para ese amigo es un mensaje directo"
 
-#: ../src/prpltwtr/prpltwtr_prefs.c:55
+#. Retrieve tweets history after login
+#: ../src/prpltwtr/prpltwtr_prefs.c:65
 msgid "Retrieve tweets history after login"
 msgstr "Recuperar historial de tweets después de iniciar sesión"
 
-#: ../src/prpltwtr/prpltwtr_prefs.c:62
+#. Sync presence update to twitter
+#: ../src/prpltwtr/prpltwtr_prefs.c:69
 msgid "Sync availability status message to Twitter"
 msgstr "Disponibilidad de sincronización de mensajes de estado en Twitter"
 
-#: ../src/prpltwtr/prpltwtr_prefs.c:69
+#. Automatically generate a buddylist based on followers
+#: ../src/prpltwtr/prpltwtr_prefs.c:73
 msgid "Add following as friends (NOT recommended for large follower list)"
 msgstr ""
 "Añadir siguientes como amigos (NO se recomienda para la lista de seguidores "
 "grandes)"
 
-#: ../src/prpltwtr/prpltwtr_prefs.c:76
+#: ../src/prpltwtr/prpltwtr_prefs.c:79
+msgid "<nickname> | <full name>"
+msgstr ""
+
+#: ../src/prpltwtr/prpltwtr_prefs.c:80
+msgid "<nickname> only"
+msgstr ""
+
+#: ../src/prpltwtr/prpltwtr_prefs.c:81
+msgid "<full name> only"
+msgstr ""
+
+#: ../src/prpltwtr/prpltwtr_prefs.c:100
+msgid "Set default alias to:"
+msgstr ""
+
+#. Add URL link to each tweet
+#: ../src/prpltwtr/prpltwtr_prefs.c:105
 msgid "Add URL link to each tweet"
 msgstr "Añadir enlace URL a cada tweet"
 
-#: ../src/prpltwtr/prpltwtr_prefs.c:83
+#. Idle cutoff time
+#: ../src/prpltwtr/prpltwtr_prefs.c:109
 msgid "Buddy last tweet hours before set offline (0: Always online)"
 msgstr ""
 "Tweet última hora de amigos online antes de establecer offline (0: Siempre "
 "online)"
 
-#: ../src/prpltwtr/prpltwtr_prefs.c:91
+#. Max tweets to retrieve when retrieving timeline data
+#: ../src/prpltwtr/prpltwtr_prefs.c:115
 msgid "Max historical timeline tweets to retrieve (0: infinite)"
 msgstr "Tweets máximo histórico línea de tiempo para recuperar (0: infinito)"
 
-#: ../src/prpltwtr/prpltwtr_prefs.c:98
+#. Timeline tweets refresh interval
+#: ../src/prpltwtr/prpltwtr_prefs.c:121
 #, fuzzy
 msgid "Refresh timeline every (min)"
 msgstr "Actualizar todas las respuestas (min)"
 
-#: ../src/prpltwtr/prpltwtr_prefs.c:105
+#. Mentions/replies tweets refresh interval
+#: ../src/prpltwtr/prpltwtr_prefs.c:127
 msgid "Refresh replies every (min)"
 msgstr "Actualizar todas las respuestas (min)"
 
-#: ../src/prpltwtr/prpltwtr_prefs.c:112
+#. Dms refresh interval
+#: ../src/prpltwtr/prpltwtr_prefs.c:133
+msgid "Refresh direct messages every (min)"
+msgstr "Actualizar todos los mensajes directos (min)"
+
+#. Lists tweets refresh interval
+#: ../src/prpltwtr/prpltwtr_prefs.c:140
 #, fuzzy
 msgid "Refresh lists every (min)"
 msgstr "Actualizar todas las respuestas (min)"
 
-#: ../src/prpltwtr/prpltwtr_prefs.c:119
-msgid "Refresh direct messages every (min)"
-msgstr "Actualizar todos los mensajes directos (min)"
-
-#: ../src/prpltwtr/prpltwtr_prefs.c:126
+#. Friendlist refresh interval
+#: ../src/prpltwtr/prpltwtr_prefs.c:147
 msgid "Refresh friendlist every (min)"
 msgstr "Actualizar toda la lista de amigos (min)"
 
-#: ../src/prpltwtr/prpltwtr_prefs.c:133
+#. Search results refresh interval
+#: ../src/prpltwtr/prpltwtr_prefs.c:153
 msgid "Default refresh search results every (min)"
 msgstr "Por defecto cargar todos los resultados de la búsqueda (min)"
 
-#: ../src/prpltwtr/prpltwtr_prefs.c:139
+#: ../src/prpltwtr/prpltwtr_prefs.c:159
 msgid "API Base URL"
 msgstr "API base URL"
 
-#: ../src/prpltwtr/prpltwtr_prefs.c:145
-msgid "Search API Base URL"
-msgstr "URL de base de búsqueda de la API"
-
 #. plugin handle or PurpleConnection
-#: ../src/prpltwtr/prpltwtr_endpoint_chat.c:471
+#: ../src/prpltwtr/prpltwtr_endpoint_chat.c:425
 msgid "Chat Join"
 msgstr "Unirse al chat"
 
-#: ../src/prpltwtr/prpltwtr_endpoint_chat.c:472
+#: ../src/prpltwtr/prpltwtr_endpoint_chat.c:425
 msgid "Invalid Chat"
 msgstr "Invalido chat"
 
-#: ../src/prpltwtr/prpltwtr_endpoint_chat.c:585
+#: ../src/prpltwtr/prpltwtr_endpoint_chat.c:519
 #, c-format
 msgid "Error sending tweet: %s"
 msgstr "Error enviando tweet: %s"
+
+#~ msgid "Search API Base URL"
+#~ msgstr "URL de base de búsqueda de la API"
 
 #~ msgid "Clicked URI"
 #~ msgstr "clickear URI"

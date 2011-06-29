@@ -3,6 +3,7 @@ src/gtkprpltwtr/gtkprpltwtr_charcount.c
 src/gtkprpltwtr/gtkprpltwtr.c
 src/gtkprpltwtr/gtkprpltwtr_prefs.c
 src/prpltwtr/prpltwtr_xml.c
+src/prpltwtr/prpltwtr_auth.c
 src/prpltwtr/prpltwtr_api.c
 src/prpltwtr/prpltwtr_endpoint_dm.c
 src/prpltwtr/prpltwtr_request.c
