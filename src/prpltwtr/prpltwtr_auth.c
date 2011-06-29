@@ -385,7 +385,7 @@ static const gchar *twitter_option_url_oauth_access_token(PurpleAccount * accoun
 static const gchar *twitter_oauth_create_url(PurpleAccount * account, const gchar * endpoint)
 {
     static char     url[1024];
-	char            host[256];
+    char            host[256];
 
     g_return_val_if_fail(endpoint != NULL && endpoint[0] != '\0', NULL);
 

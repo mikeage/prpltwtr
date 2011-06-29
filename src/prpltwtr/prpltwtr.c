@@ -719,7 +719,7 @@ GList          *twitter_actions(PurplePlugin * plugin, gpointer context)
     l = g_list_append(l, action);
 #endif
     if (!strcmp(plugin->info->id, TWITTER_PROTOCOL_ID)) {
-		l = g_list_append(l, NULL);
+        l = g_list_append(l, NULL);
 
         action = purple_plugin_action_new(_("Open Favorites URL"), twitter_api_web_open_favorites);
         l = g_list_append(l, action);
