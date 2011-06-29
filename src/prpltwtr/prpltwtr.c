@@ -714,13 +714,13 @@ GList          *twitter_actions(PurplePlugin * plugin, gpointer context)
     action = purple_plugin_action_new(_("Rate Limit Status"), twitter_action_get_rate_limit_status);
     l = g_list_append(l, action);
 
-    l = g_list_append(l, NULL);
-
 #if 0
     action = purple_plugin_action_new(_("Debug - Retrieve users"), twitter_action_get_user_info);
     l = g_list_append(l, action);
 #endif
     if (!strcmp(plugin->info->id, TWITTER_PROTOCOL_ID)) {
+		l = g_list_append(l, NULL);
+
         action = purple_plugin_action_new(_("Open Favorites URL"), twitter_api_web_open_favorites);
         l = g_list_append(l, action);
         action = purple_plugin_action_new(_("Open Retweets of Mine"), twitter_api_web_open_retweets_of_mine);
