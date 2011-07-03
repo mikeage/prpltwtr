@@ -41,7 +41,7 @@ SetCompress auto
 ; MUI end ------
 
 Name "${PRODUCT_NAME} ${PACKAGE_VERSION}"
-OutFile "${PRODUCT_NAME}-${PACKAGE_VERSION}.exe"
+OutFile "${BASEDIR}\${PRODUCT_NAME}-${PACKAGE_VERSION}.exe"
 
 ShowInstDetails show
 ShowUnInstDetails show

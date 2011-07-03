@@ -20,7 +20,7 @@ clean:
 	$(MAKE) -C src -f $(MINGW_MAKEFILE) $@
 	$(MAKE) -C po -f $(MINGW_MAKEFILE) $@
 	$(MAKE) -C data -f $(MINGW_MAKEFILE) $@
-	-rm -rf nsis/*exe
+	-rm -rf *exe
 	-rm $(PO_INSTALL_SCRIPT)
 
 ifeq ($(strip $(PACKAGE_VERSION)),)
