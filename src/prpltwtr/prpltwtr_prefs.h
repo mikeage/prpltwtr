@@ -114,7 +114,8 @@
 #define TWITTER_PREF_URL_UPDATE_STATUS "/statuses/update.xml"
 #define TWITTER_PREF_URL_NEW_DM "/direct_messages/new.xml"
 #define TWITTER_PREF_URL_GET_SAVED_SEARCHES "/saved_searches.xml"
-#define TWITTER_PREF_URL_GET_LISTS "/lists.xml"
+#define TWITTER_PREF_URL_GET_SUBSCRIBED_LISTS "/lists/subscriptions.xml"
+#define TWITTER_PREF_URL_GET_PERSONAL_LISTS "/lists.xml"
 #define TWITTER_PREF_URL_GET_SEARCH_RESULTS "/search.atom"
 #define TWITTER_PREF_URL_VERIFY_CREDENTIALS "/account/verify_credentials.xml"
 #define TWITTER_PREF_URL_RT "/statuses/retweet"  /* Yay for inconsistency */

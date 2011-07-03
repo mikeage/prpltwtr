@@ -110,7 +110,7 @@ static PurpleChat *twitter_blist_chat_timeline_new(PurpleAccount * account, gint
     return c;
 }
 
-static PurpleChat *twitter_blist_chat_list_new(PurpleAccount * account, const char *list_name, long long list_id)
+static PurpleChat *twitter_blist_chat_list_new(PurpleAccount * account, const char *list_name, const char *owner, long long list_id)
 {
     PurpleGroup    *g;
     PurpleChat     *c = twitter_blist_chat_find_list(account, list_name);
@@ -134,6 +134,7 @@ static PurpleChat *twitter_blist_chat_list_new(PurpleAccount * account, const ch
     g_hash_table_insert(components, "interval", g_strdup_printf("%d", twitter_option_list_timeout(account)));
     g_hash_table_insert(components, "chat_type", g_strdup_printf("%d", TWITTER_CHAT_LIST));
     g_hash_table_insert(components, "list_name", g_strdup(list_name));
+    g_hash_table_insert(components, "owner", g_strdup(owner));
     g_hash_table_insert(components, "list_id", g_strdup_printf("%lld", list_id));
 
     c = purple_chat_new(account, list_name, components);
@@ -295,8 +296,14 @@ static void get_lists_cb(TwitterRequestor * r, xmlnode * node, gpointer user_dat
     for (list = list->child; list; list = list->next) {
         if (list->name && !g_strcmp0(list->name, "list")) {
             long long       id;
+            gchar          *owner = NULL;
             gchar          *id_str = xmlnode_get_child_data(list, "id");
-            gchar          *name = xmlnode_get_child_data(list, "name");
+            gchar          *name = xmlnode_get_child_data(list, "full_name");
+            xmlnode        *user = xmlnode_get_child(list, "user");
+            if (user) {
+                owner = xmlnode_get_child_data(user, "screen_name");
+            }
+
             if (id_str) {
                 id = strtoll(id_str, NULL, 10);
             } else {
@@ -307,11 +314,12 @@ static void get_lists_cb(TwitterRequestor * r, xmlnode * node, gpointer user_dat
             /* TODO */
 #else
             purple_debug_info(purple_account_get_protocol_id(r->account), "List found: name %s, id %lld\n", name, id);
-            twitter_blist_chat_list_new(r->account, name, id);
+            twitter_blist_chat_list_new(r->account, name, owner, id);
 #endif
 
             g_free(id_str);
             g_free(name);
+            g_free(owner);
         }
     }
 }
@@ -503,7 +511,8 @@ static void twitter_connected(PurpleAccount * account)
         /* Retrieve user's saved search queries */
         twitter_api_get_saved_searches(purple_account_get_requestor(account), get_saved_searches_cb, NULL, NULL);
 
-        twitter_api_get_lists(purple_account_get_requestor(account), get_lists_cb, NULL, NULL);
+        twitter_api_get_personal_lists(purple_account_get_requestor(account), get_lists_cb, NULL, NULL);
+        twitter_api_get_subscribed_lists(purple_account_get_requestor(account), get_lists_cb, NULL, NULL);
     }
 
     /* Install periodic timers to retrieve replies and dms */

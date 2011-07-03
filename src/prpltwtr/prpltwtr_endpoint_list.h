@@ -39,6 +39,7 @@ typedef struct {
 //  guint timeline_id;
     gchar          *list_name;
     gchar          *list_id;
+    gchar          *owner;
     long long       last_tweet_id;
 } TwitterListTimeoutContext;
 TwitterEndpointChatSettings *twitter_endpoint_list_get_settings(void);

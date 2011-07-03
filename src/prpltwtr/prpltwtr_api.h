@@ -33,9 +33,9 @@ void            twitter_api_get_home_timeline_all(TwitterRequestor * r, long lon
 
 void            twitter_api_get_home_timeline(TwitterRequestor * r, long long since_id, int count, int page, TwitterSendXmlRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data);
 
-void            twitter_api_get_list(TwitterRequestor * r, const gchar * list_id, long long since_id, int count, int page, TwitterSendXmlRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data);
+void            twitter_api_get_list(TwitterRequestor * r, const gchar * list_id, const gchar * owner, long long since_id, int count, int page, TwitterSendXmlRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data);
 
-void            twitter_api_get_list_all(TwitterRequestor * r, const gchar * list_id, long long since_id, TwitterSendRequestMultiPageAllSuccessFunc success_func, TwitterSendRequestMultiPageAllErrorFunc error_func, gint max_count, gpointer data);
+void            twitter_api_get_list_all(TwitterRequestor * r, const gchar * list_id, const gchar * owner, long long since_id, TwitterSendRequestMultiPageAllSuccessFunc success_func, TwitterSendRequestMultiPageAllErrorFunc error_func, gint max_count, gpointer data);
 
 void            twitter_api_get_dms(TwitterRequestor * r, long long since_id, int count, int page, TwitterSendXmlRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data);
 
@@ -67,7 +67,8 @@ void            twitter_api_send_dms(TwitterRequestor * r, const gchar * who, GA
 
 void            twitter_api_set_status(TwitterRequestor * r, const char *msg, long long in_reply_to_status_id, TwitterSendXmlRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data);
 
-void            twitter_api_get_lists(TwitterRequestor * r, TwitterSendXmlRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data);
+void            twitter_api_get_personal_lists(TwitterRequestor * r, TwitterSendXmlRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data);
+void            twitter_api_get_subscribed_lists(TwitterRequestor * r, TwitterSendXmlRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data);
 
 void            twitter_api_get_saved_searches(TwitterRequestor * r, TwitterSendXmlRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data);
 
