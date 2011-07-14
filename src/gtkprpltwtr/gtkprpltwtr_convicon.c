@@ -392,7 +392,7 @@ void twitter_conv_icon_got_user_icon(PurpleAccount * account, const char *user_n
     if (url) {
         BuddyIconContext *ctx = twitter_buddy_icon_context_new(account, user_name, url);
         purple_debug_info(PLUGIN_ID, "requesting %s for %s\n", url, user_name);
-        conv_icon->fetch_data = purple_util_fetch_url_request(url, TRUE, NULL, FALSE, NULL, TRUE, got_page_cb, ctx);
+        conv_icon->fetch_data = purple_util_fetch_url_request_len_with_account(account, url, TRUE, NULL, FALSE, NULL, TRUE, -1, got_page_cb, ctx);
     }
 }
 

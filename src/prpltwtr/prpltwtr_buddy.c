@@ -251,7 +251,7 @@ void twitter_buddy_update_icon_from_username(PurpleAccount * account, const gcha
 
         purple_signal_emit(purple_buddy_icons_get_handle(), "prpltwtr-update-buddyicon", account, username, NULL);
 
-        purple_util_fetch_url(url, TRUE, NULL, FALSE, twitter_buddy_update_icon_cb, b);
+        purple_util_fetch_url_request_len_with_account(account, url, TRUE, NULL, FALSE, NULL, FALSE, -1, twitter_buddy_update_icon_cb, b);
 
     }
 }

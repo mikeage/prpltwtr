@@ -1,6 +1,7 @@
 Changelog for current version:
   * Windows executable is compiled to the main directory (don't ask why)
   * Add subscribed lists (not just created lists). The list names changed; you'll need to delete the old lists
+  * Send all requests through the account specific proxy, not the global one. Oops.
 
 Changelog for 0.9.0:
   * Fix crash when closing a window with pending buddy icons to look up

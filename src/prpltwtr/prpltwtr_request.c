@@ -381,7 +381,7 @@ static gpointer twitter_send_request_querystring(TwitterRequestor * r, gboolean 
     purple_debug_info(purple_account_get_protocol_id(account), "Sending request: %s\n", request);
 #endif
 
-    request_data->request_id = purple_util_fetch_url_request(full_url, TRUE, USER_AGENT, TRUE, request, TRUE, twitter_send_request_cb, request_data);
+    request_data->request_id = purple_util_fetch_url_request_len_with_account(account, full_url, TRUE, USER_AGENT, TRUE, request, TRUE, -1, twitter_send_request_cb, request_data);
     g_free(full_url);
     g_free(request);
     g_free(host);
