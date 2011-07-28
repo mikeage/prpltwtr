@@ -274,13 +274,13 @@ static void verify_credentials_error_cb(TwitterRequestor * r, const TwitterReque
     gchar          *error = g_strdup_printf(_("Error verifying credentials: %s"), error_data->message ? error_data->message : _("unknown error"));
     switch (error_data->type) {
     case TWITTER_REQUEST_ERROR_SERVER:
+    case TWITTER_REQUEST_ERROR_CANCELED:
         prpltwtr_recoverable_disconnect(r->account, error);
         break;
     case TWITTER_REQUEST_ERROR_NONE:
     case TWITTER_REQUEST_ERROR_TWITTER_GENERAL:
     case TWITTER_REQUEST_ERROR_INVALID_XML:
     case TWITTER_REQUEST_ERROR_NO_OAUTH:
-    case TWITTER_REQUEST_ERROR_CANCELED:
     case TWITTER_REQUEST_ERROR_UNAUTHORIZED:
     default:
         prpltwtr_disconnect(r->account, error);

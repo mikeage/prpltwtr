@@ -1,4 +1,5 @@
 Changelog for current version:
+  * Make some errors recoverable. Prpltwtr should try to reconnect, and not disable the account. I know this covers the case of sleep on Windows; hopefully others as well
 
 Changelog for 0.10.0:
   * Windows executable is compiled to the main directory (don't ask why)
