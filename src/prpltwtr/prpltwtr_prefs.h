@@ -124,6 +124,7 @@
 #define TWITTER_PREF_URL_DELETE_FAVORITE "/favorites/destroy"   /* Yay for inconsistency */
 #define TWITTER_PREF_URL_GET_STATUS "/statuses/show"
 #define TWITTER_PREF_URL_REPORT_SPAMMER "/report_spam.xml"
+#define TWITTER_PREF_URL_GET_USER_INFO "/users/show.xml"
 
 /***** END URLS *****/
 

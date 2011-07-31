@@ -76,6 +76,7 @@ void            twitter_api_web_open_favorites(PurplePluginAction * action);
 void            twitter_api_web_open_retweets_of_mine(PurplePluginAction * action);
 void            twitter_api_web_open_suggested_friends(PurplePluginAction * action);
 void            twitter_api_web_open_replies(PurplePluginAction * action);
+void            prpltwtr_api_refresh_user(TwitterRequestor * r, const char *username, TwitterSendXmlRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func);
 
 /**
  * @rpp: The number of tweets to return per page, up to a max of 100

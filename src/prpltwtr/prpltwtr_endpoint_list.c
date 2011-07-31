@@ -182,7 +182,7 @@ static TwitterEndpointChatSettings TwitterEndpointListSettings = {
     NULL, twitter_list_timeout_context_free,     //endpoint_data_free
     twitter_option_list_timeout,                 //get_default_interval
     twitter_list_chat_name_from_components,      //get_name
-    NULL,                                        //verify_components TODO: only in search? MHM
+    NULL,                                        //verify_components TODO: only in search? 
     twitter_list_timeout, twitter_endpoint_list_interval_start, twitter_list_timeout_context_new,
 };
 

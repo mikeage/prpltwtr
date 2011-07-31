@@ -64,6 +64,11 @@ static const gchar *twitter_api_create_web_url(PurpleAccount * account, const gc
     return url;
 }
 
+static const gchar *twitter_option_url_get_user_info(PurpleAccount * account)
+{
+    return twitter_api_create_url(account, TWITTER_PREF_URL_GET_USER_INFO);
+}
+
 static const gchar *twitter_option_url_get_rate_limit_status(PurpleAccount * account)
 {
     return twitter_api_create_url(account, TWITTER_PREF_URL_GET_RATE_LIMIT_STATUS);
@@ -187,6 +192,54 @@ static const gchar *twitter_option_url_delete_favorite(PurpleAccount * account, 
     return result;
 }
 
+static void prpltwtr_api_refresh_user_error_cb(TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer _ctx)
+{
+    purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
+    purple_debug_error(purple_account_get_protocol_id(r->account), "Couldn't retreive user info: %s", error_data->message ? error_data->message : "unknown error");
+}
+
+static void prpltwtr_api_refresh_user_success_cb(TwitterRequestor * r, xmlnode * node, gpointer data)
+{
+    TwitterUserData *user = NULL;
+    PurpleConnection *gc = purple_account_get_connection(r->account);
+    TwitterConnectionData *twitter = gc ? gc->proto_data: NULL;
+    purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
+    {
+        char           *xmlnode_str;
+        int             len;
+        xmlnode_str = xmlnode_to_str(node, &len);
+        g_free(xmlnode_str);
+    }
+	if (twitter) {
+		user = twitter_user_node_parse(node);
+	}
+
+    if (user) {
+        gchar          *url;
+        PurpleNotifyUserInfo *info = purple_notify_user_info_new();
+        purple_notify_user_info_add_pair(info, _("Description"), user->description);
+
+        if (user->friends_count) {
+            purple_notify_user_info_add_pair(info, _("Friends"), user->friends_count);
+        }
+        if (user->followers_count) {
+            purple_notify_user_info_add_pair(info, _("Followers"), user->followers_count);
+        }
+        if (user->statuses_count) {
+            purple_notify_user_info_add_pair(info, _("Tweets"), user->statuses_count);
+        }
+        url = twitter_mb_prefs_get_user_profile_url(twitter->mb_prefs, user->screen_name);
+        purple_notify_user_info_add_pair(info, _("Account Link"), url);
+        if (url) {
+            g_free(url);
+        }
+        purple_notify_userinfo(gc, user->screen_name, info, NULL, NULL);
+        purple_notify_user_info_destroy(info);
+    }
+
+    twitter_user_data_free(user);
+}
+
 void twitter_api_get_info(PurpleConnection * gc, const char *username)
 {
     //TODO: error check
@@ -221,7 +274,8 @@ void twitter_api_get_info(PurpleConnection * gc, const char *username)
 //          twitter_user_tweet_free(data);
         }
     } else {
-        purple_notify_user_info_add_pair(info, _("Description"), _("No user info"));
+        purple_notify_user_info_add_pair(info, _("Description"), _("No user info available. Loading from server..."));
+        prpltwtr_api_refresh_user(purple_account_get_requestor(purple_connection_get_account(gc)), username, prpltwtr_api_refresh_user_success_cb, prpltwtr_api_refresh_user_error_cb);
     }
     url = twitter_mb_prefs_get_user_profile_url(twitter->mb_prefs, username);
     purple_notify_user_info_add_pair(info, _("Account Link"), url);
@@ -229,7 +283,18 @@ void twitter_api_get_info(PurpleConnection * gc, const char *username)
         g_free(url);
     }
     purple_notify_userinfo(gc, username, info, NULL, NULL);
+    purple_notify_user_info_destroy(info);
 
+}
+
+void prpltwtr_api_refresh_user(TwitterRequestor * r, const char *username, TwitterSendXmlRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func)
+{
+    TwitterRequestParams *params;
+
+    params = twitter_request_params_new();
+    twitter_request_params_add(params, twitter_request_param_new("screen_name", username));
+    twitter_send_xml_request(r, FALSE, twitter_option_url_get_user_info(r->account), params, success_func, error_func, NULL);
+    twitter_request_params_free(params);
 }
 
 void twitter_api_get_rate_limit_status(TwitterRequestor * r, TwitterSendXmlRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
