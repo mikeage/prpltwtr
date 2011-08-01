@@ -70,6 +70,7 @@ struct _TwitterEndpointChat {
     GList          *sent_tweet_ids;
     int             rate_limit_total;
     int             rate_limit_remaining;
+    gboolean        retrieval_in_progress;
 };
 
 //Identifier to use for multithreading

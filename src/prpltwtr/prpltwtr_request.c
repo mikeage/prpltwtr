@@ -602,8 +602,11 @@ static void twitter_send_xml_request_multipage_cb(TwitterRequestor * r, xmlnode 
 
     count = xmlnode_child_count(node);
 
-    if (count < request_data->expected_count)
+    /* The twitter API will measure 'count' responses before it deletes tweets that are no longer available. As such, the requested number might not be returned. This means that the only way to retreive multipage responses is by looping until no tweets are received (or, of course, we could parse the response and compare since_id and max_id, but that'd be annoying at this stage). A simple test would be to abort if count == 0, but that would mean that virutally all requests would require 2 API calls (page 1, count = some tiny number, page 2, count = 0). As a heuristic, we'll take less than 20 responses to mean nothing's remaining (we're requesting 150 at a time) */
+//    if (count < request_data->expected_count)
+    if (count <= 20) {
         last_page = TRUE;
+    }
 
     purple_debug_info(purple_account_get_protocol_id(r->account), "%s: last_page: %s, count: %d, expected_count: %d\n", G_STRFUNC, last_page ? "yes" : "no", count, request_data->expected_count);
 

@@ -259,7 +259,7 @@ gint twitter_option_home_timeline_max_tweets(PurpleAccount * account)
 
 gint twitter_option_list_max_tweets(PurpleAccount * account)
 {
-    return purple_account_get_int(account, TWITTER_PREF_LIST_MAX_TWEETS, TWITTER_PREF_LIST_MAX_TWEETS_DEFAULT);
+    return purple_account_get_int(account, TWITTER_PREF_HOME_TIMELINE_MAX_TWEETS, TWITTER_PREF_HOME_TIMELINE_MAX_TWEETS_DEFAULT);
 }
 
 gboolean twitter_option_default_dm(PurpleAccount * account)
