@@ -204,12 +204,7 @@ static void prpltwtr_api_refresh_user_success_cb(TwitterRequestor * r, xmlnode *
     PurpleConnection *gc = purple_account_get_connection(r->account);
     TwitterConnectionData *twitter = gc ? gc->proto_data : NULL;
     purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
-    {
-        char           *xmlnode_str;
-        int             len;
-        xmlnode_str = xmlnode_to_str(node, &len);
-        g_free(xmlnode_str);
-    }
+
     if (twitter) {
         user = twitter_user_node_parse(node);
     }
