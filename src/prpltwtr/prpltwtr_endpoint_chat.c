@@ -476,8 +476,15 @@ void twitter_endpoint_chat_start(PurpleConnection * gc, TwitterEndpointChatSetti
 TwitterEndpointChat *twitter_endpoint_chat_find(PurpleAccount * account, const char *chat_name)
 {
     PurpleConnection *gc = purple_account_get_connection(account);
-    TwitterConnectionData *twitter = gc->proto_data;
-    return (TwitterEndpointChat *) g_hash_table_lookup(twitter->chat_contexts, purple_normalize(account, chat_name));
+    TwitterConnectionData *twitter = NULL;
+    if (gc) {
+        twitter = gc->proto_data;
+    }
+    if (twitter) {
+        return (TwitterEndpointChat *) g_hash_table_lookup(twitter->chat_contexts, purple_normalize(account, chat_name));
+    } else {
+        return NULL;
+    }
 }
 
 static void twitter_endpoint_chat_send_success_cb(PurpleAccount * account, xmlnode * node, gboolean last, gpointer _ctx_id)
