@@ -101,7 +101,7 @@ static gboolean twitter_get_home_timeline_all_error_cb(TwitterRequestor * r, con
         endpoint_chat->retrieval_in_progress = FALSE;
     }
 
-    return TRUE;
+    return FALSE;                                /* Do not retry. Too many edge cases */
 }
 
 static void twitter_get_home_timeline_error_cb(TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data)
@@ -163,7 +163,7 @@ static gboolean twitter_timeline_timeout(TwitterEndpointChat * endpoint_chat)
 {
     PurpleAccount  *account = endpoint_chat->account;
     PurpleConnection *gc = purple_account_get_connection(account);
-    TwitterEndpointChatId *chat_id = twitter_endpoint_chat_id_new(endpoint_chat);
+    TwitterEndpointChatId *chat_id = NULL;
     long long       since_id = twitter_connection_get_last_home_timeline_id(gc);
 
     purple_debug_info(purple_account_get_protocol_id(account), "%s() %s\n", G_STRFUNC, account->username);
@@ -172,6 +172,8 @@ static gboolean twitter_timeline_timeout(TwitterEndpointChat * endpoint_chat)
         purple_debug_warning(purple_account_get_protocol_id(account), "Skipping retreival for %s because one is already in progress!\n", account->username);
         return TRUE;
     }
+
+    chat_id = twitter_endpoint_chat_id_new(endpoint_chat);
 
     endpoint_chat->retrieval_in_progress = TRUE;
 

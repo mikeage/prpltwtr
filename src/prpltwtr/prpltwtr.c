@@ -924,6 +924,8 @@ void twitter_close(PurpleConnection * gc)
         g_free(twitter->oauth_token_secret);
 
     g_free(twitter);
+    gc->proto_data = NULL;
+
 }
 
 static void twitter_set_status_error_cb(TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data)

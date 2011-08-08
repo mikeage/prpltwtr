@@ -89,6 +89,7 @@ void twitter_endpoint_chat_id_free(TwitterEndpointChatId * chat_id)
         return;
     g_free(chat_id->chat_name);
     chat_id->chat_name = NULL;
+    chat_id->account = NULL;
 
     g_slice_free(TwitterEndpointChatId, chat_id);
 }
@@ -475,12 +476,15 @@ void twitter_endpoint_chat_start(PurpleConnection * gc, TwitterEndpointChatSetti
 
 TwitterEndpointChat *twitter_endpoint_chat_find(PurpleAccount * account, const char *chat_name)
 {
-    PurpleConnection *gc = purple_account_get_connection(account);
+    PurpleConnection *gc = NULL;
     TwitterConnectionData *twitter = NULL;
+    if (account && chat_name) {
+        gc = purple_account_get_connection(account);
+    }
     if (gc) {
         twitter = gc->proto_data;
     }
-    if (twitter) {
+    if (twitter && twitter->chat_contexts) {
         return (TwitterEndpointChat *) g_hash_table_lookup(twitter->chat_contexts, purple_normalize(account, chat_name));
     } else {
         return NULL;

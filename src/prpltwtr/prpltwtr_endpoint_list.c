@@ -98,7 +98,7 @@ static gboolean twitter_get_list_all_error_cb(TwitterRequestor * r, const Twitte
         endpoint_chat->retrieval_in_progress = FALSE;
     }
 
-    return TRUE;
+    return FALSE;                                /* Do not retry. Too many edge cases */
 }
 
 static void twitter_get_list_error_cb(TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data)
@@ -160,7 +160,7 @@ static gboolean twitter_list_timeout(TwitterEndpointChat * endpoint_chat)
 {
     PurpleAccount  *account = endpoint_chat->account;
     TwitterListTimeoutContext *ctx = endpoint_chat->endpoint_data;
-    TwitterEndpointChatId *chat_id = twitter_endpoint_chat_id_new(endpoint_chat);
+    TwitterEndpointChatId *chat_id = NULL;
     gchar          *key = g_strdup_printf("list_%s", ctx->list_name);
 
     ctx->last_tweet_id = purple_account_get_long_long(endpoint_chat->account, key, -1);
@@ -172,6 +172,8 @@ static gboolean twitter_list_timeout(TwitterEndpointChat * endpoint_chat)
         purple_debug_warning(purple_account_get_protocol_id(account), "Skipping retreival for %s because one is already in progress!\n", account->username);
         return TRUE;
     }
+
+    chat_id = twitter_endpoint_chat_id_new(endpoint_chat);
 
     endpoint_chat->retrieval_in_progress = TRUE;
 
