@@ -71,6 +71,7 @@ struct _TwitterEndpointChat {
     int             rate_limit_total;
     int             rate_limit_remaining;
     gboolean        retrieval_in_progress;
+    int             retrieval_in_progress_timeout; /* Prevent getting stuck */
 };
 
 //Identifier to use for multithreading

@@ -88,7 +88,7 @@ static gboolean twitter_get_list_all_error_cb(TwitterRequestor * r, const Twitte
     TwitterEndpointChatId *chat_id = (TwitterEndpointChatId *) user_data;
     TwitterEndpointChat *endpoint_chat;
 
-    purple_debug_warning(purple_account_get_protocol_id(r->account), "%s(): %s\n", G_STRFUNC, error_data->message);
+    purple_debug_warning(purple_account_get_protocol_id(r->account), "%s(0x%X): %s\n", G_STRFUNC, (int) user_data, error_data->message);
 
     g_return_val_if_fail(chat_id != NULL, TRUE);
     endpoint_chat = twitter_endpoint_chat_find_by_id(chat_id);
@@ -96,6 +96,7 @@ static gboolean twitter_get_list_all_error_cb(TwitterRequestor * r, const Twitte
 
     if (endpoint_chat) {
         endpoint_chat->retrieval_in_progress = FALSE;
+        endpoint_chat->retrieval_in_progress_timeout--;
     }
 
     return FALSE;                                /* Do not retry. Too many edge cases */
@@ -126,6 +127,7 @@ static void twitter_get_list_cb(TwitterRequestor * r, xmlnode * node, gpointer u
     endpoint_chat->rate_limit_total = r->rate_limit_total;
 
     endpoint_chat->retrieval_in_progress = FALSE;
+	endpoint_chat->retrieval_in_progress_timeout = 0;
 
     statuses = twitter_statuses_node_parse(node);
     twitter_get_list_parse_statuses(endpoint_chat, statuses);
@@ -151,6 +153,7 @@ static void twitter_get_list_all_cb(TwitterRequestor * r, GList * nodes, gpointe
     endpoint_chat->rate_limit_total = r->rate_limit_total;
 
     endpoint_chat->retrieval_in_progress = FALSE;
+	endpoint_chat->retrieval_in_progress_timeout = 0;
 
     statuses = twitter_statuses_nodes_parse(nodes);
     twitter_get_list_parse_statuses(endpoint_chat, statuses);
@@ -168,6 +171,11 @@ static gboolean twitter_list_timeout(TwitterEndpointChat * endpoint_chat)
 
     purple_debug_info(purple_account_get_protocol_id(account), "Resuming list for %s from %lld\n", ctx->list_name, ctx->last_tweet_id);
 
+    if (endpoint_chat->retrieval_in_progress && endpoint_chat->retrieval_in_progress_timeout <= 0) {
+		purple_debug_warning(purple_account_get_protocol_id(account), "There was a retreival in progress, but it appears dead. Ignoring it\n");
+		endpoint_chat->retrieval_in_progress = FALSE;
+	}
+
     if (endpoint_chat->retrieval_in_progress) {
         purple_debug_warning(purple_account_get_protocol_id(account), "Skipping retreival for %s because one is already in progress!\n", account->username);
         return TRUE;
@@ -176,6 +184,7 @@ static gboolean twitter_list_timeout(TwitterEndpointChat * endpoint_chat)
     chat_id = twitter_endpoint_chat_id_new(endpoint_chat);
 
     endpoint_chat->retrieval_in_progress = TRUE;
+    endpoint_chat->retrieval_in_progress_timeout = 2;
 
     if (ctx->last_tweet_id == 0) {
         purple_debug_info(purple_account_get_protocol_id(account), "Retrieving %s statuses for first time\n", ctx->list_name);

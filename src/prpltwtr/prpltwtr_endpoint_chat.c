@@ -68,6 +68,7 @@ TwitterEndpointChat *twitter_endpoint_chat_new(TwitterEndpointChatSettings * set
     ctx->chat_name = g_strdup(chat_name);
     ctx->endpoint_data = settings->create_endpoint_data ? settings->create_endpoint_data(components) : NULL;
     ctx->retrieval_in_progress = FALSE;
+    ctx->retrieval_in_progress_timeout = 0;
 
     return ctx;
 }
