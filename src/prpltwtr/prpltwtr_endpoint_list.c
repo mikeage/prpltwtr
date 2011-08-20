@@ -96,7 +96,7 @@ static gboolean twitter_get_list_all_error_cb(TwitterRequestor * r, const Twitte
 
     if (endpoint_chat) {
         endpoint_chat->retrieval_in_progress = FALSE;
-        endpoint_chat->retrieval_in_progress_timeout--;
+		endpoint_chat->retrieval_in_progress_timeout = 0;
     }
 
     return FALSE;                                /* Do not retry. Too many edge cases */
@@ -178,6 +178,7 @@ static gboolean twitter_list_timeout(TwitterEndpointChat * endpoint_chat)
 
     if (endpoint_chat->retrieval_in_progress) {
         purple_debug_warning(purple_account_get_protocol_id(account), "Skipping retreival for %s because one is already in progress!\n", account->username);
+        endpoint_chat->retrieval_in_progress_timeout--;
         return TRUE;
     }
 
