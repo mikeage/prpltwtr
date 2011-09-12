@@ -96,7 +96,7 @@ static gboolean twitter_get_list_all_error_cb(TwitterRequestor * r, const Twitte
 
     if (endpoint_chat) {
         endpoint_chat->retrieval_in_progress = FALSE;
-		endpoint_chat->retrieval_in_progress_timeout = 0;
+        endpoint_chat->retrieval_in_progress_timeout = 0;
     }
 
     return FALSE;                                /* Do not retry. Too many edge cases */
@@ -127,7 +127,7 @@ static void twitter_get_list_cb(TwitterRequestor * r, xmlnode * node, gpointer u
     endpoint_chat->rate_limit_total = r->rate_limit_total;
 
     endpoint_chat->retrieval_in_progress = FALSE;
-	endpoint_chat->retrieval_in_progress_timeout = 0;
+    endpoint_chat->retrieval_in_progress_timeout = 0;
 
     statuses = twitter_statuses_node_parse(node);
     twitter_get_list_parse_statuses(endpoint_chat, statuses);
@@ -153,7 +153,7 @@ static void twitter_get_list_all_cb(TwitterRequestor * r, GList * nodes, gpointe
     endpoint_chat->rate_limit_total = r->rate_limit_total;
 
     endpoint_chat->retrieval_in_progress = FALSE;
-	endpoint_chat->retrieval_in_progress_timeout = 0;
+    endpoint_chat->retrieval_in_progress_timeout = 0;
 
     statuses = twitter_statuses_nodes_parse(nodes);
     twitter_get_list_parse_statuses(endpoint_chat, statuses);
@@ -172,9 +172,9 @@ static gboolean twitter_list_timeout(TwitterEndpointChat * endpoint_chat)
     purple_debug_info(purple_account_get_protocol_id(account), "Resuming list for %s from %lld\n", ctx->list_name, ctx->last_tweet_id);
 
     if (endpoint_chat->retrieval_in_progress && endpoint_chat->retrieval_in_progress_timeout <= 0) {
-		purple_debug_warning(purple_account_get_protocol_id(account), "There was a retreival in progress, but it appears dead. Ignoring it\n");
-		endpoint_chat->retrieval_in_progress = FALSE;
-	}
+        purple_debug_warning(purple_account_get_protocol_id(account), "There was a retreival in progress, but it appears dead. Ignoring it\n");
+        endpoint_chat->retrieval_in_progress = FALSE;
+    }
 
     if (endpoint_chat->retrieval_in_progress) {
         purple_debug_warning(purple_account_get_protocol_id(account), "Skipping retreival for %s because one is already in progress!\n", account->username);
