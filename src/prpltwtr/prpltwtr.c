@@ -1360,3 +1360,9 @@ void twitter_destroy(PurplePlugin * plugin)
         purple_signals_disconnect_by_handle(plugin);
     }
 }
+
+gboolean prpltwtr_offline_message(const PurpleBuddy * buddy)
+{
+    (void) buddy;
+    return TRUE;
+}

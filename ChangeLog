@@ -3,6 +3,7 @@ Changelog for current version:
   * Load user info dynamically when requesting info for a user not in the buddy list
   * Fix multipage requests for home timeline and lists. More than 200 tweets should now be received (up to 800 for twitter.com, depending on the value set in the account preferences). Also fix a race condition where the timer refreshes could start before the initial retreive finished (much more critical after the multipage fix)
   * Add c:\PortableApps\PortableApps to the installer
+  * Tell the plugin(s) that we support offline messages (b/c twitter does, obviously) 
 
 Changelog for 0.10.0:
   * Windows executable is compiled to the main directory (don't ask why)

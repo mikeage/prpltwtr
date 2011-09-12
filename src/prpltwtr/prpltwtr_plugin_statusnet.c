@@ -95,7 +95,7 @@ static PurplePluginProtocolInfo prpl_info = {
     NULL,                                        /* can_receive_file */
     NULL,                                        /* send_file */
     NULL,                                        /* new_xfer */
-    NULL,                                        /* offline_message */
+    prpltwtr_offline_message,                    /* offline_message */
     NULL,                                        /* whiteboard_prpl_ops */
     NULL,                                        /* send_raw */
     NULL,                                        /* roomlist_room_serialize */

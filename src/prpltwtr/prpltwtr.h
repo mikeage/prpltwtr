@@ -73,4 +73,5 @@ void            prpltwtr_login(PurpleAccount * account);
 void            prpltwtr_recoverable_disconnect(PurpleAccount * account, const char *message);
 void            prpltwtr_disconnect(PurpleAccount * account, const char *message);
 void            prpltwtr_verify_connection(PurpleAccount * account);
+gboolean        prpltwtr_offline_message(const PurpleBuddy * buddy);
 #endif
