@@ -1,4 +1,6 @@
 Changelog for current version:
+
+Changelog for 0.11.0:
   * Make some errors recoverable. Prpltwtr should try to reconnect, and not disable the account. I know this covers the case of sleep on Windows; hopefully others as well
   * Load user info dynamically when requesting info for a user not in the buddy list
   * Fix multipage requests for home timeline and lists. More than 200 tweets should now be received (up to 800 for twitter.com, depending on the value set in the account preferences). Also fix a race condition where the timer refreshes could start before the initial retreive finished (much more critical after the multipage fix)
