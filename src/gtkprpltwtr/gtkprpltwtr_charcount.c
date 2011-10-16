@@ -94,42 +94,56 @@ static void conv_char_count_free(ConvCharCount * ccc)
 
 static void changed_cb(GtkTextBuffer * textbuffer, gpointer user_data)
 {
-    ConvCharCount  *ccc = (ConvCharCount *) user_data;
-    PidginConversation *gtkconv;
-    GtkWidget      *box,
-                   *counter = NULL;
-    gchar           count[20];
+	ConvCharCount  *ccc = (ConvCharCount *) user_data;
+	PidginConversation *gtkconv;
+	GtkWidget      *box,
+				   *counter = NULL;
+	gchar           count[20];
+	int            num_bytes = 0;
+	GdkColor       color;
 
-    static GtkTextIter start_iter,
-                    end_iter;
-    gchar          *text,
-                   *text_lower;
-    int             append_text_len;
+	static GtkTextIter start_iter,
+					   end_iter;
+	gchar          *text,
+				   *text_lower;
+	int             append_text_len;
 
-    g_return_if_fail(ccc != NULL);
+	g_return_if_fail(ccc != NULL);
 
-    gtkconv = ccc->gtkconv;
-    append_text_len = ccc->append_text_len;
+	gtkconv = ccc->gtkconv;
+	append_text_len = ccc->append_text_len;
 
-    gtk_text_buffer_get_start_iter(textbuffer, &start_iter);
-    gtk_text_buffer_get_end_iter(textbuffer, &end_iter);
+	gtk_text_buffer_get_start_iter(textbuffer, &start_iter);
+	gtk_text_buffer_get_end_iter(textbuffer, &end_iter);
 
-    if (ccc->append_text) {
-        text = gtk_text_buffer_get_text(textbuffer, &start_iter, &end_iter, TRUE);
-        text_lower = g_utf8_strdown(text, -1);
-        if (strstr(text_lower, ccc->append_text)) {
-            append_text_len = 0;
-        }
-        g_free(text);
-        g_free(text_lower);
-    }
+	if (ccc->append_text) {
+		text = gtk_text_buffer_get_text(textbuffer, &start_iter, &end_iter, TRUE);
+		text_lower = g_utf8_strdown(text, -1);
+#if 0 /* This fails if the destination username is found more than once. Also, when is it ever shown? */
+		if (strstr(text_lower, ccc->append_text)) {
+			append_text_len = 0;
+		}
+#endif /* 0 */
+		g_free(text);
+		g_free(text_lower);
+	}
 
-    g_snprintf(count, sizeof (count) - 1, "%u", gtk_text_buffer_get_char_count(textbuffer) + append_text_len);
+	num_bytes = gtk_text_buffer_get_char_count(textbuffer) + append_text_len;
+	g_snprintf(count, sizeof (count) - 1, "%u", num_bytes);
 
-    box = gtkconv->toolbar;
-    counter = g_object_get_data(G_OBJECT(box), PLUGIN_ID "-counter");
-    if (counter)
-        gtk_label_set_text(GTK_LABEL(counter), count);
+	box = gtkconv->toolbar;
+	counter = g_object_get_data(G_OBJECT(box), PLUGIN_ID "-counter");
+	if (counter)
+		gtk_label_set_text(GTK_LABEL(counter), count);
+	if (num_bytes > 140) {
+		gdk_color_parse ("#DC143C", &color); /* HTML Crimson */
+		gtk_widget_modify_fg (counter, GTK_STATE_NORMAL, &color);
+	} else if (num_bytes >= 130) {
+		gdk_color_parse ("#FF4500", &color); /* HTML Orangered */
+		gtk_widget_modify_fg (counter, GTK_STATE_NORMAL, &color);
+	} else {
+		gtk_widget_modify_fg (counter, GTK_STATE_NORMAL, NULL);
+	}
 }
 
 /*
