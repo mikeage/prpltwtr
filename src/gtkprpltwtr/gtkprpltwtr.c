@@ -424,12 +424,14 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
             return FALSE;
         }
 
+		if (purple_account_get_requestor(account)) {
         conv_type = atoi(conv_type_str);
 
         conv_id = g_new0(TwitterConversationId, 1);
         conv_id->conv_name = g_strdup(purple_url_decode(conv_name_encoded));
         conv_id->type = conv_type;
         twitter_api_send_rt(purple_account_get_requestor(account), id, twitter_send_rt_success_cb, twitter_send_rt_error_cb, conv_id);
+		}
     } else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_GET_ORIGINAL)) {
         TwitterConversationId *conv_id;
 
@@ -455,12 +457,14 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
             return FALSE;
         }
 
+		if (purple_account_get_requestor(account)) {
         conv_type = atoi(conv_type_str);
 
         conv_id = g_new0(TwitterConversationId, 1);
         conv_id->conv_name = g_strdup(purple_url_decode(conv_name_encoded));
         conv_id->type = conv_type;
         twitter_api_get_status(purple_account_get_requestor(account), in_reply_to_status_id, twitter_get_status_success_cb, twitter_get_status_error_cb, conv_id);
+		}
     } else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_LINK)) {
         const char     *id_str,
                        *user;
@@ -514,12 +518,14 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
             return FALSE;
         }
 
+		if (purple_account_get_requestor(account)) {
         conv_type = atoi(conv_type_str);
 
         conv_id = g_new0(TwitterConversationId, 1);
         conv_id->conv_name = g_strdup(purple_url_decode(conv_name_encoded));
         conv_id->type = conv_type;
         twitter_api_delete_status(purple_account_get_requestor(account), id, twitter_delete_tweet_success_cb, twitter_delete_tweet_error_cb, conv_id);
+		}
     } else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_SEARCH)) {
         //join chat with default interval, open in conv window
         GHashTable     *components;
