@@ -392,10 +392,14 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
             }
         }
         if (conv) {
+			purple_debug_info("MHM", "About to call purple_conversation_present\n");
             purple_conversation_present(conv);
+			purple_debug_info("MHM", "Done\n");
             gtkconv = PIDGIN_CONVERSATION(conv);
             gtk_text_buffer_insert_at_cursor(gtkconv->entry_buffer, str, -1);
+			purple_debug_info("MHM", "About to call \n");
             gtk_widget_grab_focus(GTK_WIDGET(gtkconv->entry));
+			purple_debug_info("MHM", "Done\n");
         }
         g_free(str);
         g_free(text);

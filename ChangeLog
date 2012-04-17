@@ -2,6 +2,7 @@ Changelog for current version:
   * Count characters correctly if the destination username / search hashtag is found twice
   * Add color to the character count
   * Fix crash if attempting to RT, favorite, or delete while disconnected
+  * Start to handle the deprecated followers.xml endpoint
 
 Changelog for 0.11.0:
   * Make some errors recoverable. Prpltwtr should try to reconnect, and not disable the account. I know this covers the case of sleep on Windows; hopefully others as well

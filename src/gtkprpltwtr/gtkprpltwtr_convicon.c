@@ -327,6 +327,8 @@ static void got_page_cb(PurpleUtilFetchUrlData * url_data, gpointer user_data, c
 
     if (len && !error_message && twitter_response_text_status_code(url_text) == 200 && (pic_data = twitter_response_text_data(url_text, len))) {
         purple_debug_info(PLUGIN_ID, "Attempting to create pixbuf\n");
+        purple_debug_misc(PLUGIN_ID, "MHM: url text is |%s|\n", url_text);
+        purple_debug_misc(PLUGIN_ID, "MHM: url text is |%02x %02x %02x %02x|\n", pic_data[0], pic_data[1], pic_data[2], pic_data[3]);
         conv_icon->pixbuf = make_scaled_pixbuf((const guchar *) pic_data, len);
     }
 

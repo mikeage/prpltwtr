@@ -332,9 +332,14 @@ void twitter_api_web_open_retweets_of_mine(PurplePluginAction * action)
 
 void twitter_api_get_friends(TwitterRequestor * r, TwitterSendRequestMultiPageAllSuccessFunc success_func, TwitterSendRequestMultiPageAllErrorFunc error_func, gpointer data)
 {
+
+    TwitterRequestParams *params = twitter_request_params_new();
     purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
 
-    twitter_send_xml_request_with_cursor(r, twitter_option_url_get_friends(r->account), NULL, -1, success_func, error_func, data);
+    twitter_request_params_add(params, twitter_request_param_new("screen_name", r->account->username));
+
+    twitter_send_xml_request_with_cursor(r, twitter_option_url_get_friends(r->account), params, -1, success_func, error_func, data);
+
 }
 
 static void twitter_api_send_request_single(TwitterRequestor * r, const gchar * url, long long since_id, int count, int page, TwitterSendXmlRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)

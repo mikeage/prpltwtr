@@ -746,7 +746,6 @@ static void     twitter_send_xml_request_with_cursor_error_cb(TwitterRequestor *
 static void twitter_send_xml_request_with_cursor_cb(TwitterRequestor * r, xmlnode * node, gpointer user_data)
 {
     TwitterRequestWithCursorData *request_data = user_data;
-    xmlnode        *users;
     gchar          *next_cursor_str;
 
     next_cursor_str = xmlnode_get_child_data(node, "next_cursor");
@@ -759,13 +758,7 @@ static void twitter_send_xml_request_with_cursor_cb(TwitterRequestor * r, xmlnod
 
     purple_debug_info(purple_account_get_protocol_id(r->account), "%s next_cursor: %lld\n", G_STRFUNC, request_data->next_cursor);
 
-    users = xmlnode_get_child(node, "users");
-    if (!users && node->name && !strcmp(node->name, "users"))
-        users = node;
-
-    if (users) {
-        request_data->nodes = g_list_prepend(request_data->nodes, xmlnode_copy(users));
-    }
+	request_data->nodes = g_list_prepend(request_data->nodes, xmlnode_copy(node));
 
     if (request_data->next_cursor) {
         int             len = request_data->params->len;

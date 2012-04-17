@@ -228,28 +228,64 @@ static gboolean twitter_update_presence_timeout(gpointer _account)
     return TRUE;
 }
 
-static void twitter_buddy_datas_set_all(PurpleAccount * account, GList * buddy_datas)
+struct buddies_data {
+	PurpleBuddy * buddy;
+	gchar * protocol_data;
+};
+
+static void twitter_buddy_add_users(PurpleAccount * account, GList * buddy_datas)
 {
-    GList          *l;
-    for (l = buddy_datas; l; l = l->next) {
-        TwitterUserTweet *data = l->data;
-        TwitterUserData *user = twitter_user_tweet_take_user_data(data);
-        TwitterTweet   *status = twitter_user_tweet_take_tweet(data);
+	/* TODO; implement this! */
+	GList          *l;
+	GSList *buddies;
+	struct buddies_data cache[5000];
+	int i =0;
+	GSList *cur_buddy;
+	int num_buddies;
+//	purple_debug_info("MHM", "Enter\n");
+	buddies = purple_find_buddies(account, NULL);
+	if (buddies) {
+		for (i=0, cur_buddy = buddies; cur_buddy && i<5000; cur_buddy=g_slist_next(cur_buddy), i++) {
+			cache[i].buddy = cur_buddy->data;
+			cache[i].protocol_data = purple_buddy_get_protocol_data(cur_buddy->data);
+//			purple_debug_info("MHM", "protocol_data for %s is 0x%X\n", purple_buddy_get_alias(cache[i].buddy), (int) cache[i].protocol_data);
+		}
+		num_buddies = i-1;
+		for (l = buddy_datas; l; l = l->next) {
+			int found = 0;
+			gchar *buddy_id = l->data;
+//			purple_debug_info("MHM", "Looking up buddy %s\n", buddy_id);
+			for (i=0; i<num_buddies && !found; i++) {
+				if (!g_strcmp0(cache[i].protocol_data, buddy_id)) {
+//					purple_debug_info("MHM", "Found a match for %s\n", buddy_id);
+					found = 1;
+				}
+			}
+			if (!found) {
+				purple_debug_warning(purple_account_get_protocol_id(account), "No matching buddy found for %s; will retreive\n", buddy_id);
+				/* TBD */
+			}
+		// g_free(buddy_id);
+		}
+		/*        TwitterUserData *user = twitter_user_tweet_take_user_data(data);
+				  TwitterTweet   *status = twitter_user_tweet_take_tweet(data);
 
-        if (user)
-            twitter_buddy_set_user_data(account, user, twitter_option_get_following(account));
-        if (status)
-            twitter_buddy_set_status_data(account, data->screen_name, status);
+				  if (user)
+				  twitter_buddy_set_user_data(account, user, twitter_option_get_following(account));
+				  if (status)
+				  twitter_buddy_set_status_data(account, data->screen_name, status);
 
-        twitter_user_tweet_free(data);
-    }
-    g_list_free(buddy_datas);
+				  twitter_user_tweet_free(data);
+				  */
+	}
+	g_slist_free(buddies);
+	g_list_free(buddy_datas);
 }
 
 static void twitter_get_friends_cb(TwitterRequestor * r, GList * nodes, gpointer user_data)
 {
-    GList          *buddy_datas = twitter_users_nodes_parse(nodes);
-    twitter_buddy_datas_set_all(r->account, buddy_datas);
+    GList          *buddy_datas = twitter_users_ids_nodes_parse(nodes);
+	twitter_buddy_add_users(r->account, buddy_datas);
 }
 
 static gboolean twitter_get_friends_timeout(gpointer data)
@@ -543,10 +579,10 @@ static void twitter_get_friends_verify_connection_cb(TwitterRequestor * r, GList
     if (purple_connection_get_state(gc) == PURPLE_CONNECTING) {
         twitter_connected(r->account);
 
-        l_users_data = twitter_users_nodes_parse(nodes);
+        l_users_data = twitter_users_ids_nodes_parse(nodes);
 
         /* setup buddy list */
-        twitter_buddy_datas_set_all(r->account, l_users_data);
+		twitter_buddy_add_users(r->account, l_users_data);
 
     }
 }
