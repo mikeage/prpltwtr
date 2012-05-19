@@ -299,7 +299,7 @@ static void oauth_request_token_success_cb(TwitterRequestor * r, const gchar * r
     const gchar    *oauth_token = g_hash_table_lookup(results, "oauth_token");
     const gchar    *oauth_token_secret = g_hash_table_lookup(results, "oauth_token_secret");
     if (oauth_token && oauth_token_secret) {
-/* http://twitter.com/oauth/authorize */
+/* http://api.twitter.com/oauth/authorize */
         gchar          *msg = g_strdup_printf("http://%s?oauth_token=%s",
                                               twitter_option_url_oauth_authorize(account),
                                               purple_url_encode(oauth_token));
@@ -390,7 +390,7 @@ static const gchar *twitter_oauth_create_url(PurpleAccount * account, const gcha
     g_return_val_if_fail(endpoint != NULL && endpoint[0] != '\0', NULL);
 
     if (!strcmp(purple_account_get_protocol_id(account), TWITTER_PROTOCOL_ID)) {
-        snprintf(host, 255, "twitter.com/oauth");
+        snprintf(host, 255, "api.twitter.com/oauth");
     } else {
         snprintf(host, 255, "%s/oauth", purple_account_get_string(account, TWITTER_PREF_API_BASE, STATUSNET_PREF_API_BASE_DEFAULT));
     }
