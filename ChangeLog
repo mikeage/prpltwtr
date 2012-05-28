@@ -1,4 +1,6 @@
 Changelog for current version:
+
+Changelog for 0.12.0:
   * Count characters correctly if the destination username / search hashtag is found twice
   * Add color to the character count
   * Fix crash if attempting to RT, favorite, or delete while disconnected
