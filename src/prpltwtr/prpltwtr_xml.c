@@ -206,6 +206,7 @@ TwitterSearchResults *twitter_search_results_node_parse(xmlnode * response_node)
 TwitterUserData *twitter_user_node_parse(xmlnode * user_node)
 {
 	TwitterUserData *user;
+	gchar *id_str;
 
 	if (user_node == NULL)
 		return NULL;
@@ -220,6 +221,11 @@ TwitterUserData *twitter_user_node_parse(xmlnode * user_node)
 
 	user->name = xmlnode_get_child_data(user_node, "name");
 	user->profile_image_url = xmlnode_get_child_data(user_node, "profile_image_url");
+	id_str = xmlnode_get_child_data(user_node, "id");
+	if (id_str) {
+		user->id = strtoll(id_str, NULL, 10);
+		g_free(id_str);
+	}
 	user->statuses_count = xmlnode_get_child_data(user_node, "statuses_count");
 	user->friends_count = xmlnode_get_child_data(user_node, "friends_count");
 	user->followers_count = xmlnode_get_child_data(user_node, "followers_count");

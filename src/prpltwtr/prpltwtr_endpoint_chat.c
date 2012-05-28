@@ -363,7 +363,9 @@ void twitter_chat_got_user_tweets(TwitterEndpointChat * endpoint_chat, GList * u
             TwitterTweet   *status;
 
             if (user)
-                twitter_buddy_set_user_data(account, user, FALSE);
+				/* Instead of getting the following list, we'll add them as they come in */
+                twitter_buddy_set_user_data(account, user, twitter_option_get_following(account));
+//                twitter_buddy_set_user_data(account, user, FALSE);
 
             /* This could be more efficient */
             if (!twitter_sent_tweets_contains_id(endpoint_chat, user_tweet->status->id))
