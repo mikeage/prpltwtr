@@ -7,26 +7,26 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.6.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-06-17 17:27+0300\n"
+"POT-Creation-Date: 2012-06-17 17:28+0300\n"
 "PO-Revision-Date: 2011-05-31 09:05-0300\n"
-"Last-Translator: Fabián Bonetti <mama21mama@mamalibre.com.ar>\n"
+"Last-Translator: Masami Chikahiro <cmasa.z321@gmail.com>\n"
 "Language-Team: \n"
 "Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Poedit-Language: Spanish\n"
-"X-Poedit-Country: Argentina\n"
+"X-Poedit-Language: Japanese\n"
+"X-Poedit-Country: Japan\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:56
 msgid "Successfully retweeted"
-msgstr "Retwitteo exitoso"
+msgstr "リツイート成功"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:62
 #, c-format
 msgid "Couldn't retweet status: %s"
-msgstr "No se pudo retweet estado: %s"
+msgstr "リツイート失敗: %s"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:62 ../src/gtkprpltwtr/gtkprpltwtr.c:76
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:90 ../src/gtkprpltwtr/gtkprpltwtr.c:104
@@ -37,56 +37,56 @@ msgstr "No se pudo retweet estado: %s"
 #: ../src/prpltwtr/prpltwtr_endpoint_reply.c:16
 #: ../src/prpltwtr/prpltwtr_endpoint_chat.c:534
 msgid "unknown error"
-msgstr "error desconocido"
+msgstr "不明なエラー"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:70
 msgid "Tweet favorited"
-msgstr "Tweet Favoritos"
+msgstr "お気に入りに登録"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:76
 #, fuzzy, c-format
 msgid "Couldn't favorite tweet: %s"
-msgstr "No se pudo retweet estado: %s"
+msgstr "お気に入りに登録できません: %s"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:84
 msgid "Tweet un-favorited"
-msgstr "Tweet Favorito desmarcar"
+msgstr "お気に入りを解除"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:90
 #, fuzzy, c-format
 msgid "Couldn't un-favorite tweet: %s"
-msgstr "No se pudo retweet estado: %s"
+msgstr "お気に入りを解除できません: %s"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:98
 msgid "Successfully reported as spam"
-msgstr "reportado con éxito como Spam"
+msgstr "スパムとして報告"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:104
 #, c-format
 msgid "Couldn't report spammer: %s"
-msgstr "No se pudo informar spammer: %s"
+msgstr "スパム報告できません: %s"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:168
 #, c-format
 msgid "Couldn't get status: %s"
-msgstr "No se pudo obtener el estado: %s"
+msgstr "ステータス取得できません: %s"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:176
 msgid "Successfully deleted"
-msgstr "Borrado con éxito"
+msgstr "削除しました"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:182
 #, c-format
 msgid "Couldn't delete status: %s"
-msgstr "No se pudo borrar el estado: %s"
+msgstr "削除できません: %s"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:786
 msgid "Retweet"
-msgstr "Retweet"
+msgstr "リツイート"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:792
 msgid "Old Retweet"
-msgstr "Antiguo Retweet"
+msgstr "昔のリツイート"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:798
 msgid "Reply"
@@ -94,108 +94,108 @@ msgstr "Responder"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:804
 msgid "Reply All"
-msgstr "Responder a todos"
+msgstr "すべて返信"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:810
 msgid "Goto Site"
-msgstr "Ir al sitio"
+msgstr "サイトに移動"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:820
 msgid "Delete"
-msgstr "Borrar"
+msgstr "削除"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:830
 msgid "In reply to..."
-msgstr "En respuesta a..."
+msgstr "返信する..."
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:838
 msgid "Lock reply"
-msgstr "Bloqueo de respuesta"
+msgstr ""
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:846
 msgid "Delete Favorite"
-msgstr "Eliminar Favoritos"
+msgstr "お気に入りを削除"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:852
 msgid "Add Favorite"
-msgstr "Agregar a Favoritos"
+msgstr "お気に入りを追加"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:859
 msgid "Report spammer"
-msgstr "Reportar spammer"
+msgstr "スパム報告"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:1143
 msgid "Enable Icons in Chat"
-msgstr "Habilitar los iconos en charla"
+msgstr "会話にアイコンを表示"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:1146
 msgid "Icon Size"
-msgstr "Tamaño de icono"
+msgstr "アイコンの大きさ"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:1203
 msgid "GUI Enhancements for PrplTwtr"
-msgstr "Mejoras del GUI para PrplTwtr"
+msgstr "PrplTwtr による GUI 拡張"
 
 #: ../src/gtkprpltwtr/gtkprpltwtr.c:1204
 msgid "Pidgin specific GUI options for the purple plugin PrplTwtr"
-msgstr "Opciones específicas del GUI del plugin PrplTwtr para Pidgin"
+msgstr "Purple プラグイン PrplTwtr による Pidgin に特有の GUI オプション"
 
 #: ../src/prpltwtr/prpltwtr_auth.c:122
 msgid "Could not sign request"
-msgstr "No se pudo firmar la solicitud"
+msgstr "サインインできません"
 
 #: ../src/prpltwtr/prpltwtr_auth.c:194
 msgid "Unknown response getting access token"
-msgstr "Respuesta desconocida obteniendo el token de acceso"
+msgstr "アクセストークン取得の不明な応答"
 
 #: ../src/prpltwtr/prpltwtr_auth.c:200
 #, c-format
 msgid "Error verifying PIN: %s"
-msgstr "Error de verificación de PIN: %s"
+msgstr "PIN 検証エラー: %s"
 
 #: ../src/prpltwtr/prpltwtr_auth.c:228
 msgid "Username mismatch"
-msgstr "Nombre de usuario no coincide"
+msgstr "ユーザ名不一致"
 
 #: ../src/prpltwtr/prpltwtr_auth.c:243
 #, c-format
 msgid "Do you wish to change the name on this account to %s?"
-msgstr "¿Desea cambiar el nombre de esta cuenta a %s?"
+msgstr "このアカウントのユーザ名を %s に変更しますか?"
 
 #: ../src/prpltwtr/prpltwtr_auth.c:249
 msgid "Mismatched Screen Names"
-msgstr "Conflicto de nombres de pantalla"
+msgstr "表示名不一致"
 
 #: ../src/prpltwtr/prpltwtr_auth.c:249
 msgid "Authorized screen name does not match with account screen name"
-msgstr "Nombre de pantalla no autorizado no coincide con el nombre de cuenta"
+msgstr "認証した表示名がアカウントの表示名と一致しません"
 
 #. ok text
 #: ../src/prpltwtr/prpltwtr_auth.c:249 ../src/prpltwtr/prpltwtr_auth.c:320
 msgid "Cancel"
-msgstr "Cancelar"
+msgstr "キャンセル"
 
 #: ../src/prpltwtr/prpltwtr_auth.c:249
 msgid "Yes"
-msgstr "Si"
+msgstr "はい"
 
 #: ../src/prpltwtr/prpltwtr_auth.c:262
 msgid "Could not verify credentials"
-msgstr "No se ha podido verificar las credenciales"
+msgstr "認証を検証できません"
 
 #: ../src/prpltwtr/prpltwtr_auth.c:274
 #, c-format
 msgid "Error verifying credentials: %s"
-msgstr "Error al comprobar las credenciales: %s"
+msgstr "認証検証エラー: %s"
 
 #: ../src/prpltwtr/prpltwtr_auth.c:306
 #, fuzzy
 msgid "Please enter PIN for"
-msgstr "Entre por favor el pin"
+msgstr "PINを入力してください"
 
 #: ../src/prpltwtr/prpltwtr_auth.c:312
 msgid "OAuth Authentication"
-msgstr "Autentificación de OAuth"
+msgstr "OAuth 認証"
 
 #. title
 #. primary
@@ -206,162 +206,159 @@ msgstr "Autentificación de OAuth"
 #. hint
 #: ../src/prpltwtr/prpltwtr_auth.c:319
 msgid "Submit"
-msgstr "Enviar"
+msgstr "送信"
 
 #: ../src/prpltwtr/prpltwtr_auth.c:325
 msgid "Invalid response receiving request token"
-msgstr "Respuesta invalida que recibe en solicitud de token"
+msgstr "リクエストトークン受信に不正な応答"
 
 #: ../src/prpltwtr/prpltwtr_auth.c:332
 #, c-format
 msgid "Error receiving request token: %s"
-msgstr "Error al recibir solicitud de token %s"
+msgstr "リクエストトークン受信エラー: %s"
 
 #: ../src/prpltwtr/prpltwtr_auth.c:367
 msgid "Canceled PIN entry"
-msgstr "Entrada cancelada del PIN"
+msgstr "PIN入力をキャンセル"
 
 #: ../src/prpltwtr/prpltwtr_api.c:215 ../src/prpltwtr/prpltwtr_api.c:254
 #: ../src/prpltwtr/prpltwtr_api.c:272
 #, fuzzy
 msgid "Description"
-msgstr "Descripción"
+msgstr "説明"
 
 #: ../src/prpltwtr/prpltwtr_api.c:218 ../src/prpltwtr/prpltwtr_api.c:257
 msgid "Friends"
-msgstr "Amigos"
+msgstr "友だち"
 
 #: ../src/prpltwtr/prpltwtr_api.c:221 ../src/prpltwtr/prpltwtr_api.c:260
 msgid "Followers"
-msgstr "Seguidores"
+msgstr "フォロワー"
 
 #: ../src/prpltwtr/prpltwtr_api.c:224 ../src/prpltwtr/prpltwtr_api.c:263
-#, fuzzy
 msgid "Tweets"
-msgstr "Retweet"
+msgstr "ツイート"
 
 #: ../src/prpltwtr/prpltwtr_api.c:227 ../src/prpltwtr/prpltwtr_api.c:276
-#, fuzzy
 msgid "Account Link"
-msgstr "Cuenta Enlace"
+msgstr "アカウント リンク"
 
 #: ../src/prpltwtr/prpltwtr_api.c:267
-#, fuzzy
 msgid "Last status"
-msgstr "Establecer el estado"
+msgstr "最新の状態"
 
 #: ../src/prpltwtr/prpltwtr_api.c:272
 msgid "No user info available. Loading from server..."
-msgstr ""
+msgstr "ユーザ情報が利用できません。サーバより受信中..."
 
 #: ../src/prpltwtr/prpltwtr_endpoint_dm.c:15
 #, c-format
 msgid "Error sending DM: %s"
-msgstr "Error enviando DM: %s"
+msgstr "直接メッセージ送信エラー: %s"
 
 #: ../src/prpltwtr/prpltwtr_endpoint_reply.c:16
 #, c-format
 msgid "Error sending reply: %s"
-msgstr "Error enviando respuesta: %s"
+msgstr "応答送信エラー: %s"
 
 #: ../src/prpltwtr/prpltwtr_endpoint_reply.c:77
 msgid "Could not retrieve replies, giving up trying"
-msgstr "No se pudo recuperar respuestas, renunciando a intentar"
+msgstr "応答を受信できませんでした。"
 
 #: ../src/prpltwtr/prpltwtr.c:182
 msgid "Received Invalid XML"
-msgstr "Recibido XML no válido"
+msgstr "不正なXMLを受信"
 
 #: ../src/prpltwtr/prpltwtr.c:186 ../src/prpltwtr/prpltwtr.c:779
 msgid "Unauthorized"
-msgstr "no autorizado"
+msgstr "認証されませんでした"
 
 #: ../src/prpltwtr/prpltwtr.c:194 ../src/prpltwtr/prpltwtr.c:917
 msgid "Unknown error"
-msgstr "Error desconocido"
+msgstr "不明なエラー"
 
 #: ../src/prpltwtr/prpltwtr.c:484
 msgid "Connected"
-msgstr "conectado"
+msgstr "接続"
 
 #: ../src/prpltwtr/prpltwtr.c:560
 msgid "Remaining"
-msgstr "Restante"
+msgstr "残り"
 
 #. plugin handle or PurpleConnection
 #: ../src/prpltwtr/prpltwtr.c:562 ../src/prpltwtr/prpltwtr.c:701
 msgid "Rate Limit Status"
-msgstr "Tasa de Estado Límite"
+msgstr "レート制限状態"
 
 #: ../src/prpltwtr/prpltwtr.c:680
 msgid "Status"
-msgstr "Estado"
+msgstr "状態"
 
 #: ../src/prpltwtr/prpltwtr.c:680
 msgid "Set Account Status"
-msgstr "Estado de cuenta determinado"
+msgstr "アカウント状態を設定"
 
 #: ../src/prpltwtr/prpltwtr.c:680
 msgid "_Set"
-msgstr "_Set"
+msgstr "設定(_S)"
 
 #: ../src/prpltwtr/prpltwtr.c:680
 msgid "_Cancel"
-msgstr "_Cancel"
+msgstr "キャンセル(_C)"
 
 #: ../src/prpltwtr/prpltwtr.c:698
 msgid "Set status"
-msgstr "Establecer el estado"
+msgstr "状態を設定"
 
 #: ../src/prpltwtr/prpltwtr.c:705
 msgid "Debug - Retrieve users"
-msgstr "Depurar - Recuperar los usuarios"
+msgstr "デバッグ - ユーザ受信"
 
 #: ../src/prpltwtr/prpltwtr.c:711
 msgid "Open Favorites URL"
-msgstr "Abrir Favoritos URL"
+msgstr "お気に入りの URL を開く"
 
 #: ../src/prpltwtr/prpltwtr.c:713
 msgid "Open Retweets of Mine"
-msgstr "Abrir Mis Tweets Retwitteados"
+msgstr "私のリツイートを開く"
 
 #: ../src/prpltwtr/prpltwtr.c:715
 msgid "Open Replies"
-msgstr "Abrir Respuestas"
+msgstr "返信を開く"
 
 #: ../src/prpltwtr/prpltwtr.c:717
 msgid "Open Suggested Friends"
-msgstr "Abrir sugerida amigos"
+msgstr "おすすめの友だちを開く"
 
 #: ../src/prpltwtr/prpltwtr.c:748
 msgid "Connecting..."
-msgstr "Conectando..."
+msgstr "接続中..."
 
 #: ../src/prpltwtr/prpltwtr.c:915
 msgid "Unknown reply by twitter server"
-msgstr "Respuesta desconocida por el servidor de Twitter"
+msgstr "ツイッターサーバによる不明な応答"
 
 #. plugin handle or PurpleConnection
 #: ../src/prpltwtr/prpltwtr.c:920
 msgid "Twitter Set Status"
-msgstr "Estado determinado de Twitter"
+msgstr "ツイッターのステータスを設定"
 
 #: ../src/prpltwtr/prpltwtr.c:920
 msgid "Error setting Twitter Status"
-msgstr "Error al establecer el estado de Twitter"
+msgstr "ツイッターのステータス設定エラー"
 
 #: ../src/prpltwtr/prpltwtr.c:1134
 #, c-format
 msgid "Automatically open chat on new tweets (Currently: %s)"
-msgstr "Abrir automáticamente el chat en nuevos tweets (Actualmente: %s)"
+msgstr "新しいツイートに自動的に会話をオープンする(現在: %s)"
 
 #: ../src/prpltwtr/prpltwtr.c:1135
 msgid "On"
-msgstr "On"
+msgstr "オン"
 
 #: ../src/prpltwtr/prpltwtr.c:1135
 msgid "Off"
-msgstr "Off"
+msgstr "オフ"
 
 #: ../src/prpltwtr/prpltwtr.c:1149
 #, c-format
@@ -371,22 +368,22 @@ msgstr "No%s"
 #: ../src/prpltwtr/prpltwtr.c:1149 ../src/prpltwtr/prpltwtr.c:1154
 #: ../src/prpltwtr/prpltwtr.c:1159
 msgid " (set)"
-msgstr "(set)"
+msgstr "(設定)"
 
 #: ../src/prpltwtr/prpltwtr.c:1154
 #, c-format
 msgid "Prepend%s"
-msgstr "Anteponer%s"
+msgstr "先付け %s"
 
 #: ../src/prpltwtr/prpltwtr.c:1159
 #, c-format
 msgid "Append%s"
-msgstr "Anexar%s"
+msgstr "後付け %s"
 
 #: ../src/prpltwtr/prpltwtr.c:1164
 #, c-format
 msgid "Tag all chats with search term:"
-msgstr "Marcar todos los chats con el término de búsqueda:"
+msgstr "検索した言葉で全ての対話にタグをつける:"
 
 #: ../src/prpltwtr/prpltwtr.c:1173
 msgid "@Message"
@@ -394,184 +391,175 @@ msgstr "@Message"
 
 #: ../src/prpltwtr/prpltwtr.c:1176
 msgid "Direct Message"
-msgstr "Mensaje Directo"
+msgstr "ダイレクトメッセージ"
 
 #: ../src/prpltwtr/prpltwtr.c:1180
 msgid "Clear Reply Marker"
-msgstr "Limpiar marcador de respuesta"
+msgstr "返信マーカーを削除"
 
 #: ../src/prpltwtr/prpltwtr.c:1205
 msgid "No passwords with OAuth"
-msgstr "No hay contraseñas con OAuth"
+msgstr "OAuth でパスワードなし"
 
 #: ../src/prpltwtr/prpltwtr.c:1277
 msgid "Twitter for Purple"
-msgstr "Twitter para Pidgin"
+msgstr "Purpleライブラリを使用したツイッター"
 
 #: ../src/prpltwtr/prpltwtr.c:1278
-#, fuzzy
 msgid "Access Twitter from within libpurple applications"
-msgstr "Acceso a Twitter y sitios compatibles desde aplicaciones libpurple"
+msgstr "Purpleライブラリを使用してツイッターにアクセス"
 
 #: ../src/prpltwtr/prpltwtr.c:1315
-#, fuzzy
 msgid "Status.net for Purple (Twitter API)"
-msgstr "Twitter para Pidgin"
+msgstr "Purpleライブラリを使用した Status.net (Twitter API)"
 
 #: ../src/prpltwtr/prpltwtr.c:1316
-#, fuzzy
 msgid ""
 "Access status.net microblogging servers from within libpurple applications"
-msgstr "Acceso a Twitter y sitios compatibles desde aplicaciones libpurple"
+msgstr "Purpleライブラリを使用して status.net マイクロブログサーバーにアクセス"
 
 #: ../src/prpltwtr/prpltwtr.c:1318
 msgid "Server"
-msgstr ""
+msgstr "サーバー"
 
 #: ../src/prpltwtr/prpltwtr.c:1318
 msgid "server name"
-msgstr ""
+msgstr "サーバー名"
 
 #: ../src/prpltwtr/prpltwtr_endpoint_search.c:53
 msgid "Search must be filled in when joining a search chat"
-msgstr "La búsqueda debe ser completada al entrar en una charla de la búsqueda"
+msgstr "チャットに参加するときは検索する言葉を必ず指定してください"
 
 #: ../src/prpltwtr/prpltwtr_prefs.c:46
 msgid "Enable HTTPS"
-msgstr "Habilitar HTTPS"
+msgstr "HTTPS を有効"
 
 #: ../src/prpltwtr/prpltwtr_prefs.c:52
 msgid "Enable OAuth (more secure, higher rate limit)"
-msgstr "Habilitar OAuth (mas seguro, mas alto limite de velocidad)"
+msgstr "OAuth を有効(より安全, 制約が少ない)"
 
 #: ../src/prpltwtr/prpltwtr_prefs.c:54
 msgid "Custom Consumer Key"
-msgstr ""
+msgstr "カスタム コンシューマ キー"
 
 #: ../src/prpltwtr/prpltwtr_prefs.c:56
 msgid "Custom Consumer Secret"
-msgstr ""
+msgstr "カスタム コンシューマ シークレット"
 
 #. Default sending im to buddy is to dm
 #: ../src/prpltwtr/prpltwtr_prefs.c:61
 msgid "Default IM to buddy is a DM"
-msgstr ""
-"la mensajería instantánea por defecto para ese amigo es un mensaje directo"
+msgstr "友だちへの標準のインスタントメッセージをダイレクトメッセージにする"
 
 #. Retrieve tweets history after login
 #: ../src/prpltwtr/prpltwtr_prefs.c:65
 msgid "Retrieve tweets history after login"
-msgstr "Recuperar historial de tweets después de iniciar sesión"
+msgstr "ログイン後にツイート履歴を受信"
 
 #. Sync presence update to twitter
 #: ../src/prpltwtr/prpltwtr_prefs.c:69
 msgid "Sync availability status message to Twitter"
-msgstr "Disponibilidad de sincronización de mensajes de estado en Twitter"
+msgstr "利用可能なステータスメッセージをツイッターと同期"
 
 #. Automatically generate a buddylist based on followers
 #: ../src/prpltwtr/prpltwtr_prefs.c:73
 msgid "Add following as friends (NOT recommended for large follower list)"
-msgstr ""
-"Añadir siguientes como amigos (NO se recomienda para la lista de seguidores "
-"grandes)"
+msgstr "友だちとしてフォローを追加(大きなフォロワーリストでは非推奨)"
 
 #: ../src/prpltwtr/prpltwtr_prefs.c:79
 msgid "<nickname> | <full name>"
-msgstr ""
+msgstr "<ニックネーム> | <フルネーム>"
 
 #: ../src/prpltwtr/prpltwtr_prefs.c:80
 msgid "<nickname> only"
-msgstr ""
+msgstr "<ニックネーム> のみ"
 
 #: ../src/prpltwtr/prpltwtr_prefs.c:81
 msgid "<full name> only"
-msgstr ""
+msgstr "<フルネーム> のみ"
 
 #: ../src/prpltwtr/prpltwtr_prefs.c:100
 msgid "Set default alias to:"
-msgstr ""
+msgstr "標準のエイリアス:"
 
 #. Add URL link to each tweet
 #: ../src/prpltwtr/prpltwtr_prefs.c:105
 msgid "Add URL link to each tweet"
-msgstr "Añadir enlace URL a cada tweet"
+msgstr "それぞれのツイートにURLリンクを追加"
 
 #. Idle cutoff time
 #: ../src/prpltwtr/prpltwtr_prefs.c:109
 msgid "Buddy last tweet hours before set offline (0: Always online)"
 msgstr ""
-"Tweet última hora de amigos online antes de establecer offline (0: Siempre "
-"online)"
+"最後のツイートを送ってからオフラインになるまでの時間 (0: 常にオンライン)"
 
 #. Max tweets to retrieve when retrieving timeline data
 #: ../src/prpltwtr/prpltwtr_prefs.c:115
 msgid "Max historical timeline tweets to retrieve (0: infinite)"
-msgstr "Tweets máximo histórico línea de tiempo para recuperar (0: infinito)"
+msgstr "読み取るツイートの最大数 (0: 無制限)"
 
 #. Timeline tweets refresh interval
 #: ../src/prpltwtr/prpltwtr_prefs.c:121
-#, fuzzy
 msgid "Refresh timeline every (min)"
-msgstr "Actualizar todas las respuestas (min)"
+msgstr "タイムラインを更新する時間 (分)"
 
 #. Mentions/replies tweets refresh interval
 #: ../src/prpltwtr/prpltwtr_prefs.c:127
 msgid "Refresh replies every (min)"
-msgstr "Actualizar todas las respuestas (min)"
+msgstr "返信を更新する時間 (分)"
 
 #. Dms refresh interval
 #: ../src/prpltwtr/prpltwtr_prefs.c:133
 msgid "Refresh direct messages every (min)"
-msgstr "Actualizar todos los mensajes directos (min)"
+msgstr "ダイレクトメッセージを更新する時間 (分)"
 
 #. Lists tweets refresh interval
 #: ../src/prpltwtr/prpltwtr_prefs.c:140
-#, fuzzy
 msgid "Refresh lists every (min)"
-msgstr "Actualizar todas las respuestas (min)"
+msgstr "リストを更新する時間 (分)"
 
 #. Friendlist refresh interval
 #: ../src/prpltwtr/prpltwtr_prefs.c:147
 msgid "Refresh friendlist every (min)"
-msgstr "Actualizar toda la lista de amigos (min)"
+msgstr "友だちリストを更新する時間(分)"
 
 #. Search results refresh interval
 #: ../src/prpltwtr/prpltwtr_prefs.c:153
 msgid "Default refresh search results every (min)"
-msgstr "Por defecto cargar todos los resultados de la búsqueda (min)"
+msgstr "検索結果を更新する時間(分)"
 
 #: ../src/prpltwtr/prpltwtr_prefs.c:159
 msgid "API Base URL"
-msgstr "API base URL"
+msgstr "API ベース URL"
 
 #. plugin handle or PurpleConnection
 #: ../src/prpltwtr/prpltwtr_endpoint_chat.c:430
 msgid "Chat Join"
-msgstr "Unirse al chat"
+msgstr "チャットに参加"
 
 #: ../src/prpltwtr/prpltwtr_endpoint_chat.c:430
 msgid "Invalid Chat"
-msgstr "Invalido chat"
+msgstr "無効なチャット"
 
 #: ../src/prpltwtr/prpltwtr_endpoint_chat.c:534
 #, c-format
 msgid "Error sending tweet: %s"
-msgstr "Error enviando tweet: %s"
+msgstr "ツイート送信エラー: %s"
 
 #~ msgid "No user info"
-#~ msgstr "No hay información de usuario"
+#~ msgstr "ユーザ情報なし"
 
 #~ msgid "Search API Base URL"
-#~ msgstr "URL de base de búsqueda de la API"
+#~ msgstr "検索 API ベース URL"
 
 #~ msgid "Clicked URI"
-#~ msgstr "clickear URI"
+#~ msgstr "クリックした URI"
 
 #~ msgid "@name clicked"
-#~ msgstr "@nombre clickear"
+#~ msgstr "@name をクリック"
 
 #~ msgid "Sorry, this has not been implemented yet"
-#~ msgstr "Lo sentimos, este no ha sido implementado"
+#~ msgstr "まだ実装されていません"
 
 #~ msgid "Status:"
-#~ msgstr "Estado:"
+#~ msgstr "ステータス:"
