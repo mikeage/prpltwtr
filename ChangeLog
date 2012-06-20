@@ -1,4 +1,5 @@
 Changelog for current version:
+  * Add Japanese translation
 
 Changelog for 0.12.0:
   * Count characters correctly if the destination username / search hashtag is found twice
