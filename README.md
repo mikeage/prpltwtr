@@ -1,4 +1,4 @@
-This is a [libpurple](http://developer.pidgin.im/wiki/WhatIsLibpurple) [Pidgin](http://pidgin.im/), [Finch](http://developer.pidgin.im/wiki/Using%20Finch) etc) plugin which treats microblogging [Twitter](http://developer.pidgin.im/wiki/Using%20Finch), [identi.ca](http://identi.ca), [status.net](http://status.net/), etc) as IM protocols. 
+This is a [libpurple](http://developer.pidgin.im/wiki/WhatIsLibpurple) [Pidgin](http://pidgin.im/), [Finch](http://developer.pidgin.im/wiki/Using%20Finch), etc plugin which treats microblogging sites [Twitter](http://developer.pidgin.im/wiki/Using%20Finch), [identi.ca](http://identi.ca), [status.net](http://status.net/) as IM protocols. 
 
 It treats timelines and searches as chat rooms and the people you follow as buddies. 
 
@@ -8,7 +8,7 @@ If you don't like this plugin, I recommend trying out [microblog-purple](http://
 
 *Update: in light of twitter's [decision to discourage / forbid new clients](http://www.pcmag.com/article2/0,2817,2381854,00.asp), I'm not sure how much more development will be done.*
 
-  * For support, either post on the [http://code.google.com/p/prpltwtr/issues/list issues page] or contact [http://twitter.com/prpltwtr @prpltwtr]
+  * For support, either post on the [issues page (currently at Google code)](http://code.google.com/p/prpltwtr/issues/list) or contact [@prpltwtr] (http://twitter.com/prpltwtr)
 
   * If you receive a lot of tweets with links shortened via bit.ly, t.co, etc, you may find [expand] (https://code.google.com/p/expand/) to be a useful plugin. Go check it out!
 
