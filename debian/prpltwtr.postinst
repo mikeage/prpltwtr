@@ -1,0 +1,31 @@
+#! /bin/sh
+
+case "$1" in
+    configure)
+
+      managers_dir=/usr/share/telepathy/managers
+      twitter_manager=/usr/share/doc/prpltwtr/twitter.manager
+
+      if [ -f $managers_dir/haze.manager ] ; then
+            if cat $managers_dir/haze.manager | grep "Protocol twitter" ; then
+                  echo "haze.manager already has Protocol twitter"
+            else
+                  cat $twitter_manager >> $managers_dir/haze.manager
+            fi
+      fi
+
+      echo "Updating icon cache."
+      gtk-update-icon-cache -f -t /usr/share/icons/hicolor
+    ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+
+    ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+exit 0

@@ -1,0 +1,84 @@
+Changelog for current version:
+  * Add Japanese translation
+
+Changelog for 0.12.0:
+  * Count characters correctly if the destination username / search hashtag is found twice
+  * Add color to the character count
+  * Fix crash if attempting to RT, favorite, or delete while disconnected
+  * Handle the deprecated followers.xml endpoint. We now add followers as they tweet. We also save the ID, so we can handle nick changes 
+
+Changelog for 0.11.0:
+  * Make some errors recoverable. Prpltwtr should try to reconnect, and not disable the account. I know this covers the case of sleep on Windows; hopefully others as well
+  * Load user info dynamically when requesting info for a user not in the buddy list
+  * Fix multipage requests for home timeline and lists. More than 200 tweets should now be received (up to 800 for twitter.com, depending on the value set in the account preferences). Also fix a race condition where the timer refreshes could start before the initial retreive finished (much more critical after the multipage fix)
+  * Add c:\PortableApps\PortableApps to the installer
+  * Tell the plugin(s) that we support offline messages (b/c twitter does, obviously) 
+
+Changelog for 0.10.0:
+  * Windows executable is compiled to the main directory (don't ask why)
+  * Add subscribed lists (not just created lists). The list names changed; you'll need to delete the old lists
+  * Send all requests through the account specific proxy, not the global one. Oops.
+  * Allow installation of the non-stripped DLLs only (without dbgsym files)
+
+Changelog for 0.9.0:
+  * Fix crash when closing a window with pending buddy icons to look up
+  * Identi.ca work. Twitter requires OAuth (no longer an option); status.net sites can use either. Note that you'll need to register your own custom application if you want to use OAuth with status.net sites and provide the consumer key and secret in the account options.
+  * Restore "delete" tweet option
+  * Split the prpltwtr plugin into three: libprpltwtr for the infrastructure, libprpltwtr_twitter for Twitter, and libprpltwtr_statusnet for identi.ca, etc. You may need to manually delete the old versions (but I hope not)
+  * Let the user choose the default alias. Suggested by @space_tiger. If you already added your friends as buddies, the fastest thing to do is delete the group and let prpltwtr re-add them after changing this option.
+
+Changelog for 0.8.0:
+  * Switch OAuth keys to request DM permission. You will need to re-authorize Prpltwtr (now called PrplTwtr2)
+  * Fix crash with the info dialog
+  * Add information to the info dialog
+
+Changelog for 0.7.0:
+  * Make the list and timeline refresh intervals user set parameters
+  * Fix some memory leaks
+  * Fix infinite loop when "replying to all" if there's an @ without a name after it (a mistake, or a 4sq checking tweet)
+  * Add --without-pidgin option to ./configure for building just prpltwtr and not gtkprpltwtr. Note that the prpltwtr.so is now installed in the libpurple plugin directory! Please manually delete the old one from pidgin's plugin directory.
+  * Basic favorites support. The action menu is NOT updated, though, after favoriting / unfavoriting a tweet.
+  * Add some useful links to the plugin option menu
+
+Changelog for 0.6.4:
+  * Show the error texts from twitter when displaying an error. Should make it easier to understand things like why DMs fail.
+  * Don't retreive old tweets when rejoining a search. Behaviour is now similar to a regular timeline.
+  * Allow customization of the insertion of the search text in tweets: never, prepended, or appended (set on a per-search basis). Default is never.
+  * Show rate limit status as the topic for chats and timeline(s)
+  * Makefile changes, added support for localization. So far, just Spanish has been added.
+  * List support. Not tested extensively, and probably broken for Haze / Empathy, but seems to work fairly well in Pidgin. Some code cleanup still needs to be done.
+
+Changelog for 0.6.3:
+  * Fix make install target
+
+Changelog for 0.6.2:
+  * Add a "report spammer" link
+  * Initial "Conversation" support available. Click on "In reply to..." and the parent tweet will be retrieve. It's currently delivered just like any other tweet; if it's from an IM session, it will be shown in a new IM window; if it's from a chat window, it will be shown at the bottom. I don't like this, but I don't have anything better at the moment.
+  * More sensible login defaults; HTTPS, OAuth, password is optional (not required when using OAuth)
+  * Snowflake API update; don't assume tweet_id's are sequential. This could have resulted in missing some tweets.
+  * Fix the Makefile.mingw dependency bug where foo.dll wasn't being rebuilt. Note that there is no support for header dependencies; the pidgin makefiles, which we use, do not support them. If you change a head files, run make clean all
+  * Automatically re-connect on server issues. 
+
+Changelog for 0.6.1:
+  * 64 bit installations now work. Use the regular build system
+  * Proper build system. For Linux, run ./autogen.sh && make && make sudo install . Everything should "just work". For MinGW, run make -f Makefile.mingw PIDGIN_TREE_TOP=/path/to/pidgin-2.7.x/ VERSION=whatever. Note that I've only tested MinGW on Linux; Cygwin feedback is welcome.
+  * Cleaned up a bunch of code warnings. No functional changes (hopefully) 
+
+Changelog for 0.6.0:
+  * Better Makefile & Installer support. Supports MinGW compilation (copy local.mak.mingw to local.mak in the prpltwtr and prpltwtr/gtkprpltwtr directories). The installer detects Pidgin installations (based on the registry) and PidginPortable (it looks in c:\PortableApps\PidginPortable, C:\Program Files\PortableApps\PidginPortable, and c:\Program Files\PortableApps\PortableApps\PidginPortable). Also, the installer installs .dbgsym files for meaningful crash reports.
+  * Old style RTs and Reply-to-all added (as in  issue 36 )
+  * "Lock reply" and other IM reply / in_reply_to improvements. See the description below
+  * Preparation for retreiving a conversation. The UI code is in an #ifdef 0, so you won't see anything. Yet.
+  * At least half a dozen crashes fixed, including when resuming from standby.
+  * Delayed icons no longer show up in a line after clearing the buffer using Ctrl-L
+  * Icon size is a gtkprpltwtr option
+  * New style RTs include all 140 characters plus the RT @someone header (no more crops using "..." at the end)
+  * Default retrieval quantities raised to 200 from 100. 
+
+Rules for replies
+
+   1. Messages sent to a user from the main input window will always be regular
+   2. Messages sent from an IM window that opened automatically, or by clicking "reply" / "reply to all" will be in response to the last received message. (previous: no reply all)
+   3. Messages sent from a chat window that was opened by double clicking on the buddy name will be regular, unless the window was already open because of the previous condition.
+   4. Click on "Set Reply" will force all subsequent messages in that IM window to be in response to that particular tweet, even if new messages arrive. This can be cleared by (a) setting another tweet (b) choosing "More->Clear reply", (c) clicking on "reply" or "reply to all" to another tweet received, or (d) closing the window. While the fixed reply is in place, an icon will be shown to the right of the message being replied to. (previous: didn't exist)
+   5. Closing an IM window will always clear the replies (previous: this didn't matter) 

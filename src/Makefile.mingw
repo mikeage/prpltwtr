@@ -1,0 +1,23 @@
+#
+# Makefile.mingw
+#
+# Description: src makefile for prpltwtr and gtkprpltwtr
+#
+
+.PHONY: all 
+
+MINGW_MAKEFILE=Makefile.mingw
+
+all:
+	$(MAKE) -C prpltwtr -f $(MINGW_MAKEFILE) $@
+	$(MAKE) -C gtkprpltwtr -f $(MINGW_MAKEFILE) $@
+
+clean:
+	$(MAKE) -C prpltwtr -f $(MINGW_MAKEFILE) $@
+	$(MAKE) -C gtkprpltwtr -f $(MINGW_MAKEFILE) $@
+
+installer: all dist
+
+dist:
+	$(MAKE) -C prpltwtr -f $(MINGW_MAKEFILE) $@
+	$(MAKE) -C gtkprpltwtr -f $(MINGW_MAKEFILE) $@
