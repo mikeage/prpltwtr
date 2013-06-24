@@ -47,8 +47,6 @@
 #define STATUSNET_PROTOCOL_ID "prpl-statusnet"
 #define GENERIC_PROTOCOL_ID "prpltwtr"
 
-#define TWITTER_OAUTH_KEY "9hDKG0Lty62lPca2XoA"
-#define TWITTER_OAUTH_SECRET "WmCXa0M1Q5k89WTZhnqUhxaebvF3faVkzGWGiwpoZkc"
 
 /* We'll handle TWITTER_URI://foo as an internal action */
 #define TWITTER_URI "prpltwtr"
@@ -59,3 +57,7 @@
 #define TWITTER_STATUS_OFFLINE	"offline"
 
 #endif 
+
+/* From Twitter's application registration page */
+#define PT_OAUTH_KEY "9hDKG0Lty62lPca2XoA"
+#define PT_OAUTH_SECRET "WmCXa0M1Q5k89WTZhnqUhxaebvF3faVkzGWGiwpoZkc"

@@ -32,6 +32,10 @@
 
 #include "defines.h"
 #include "pt.h"
+#include "pt_connection.h"
+#include "pt_oauth.h"
+#include "pt_requestor.h"
+
 
 static GList   *pt_protocol_options (void);
 static void     pt_init (PurplePlugin * plugin);
@@ -150,14 +154,12 @@ static PurplePluginInfo info = {
 	NULL,
 };
 
-PURPLE_INIT_PLUGIN (null, pt_init, info);
-
 static GList   *pt_protocol_options (void)
 {
 	GList          *options = NULL;
-	PurpleAccountOption *option;
 
 #if 0
+	PurpleAccountOption *option;
 	option = purple_account_option_bool_new (_("Enable HTTPS"),	/* text shown to user */
 						 TWITTER_PREF_USE_HTTPS,	/* pref name */
 						 TWITTER_PREF_USE_HTTPS_DEFAULT);	/* default value */
@@ -262,20 +264,21 @@ static GList   *pt_protocol_options (void)
 	return options;
 }
 
+PURPLE_INIT_PLUGIN (null, pt_init, info);
+
 static void pt_init (PurplePlugin * plugin)
 {
-	PurpleAccountUserSplit *split;
 
 #ifdef ENABLE_NLS
 	bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
 	bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
 #endif /* ENABLE_NLS */
 
-	purple_debug_info (plugin->info->id, "starting up\n");
+	purple_debug_info ("pt", "starting up\n");
 
 	((PurplePluginProtocolInfo *) plugin->info->extra_info)->protocol_options = pt_protocol_options ();
 
-	purple_debug_info (plugin->info->id, "Registering signals\n");
+	purple_debug_info ("pt", "Registering signals\n");
 
 	purple_signal_register (purple_accounts_get_handle (), "pt-connecting", purple_marshal_VOID__POINTER, NULL, 1, purple_value_new (PURPLE_TYPE_SUBTYPE, PURPLE_SUBTYPE_ACCOUNT));
 
@@ -314,7 +317,7 @@ static void pt_init (PurplePlugin * plugin)
 
 void pt_destroy(PurplePlugin * plugin)
 {
-    purple_debug_info(plugin->info->id, "shutting down\n");
+    purple_debug_info("pt", "shutting down\n");
         /*purple_signal_unregister(purple_accounts_get_handle(), "pt-connecting");*/
         /*purple_signal_unregister(purple_accounts_get_handle(), "pt-disconnected");*/
         /*purple_signal_unregister(purple_buddy_icons_get_handle(), "pt-update-buddyicon");*/
@@ -333,9 +336,9 @@ gboolean pt_offline_message(const PurpleBuddy * buddy)
 GList          *pt_actions(PurplePlugin * plugin, gpointer context)
 {
     GList          *l = NULL;
-    PurplePluginAction *action;
 
 #if 0
+    PurplePluginAction *action;
     action = purple_plugin_action_new(_("Set status"), twitter_action_set_status);
     l = g_list_append(l, action);
 
@@ -534,14 +537,36 @@ GHashTable     *pt_chat_info_defaults(PurpleConnection * gc, const char *chat_na
     return defaults;
 }
 
+static void requestor_post_failed(PtRequestor * requestor, const PtRequestorErrorData ** error_data)
+{
+    purple_debug_error("pt", "post_failed called for account %s, error %d, message %s\n", requestor->account->username, (*error_data)->error, (*error_data)->message ? (*error_data)->message : "");
+    switch ((*error_data)->error) {
+    case PT_REQUESTOR_ERROR_UNAUTHORIZED:
+#if 0
+        prpltwtr_auth_invalidate_token(requestor->account);
+        prpltwtr_disconnect(r->account, _("Unauthorized"));
+#endif
+        break;
+    default:
+        break;
+    }
+}
+
 void pt_login(PurpleAccount * account)
 {
+	static gboolean first_connect = TRUE;
     char          **userparts;
     PurpleConnection *gc = purple_account_get_connection(account);
-#if 0
-    TwitterConnectionData *twitter = g_new0(TwitterConnectionData, 1);
-    gc->proto_data = twitter;
+    PtConnectionData *conn_data= g_new0(PtConnectionData, 1);
 
+	if (!gc) {
+		purple_debug_fatal("pt", "Can't connect; gc not defined!\n");
+		return;
+	}
+
+    gc->proto_data = conn_data;
+
+    purple_debug_info("pt", "Logging in %s\n", account->username);
     /* Since protocol plugins are loaded before conversations_init is called
      * we cannot connect these signals in plugin->load.
      * So we have this here, with a global var that tells us to only run this
@@ -549,41 +574,36 @@ void pt_login(PurpleAccount * account)
      * There HAS to be a better way to do this. Need to do some research
      * this is an awful hack (tm)
      */
-    if (!TWITTER_SIGNALS_CONNECTED) {
-        TWITTER_SIGNALS_CONNECTED = TRUE;
+	if (first_connect) {
+        first_connect = FALSE;
 
-        purple_prefs_add_none("/prpltwtr");
-        purple_prefs_add_bool("/prpltwtr/first-load-complete", FALSE);
-        if (!purple_prefs_get_bool("/prpltwtr/first-load-complete")) {
+        purple_prefs_add_none("/pt");
+        purple_prefs_add_bool("/pt/first-load-complete", FALSE);
+        if (!purple_prefs_get_bool("/pt/first-load-complete")) {
+#if 0
             PurplePlugin   *plugin = purple_plugins_find_with_id("gtkprpltwtr");
             if (plugin) {
                 purple_debug_info(purple_account_get_protocol_id(account), "Loading gtk plugin\n");
                 purple_plugin_load(plugin);
             }
-            purple_prefs_set_bool("/prpltwtr/first-load-complete", TRUE);
+            purple_prefs_set_bool("/pt/first-load-complete", TRUE);
+#endif
         }
 
     }
-
-    purple_debug_info(purple_account_get_protocol_id(account), "logging in %s\n", account->username);
 
     userparts = g_strsplit(account->username, "@", 2);
     purple_connection_set_display_name(gc, userparts[0]);
     g_strfreev(userparts);
 
-    twitter->requestor = g_new0(TwitterRequestor, 1);
-    twitter->requestor->account = account;
-    twitter->requestor->post_failed = requestor_post_failed;
-    twitter->requestor->do_send = twitter_requestor_send;
+    conn_data->requestor = g_new0(PtRequestor, 1);
+    conn_data->requestor->account = account;
+	conn_data->requestor->pre_send = pt_oauth_pre_send;
+    conn_data->requestor->do_send = pt_requestor_send;
+	conn_data->requestor->post_send = pt_oauth_post_send;
+    conn_data->requestor->post_failed = requestor_post_failed;
 
-    if (!twitter_option_use_oauth(account)) {
-        twitter->requestor->pre_send = prpltwtr_auth_pre_send_auth_basic;
-        twitter->requestor->post_send = prpltwtr_auth_post_send_auth_basic;
-    } else {
-        twitter->requestor->pre_send = prpltwtr_auth_pre_send_oauth;
-        twitter->requestor->post_send = prpltwtr_auth_post_send_oauth;
-    }
-
+#if 0
     /* key: gchar *, value: TwitterEndpointChat */
     twitter->chat_contexts = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, (GDestroyNotify) twitter_endpoint_chat_free);
 
@@ -591,25 +611,19 @@ void pt_login(PurpleAccount * account)
     twitter->user_reply_id_table = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 
     purple_signal_emit(purple_accounts_get_handle(), "prpltwtr-connecting", account);
-
+#endif 
     /* purple wants a minimum of 2 steps */
     purple_connection_update_progress(gc, ("Connecting"), 0,    /* which connection step this is */
                                       2);        /* total number of steps */
 
-    if (twitter_option_use_oauth(account)) {
-        prpltwtr_auth_oauth_login(account, twitter);
-    } else {
-        //No oauth, just do the verification step, skipping previous oauth steps
-        prpltwtr_verify_connection(account);
-    }
-#endif 
+	pt_oauth_login(account, conn_data);
 }
 
 void pt_close(PurpleConnection * gc)
 {
     /* notify other twitter accounts */
-    PurpleAccount  *account = purple_connection_get_account(gc);
 #if 0
+    PurpleAccount  *account = purple_connection_get_account(gc);
     TwitterConnectionData *twitter = gc->proto_data;
 
     if (twitter->requestor)
@@ -797,9 +811,9 @@ void pt_api_get_info(PurpleConnection * gc, const char *username)
 
 static void pt_chat_join_do(PurpleConnection * gc, GHashTable * components, gboolean open_conv)
 {
+#if 0
     const char     *conv_type_str = g_hash_table_lookup(components, "chat_type");
     gint            conv_type = conv_type_str == NULL ? 0 : strtol(conv_type_str, NULL, 10);
-#if 0
     twitter_endpoint_chat_start(gc, twitter_get_endpoint_chat_settings(conv_type), components, open_conv);
 #endif 
 }
@@ -811,8 +825,8 @@ void pt_chat_join(PurpleConnection * gc, GHashTable * components)
 
 char           *pt_chat_get_name(GHashTable * components)
 {
-    const char     *chat_type_str = g_hash_table_lookup(components, "chat_type");
 #if 0
+    const char     *chat_type_str = g_hash_table_lookup(components, "chat_type");
     TwitterChatType chat_type = chat_type_str == NULL ? 0 : strtol(chat_type_str, NULL, 10);
 
     TwitterEndpointChatSettings *settings = twitter_get_endpoint_chat_settings(chat_type);
@@ -824,8 +838,8 @@ char           *pt_chat_get_name(GHashTable * components)
 
 void pt_chat_leave(PurpleConnection * gc, int id)
 {
-    PurpleConversation *conv = purple_find_chat(gc, id);
 #if 0
+    PurpleConversation *conv = purple_find_chat(gc, id);
     TwitterConnectionData *twitter = gc->proto_data;
     PurpleAccount  *account = purple_connection_get_account(gc);
     TwitterEndpointChat *ctx = twitter_endpoint_chat_find(account, purple_conversation_get_name(conv));
@@ -845,10 +859,10 @@ void pt_chat_leave(PurpleConnection * gc, int id)
 
 int pt_chat_send(PurpleConnection * gc, int id, const char *message, PurpleMessageFlags flags)
 {
-    PurpleConversation *conv = purple_find_chat(gc, id);
-    PurpleAccount  *account = purple_connection_get_account(gc);
     int             rv = 0;
 #if 0
+    PurpleConversation *conv = purple_find_chat(gc, id);
+    PurpleAccount  *account = purple_connection_get_account(gc);
     TwitterEndpointChat *ctx = twitter_endpoint_chat_find(account, purple_conversation_get_name(conv));
     char           *stripped_message;
 
@@ -879,11 +893,11 @@ void pt_set_buddy_icon(PurpleConnection * gc, PurpleStoredImage * img)
 
 PurpleChat     *pt_blist_chat_find(PurpleAccount * account, const char *name)
 {
+    PurpleChat     *c = NULL;
+#if 0
     static char    *timeline = "Timeline: ";
     static char    *search = "Search: ";
     static char    *list = "List: ";
-    PurpleChat     *c = NULL;
-#if 0
     if (strlen(name) > strlen(timeline) && !strncmp(timeline, name, strlen(timeline))) {
         c = pt_blist_chat_find_timeline(account, 0);
     } else if (strlen(name) > strlen(search) && !strncmp(search, name, strlen(search))) {

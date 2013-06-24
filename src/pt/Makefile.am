@@ -6,7 +6,11 @@ pkgdir = $(PURPLE_PLUGINDIR)
 PT_SOURCES = \
 				   defines.h \
 				   pt.h \
-				   pt.c 
+				   pt.c \
+				   pt_oauth.c \
+				   pt_oauth.h \
+				   pt_requestor.c \
+				   pt_requestor.h
 
 AM_CFLAGS = \
 	$(st)
