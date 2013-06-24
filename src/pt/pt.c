@@ -30,6 +30,7 @@
 #include "debug.h"
 #include "version.h"
 
+#include "defines.h"
 #include "pt.h"
 
 static GList   *pt_protocol_options (void);

@@ -10,9 +10,9 @@ endif
 
 include $(PIDGIN_TREE_TOP)/libpurple/win32/global.mak
 
-TARGET = libprpltwtr
+TARGET = libpt
 
-DEFINES += -DGETTEXT_PACKAGE=\"prpltwtr\"
+DEFINES += -DGETTEXT_PACKAGE=\"pt\"
 DEFINES += -DPACKAGE_VERSION=\"$(PACKAGE_VERSION)\"
 DEFINES += -DPURPLE_PLUGINS
 

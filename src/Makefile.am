@@ -1,5 +1,5 @@
 SUBDIRS = \
-	prpltwtr
+	pt
 
 if WITH_PIDGIN
 #SUBDIRS += gtkprpltwtr

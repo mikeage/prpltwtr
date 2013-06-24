@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT([prpltwtr], [0.12.0], [http://code.google.com/p/prpltwtr/issues/list])
+AC_INIT([pt], [0.12.0], [http://code.google.com/p/prpltwtr/issues/list])
 AC_CANONICAL_TARGET([])
 AM_INIT_AUTOMAKE([1.9.5])
 
@@ -37,7 +37,7 @@ AC_SUBST(LIBPURPLE_DATADIR)
 # Setup gettext
 #
 AC_PROG_INTLTOOL
-GETTEXT_PACKAGE=prpltwtr
+GETTEXT_PACKAGE=pt
 AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, ["$GETTEXT_PACKAGE"], [Define the gettext package to be used])
 ALL_LINGUAS="es ja"
@@ -121,8 +121,8 @@ AC_CONFIG_FILES([Makefile
 				 po/Makefile.in
 				 data/Makefile
 				 src/Makefile
-				 src/prpltwtr/Makefile
-				 src/gtkprpltwtr/Makefile])
+				 src/pt/Makefile])
+#				 src/gtkprpltwtr/Makefile
 AC_OUTPUT
 
 echo

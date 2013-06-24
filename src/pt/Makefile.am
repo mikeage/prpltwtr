@@ -3,24 +3,23 @@ EXTRA_DIST = \
 
 pkgdir = $(PURPLE_PLUGINDIR)
 
-PRPLTWTR_SOURCES = \
+PT_SOURCES = \
+				   defines.h \
 				   pt.h \
 				   pt.c 
 
 AM_CFLAGS = \
 	$(st)
 
-libprpltwtr_twitter_la_LDFLAGS = -module -avoid-version $(PURPLE_LIBS)
-
-libprpltwtr_statusnet_la_LDFLAGS = -module -avoid-version $(PURPLE_LIBS)
+libpt_la_LDFLAGS = -module -avoid-version $(PURPLE_LIBS)
 
 st = 
 
 pkg_LTLIBRARIES = \
-	libprpltwtr.la 
+	libpt.la 
 
-libprpltwtr_la_SOURCES = $(PRPLTWTR_SOURCES)
-libprpltwtr_la_LIBADD = $(GLIB_LIBS)
+libpt_la_SOURCES = $(PT_SOURCES)
+libpt_la_LIBADD = $(GLIB_LIBS)
 
 AM_CPPFLAGS = \
 	$(DEBUG_CFLAGS) \
