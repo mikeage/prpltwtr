@@ -2,7 +2,7 @@ SUBDIRS = \
 	prpltwtr
 
 if WITH_PIDGIN
-SUBDIRS += gtkprpltwtr
+#SUBDIRS += gtkprpltwtr
 endif
 
 EXTRA_DIST =\
