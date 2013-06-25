@@ -8,6 +8,7 @@
 
 #include "defines.h"
 #include "pt_requestor.h"
+#include "pt_connection.h"
 
 #define USER_AGENT "Mozilla/4.0 (compatible; MSIE 5.5)"
 
@@ -15,8 +16,9 @@ static long long pt_oauth_generate_nonce (void);
 static gint     pt_requestor_params_sort_do (PtRequestorParam ** a, PtRequestorParam ** b);
 static gchar   *pt_oauth_get_text_to_sign (gboolean post, gboolean https, const gchar * url, const PtRequestorParams * params);
 static gchar   *pt_requestor_params_to_string (const PtRequestorParams * params);
-extern PtRequestorParam *pt_requestor_param_clone (const PtRequestorParam * p);
-extern PtRequestorParams *pt_requestor_params_clone (const PtRequestorParams * params);
+static gpointer pt_send_request_querystring (PtRequestor * r, gboolean post, const char *url, const char *query_string, char **header_fields, PtSendRequestSuccessFunc success_callback, PtSendRequestErrorFunc error_callback, gpointer data);
+static void     pt_send_request_cb (PurpleUtilFetchUrlData * url_data, gpointer user_data, const gchar * response_text, gsize len, const gchar * server_error_message);
+static void     pt_requestor_on_error (PtRequestor * r, const PtRequestorErrorData * error_data, PtSendRequestErrorFunc called_error_cb, gpointer user_data);
 
 #include "cipher.h"
 static gchar   *pt_oauth_sign (const gchar * txt, const gchar * key);
@@ -186,7 +188,7 @@ static void twitter_requestor_on_error (TwitterRequestor * r, const TwitterReque
 		r->post_failed (r, &error_data);
 }
 
-gint twitter_response_text_status_code (const gchar * response_text)
+gint get_status_code (const gchar * response_text)
 {
 	const gchar    *ptr;
 	const gchar    *starts_with = "HTTP/1.";
@@ -888,14 +890,95 @@ void twitter_requestor_free (TwitterRequestor * r)
 	g_free (r);
 }
 #endif
+
+gint pt_requestor_get_status_code (const gchar * response_text)
+{
+	const gchar    *ptr;
+	const gchar    *starts_with = "HTTP/1.";
+
+	if (response_text == NULL || !g_str_has_prefix (response_text, starts_with))
+	{
+		return 0;
+	}
+	ptr = response_text + strlen (starts_with) + 2;	//add the "0 "
+
+	return atoi (ptr);
+}
+
+const gchar    *pt_requestor_get_text (const gchar * response_text, gsize len)
+{
+	const gchar    *data;
+
+	if (!response_text)
+	{
+		return NULL;
+	}
+
+	data = g_strstr_len (response_text, len, "\r\n\r\n");
+
+	if (data)
+	{
+		return data + 4;
+	}
+
+	return NULL;
+}
+
+PtRequestor    *pt_requestor_get_requestor (PurpleAccount * account)
+{
+	PurpleConnection *gc = purple_account_get_connection (account);
+	PtConnectionData *conn_data = NULL;
+
+	if (gc)
+	{
+		conn_data = gc->proto_data;
+	}
+	if (conn_data)
+	{
+		return conn_data->requestor;
+	}
+	return NULL;
+}
+
 gpointer pt_requestor_send (PtRequestor * r, gboolean post, const char *url, PtRequestorParams * params, char **header_fields, PtSendRequestSuccessFunc success_callback, PtSendRequestErrorFunc error_callback, gpointer data)
 {
 	gpointer        request = NULL;
 	gchar          *querystring = pt_requestor_params_to_string (params);
 
-// TODO request = pt_send_request_querystring (r, post, url, querystring, header_fields, success_callback, error_callback, data);
+	request = pt_send_request_querystring (r, post, url, querystring, header_fields, success_callback, error_callback, data);
 	g_free (querystring);
 	return request;
+}
+
+void pt_send_request (PtRequestor * r, gboolean post, const char *url, PtRequestorParams * params, PtSendRequestSuccessFunc success_callback, PtSendRequestErrorFunc error_callback, gpointer data)
+{
+	gpointer        requestor_data = NULL;
+	gpointer        request = NULL;
+	gchar         **header_fields = NULL;
+
+	if (r->pre_send)
+	{
+		purple_debug_info ("pt", "calling pre_send\n");
+		r->pre_send (r, &post, &url, &params, &header_fields, &requestor_data);
+	}
+
+	if (r->do_send)
+	{
+		purple_debug_info ("pt", "calling do_send\n");
+		request = r->do_send (r, post, url, params, header_fields, success_callback, error_callback, data);
+	}
+
+	if (request)
+	{
+		purple_debug_info ("pt", "Appending request\n");
+		r->pending_requests = g_list_append (r->pending_requests, request);
+	}
+
+	if (r->post_send)
+	{
+		purple_debug_info ("pt", "calling post_send\n");
+		r->post_send (r, &post, &url, &params, &header_fields, &requestor_data);
+	}
 }
 
 PtRequestorParams *pt_requestor_params_add_oauth_params (PurpleAccount * account, gboolean post, const gchar * url, const PtRequestorParams * params, const gchar * token, const gchar * signing_key)
@@ -1117,4 +1200,153 @@ static gchar   *pt_oauth_sign (const gchar * txt, const gchar * key)
 	purple_cipher_context_destroy (ctx);
 	return purple_base64_encode (output, output_size);
 
+}
+
+static gpointer pt_send_request_querystring (PtRequestor * r, gboolean post, const char *url, const char *query_string, char **header_fields, PtSendRequestSuccessFunc success_callback, PtSendRequestErrorFunc error_callback, gpointer data)
+{
+	PurpleAccount  *account = r->account;
+	gchar          *request;
+	gboolean        use_https = TRUE;	// TODO twitter_option_use_https (account) && purple_ssl_is_supported ();
+	char           *slash = strchr (url, '/');
+	PtSendRequestData *request_data = g_new0 (PtSendRequestData, 1);
+	char           *host = slash ? g_strndup (url, slash - url) : g_strdup (url);
+	char           *full_url = g_strdup_printf ("%s://%s",
+						    use_https ? "https" : "http",
+						    url);
+	char           *header_fields_text = (header_fields ? g_strjoinv ("\r\n", header_fields) : NULL);
+
+	purple_debug_info (purple_account_get_protocol_id (account), "Sending %s request to: %s ? %s\n", post ? "POST" : "GET", full_url, query_string ? query_string : "");
+
+	request_data->requestor = r;
+	request_data->user_data = data;
+	request_data->success_func = success_callback;
+	request_data->error_func = error_callback;
+
+	request = g_strdup_printf ("%s %s%s%s HTTP/1.0\r\n" "User-Agent: " USER_AGENT "\r\n" "Host: %s\r\n" "%s"	//Content-Type if post
+				   "%s%s"	//extra header fields, if any
+				   "Content-Length: %lu\r\n\r\n" "%s", post ? "POST" : "GET", full_url, (!post && query_string ? "?" : ""), (!post && query_string ? query_string : ""), host, header_fields_text ? header_fields_text : "", header_fields_text ? "\r\n" : "", post ? "Content-Type: application/x-www-form-urlencoded\r\n" : "", query_string && post ? (unsigned long) strlen (query_string) : 0, query_string && post ? query_string : "");
+
+	purple_debug_info ("pt", "Sending request: %s\n", request);
+
+	request_data->request_id = purple_util_fetch_url_request_len_with_account (account, full_url, TRUE, USER_AGENT, TRUE, request, TRUE, -1, pt_send_request_cb, request_data);
+	g_free (full_url);
+	g_free (request);
+	g_free (host);
+	g_free (header_fields_text);
+
+	return request_data;
+}
+
+static void pt_send_request_cb (PurpleUtilFetchUrlData * url_data, gpointer user_data, const gchar * response_text, gsize len, const gchar * server_error_message)
+{
+	const gchar    *url_text;
+	PtSendRequestData *request_data = user_data;
+	gchar          *error_message = NULL;
+	PtRequestorError error_type = PT_REQUESTOR_ERROR_NONE;
+	gint            status_code;
+
+	request_data->requestor->pending_requests = g_list_remove (request_data->requestor->pending_requests, request_data);
+
+	purple_debug_info ("pt", "Received response: %s\n", response_text ? response_text : "NULL");
+
+	if (server_error_message)
+	{
+		purple_debug_error ("pt", "Response error: %s\n", server_error_message);
+		error_type = PT_REQUESTOR_ERROR_SERVER;
+		error_message = g_strdup (server_error_message);
+	}
+	else
+	{
+		status_code = pt_requestor_get_status_code (response_text);
+
+		url_text = pt_requestor_get_text (response_text, len);
+
+		switch (status_code)
+		{
+			case 200:	//OK
+				break;
+			case 304:	//Not Modified
+				break;
+			case 401:	//Unauthorized
+				error_type = PT_REQUESTOR_ERROR_UNAUTHORIZED;
+				break;
+			default:
+				error_type = PT_REQUESTOR_ERROR_TWITTER_GENERAL;
+				break;
+				/*
+				   case 400: //Bad Request
+				   //TODO
+				   break;
+				   case 403: //Forbidden
+				   //TODO
+				   break;
+				   case 404: //Not Found
+				   //TODO?
+				   break;
+				   case 406: //Not Acceptable (Search)
+				   //TODO
+				   break;
+				   case 420: //Search Rate Limiting
+				   //TODO
+				   break;
+				   case 500: //Internal Server Error
+				   //TODO
+				   break;
+				   case 502: //Bad Gateway
+				   //TODO
+				   break;
+				   case 504: //Service Unavailable
+				   //TODO
+				   break;
+				 */
+		}
+		if (error_type != PT_REQUESTOR_ERROR_NONE)
+		{
+#if 0
+			error_message = twitter_xml_text_parse_error (url_text);
+#endif
+			if (!error_message)
+				error_message = g_strdup_printf ("Status code: %d", status_code);
+		}
+	}
+
+	if (error_type != PT_REQUESTOR_ERROR_NONE)
+	{
+		PtRequestorErrorData *error_data = g_new0 (PtRequestorErrorData, 1);
+
+		error_data->error = error_type;
+		error_data->message = error_message;
+		pt_requestor_on_error (request_data->requestor, error_data, request_data->error_func, request_data->user_data);
+		g_free (error_data);
+	}
+	else
+	{
+//              twitter_response_text_rate_limit (response_text, &(request_data->requestor->rate_limit_remaining), &(request_data->requestor->rate_limit_total));
+
+		purple_debug_info (purple_account_get_protocol_id (request_data->requestor->account), "Valid response, calling success func\n");
+		if (request_data->success_func)
+			request_data->success_func (request_data->requestor, url_text, request_data->user_data);
+	}
+
+	if (error_message)
+	{
+		g_free (error_message);
+	}
+	g_free (request_data);
+}
+
+static void pt_requestor_on_error (PtRequestor * r, const PtRequestorErrorData * error_data, PtSendRequestErrorFunc called_error_cb, gpointer user_data)
+{
+	if (r->pre_failed)
+	{
+		r->pre_failed (r, &error_data);
+	}
+	if (called_error_cb)
+	{
+		called_error_cb (r, error_data, user_data);
+	}
+	if (r->post_failed)
+	{
+		r->post_failed (r, &error_data);
+	}
 }

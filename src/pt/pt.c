@@ -544,13 +544,19 @@ static void requestor_post_failed(PtRequestor * requestor, const PtRequestorErro
     case PT_REQUESTOR_ERROR_UNAUTHORIZED:
 #if 0
         prpltwtr_auth_invalidate_token(requestor->account);
-        prpltwtr_disconnect(r->account, _("Unauthorized"));
 #endif
+        pt_disconnect(requestor->account, _("Unauthorized"));
         break;
     default:
         break;
     }
 }
+void pt_disconnect(PurpleAccount * account, const char *message)
+{
+    PurpleConnection *gc = purple_account_get_connection(account);
+    purple_connection_error_reason(gc, PURPLE_CONNECTION_ERROR_AUTHENTICATION_FAILED, (message));
+}
+
 
 void pt_login(PurpleAccount * account)
 {
@@ -910,5 +916,62 @@ PurpleChat     *pt_blist_chat_find(PurpleAccount * account, const char *name)
     }
 #endif
     return c;
+}
+
+gboolean pt_usernames_match(PurpleAccount * account, const gchar * u1, const gchar * u2)
+{
+    gboolean        match;
+    gchar          *u1n = g_strdup(purple_normalize(account, u1));
+    const gchar    *u2n = purple_normalize(account, u2);
+    match = !strcmp(u1n, u2n);
+
+    g_free(u1n);
+    return match;
+}
+
+void pt_connected(PurpleAccount * account)
+{
+    PurpleConnection *gc = purple_account_get_connection(account);
+    PtConnectionData *conn_data = gc->proto_data;
+    int             get_friends_timer_timeout;
+
+#if 0
+    twitter->mb_prefs = twitter_mb_prefs_new(account);
+
+    twitter_connection_set_endpoint_im(twitter, TWITTER_IM_TYPE_AT_MSG, twitter_endpoint_im_new(account, twitter_endpoint_reply_get_settings(), twitter_option_get_history(account), TWITTER_INITIAL_REPLIES_COUNT));
+    twitter_connection_set_endpoint_im(twitter, TWITTER_IM_TYPE_DM, twitter_endpoint_im_new(account, twitter_endpoint_dm_get_settings(), twitter_option_get_history(account), TWITTER_INITIAL_DMS_COUNT));
+#endif 
+    purple_connection_update_progress(gc, _("Connected"), 2,    /* which connection step this is */
+                                      3);        /* total number of steps */
+    purple_connection_set_state(gc, PURPLE_CONNECTED);
+
+
+#if 0
+    twitter_blist_chat_timeline_new(account, 0);
+
+        /* Retrieve user's saved search queries */
+        twitter_api_get_saved_searches(purple_account_get_requestor(account), get_saved_searches_cb, NULL, NULL);
+
+        twitter_api_get_personal_lists(purple_account_get_requestor(account), get_lists_cb, NULL, NULL);
+        twitter_api_get_subscribed_lists(purple_account_get_requestor(account), get_lists_cb, NULL, NULL);
+    /* Install periodic timers to retrieve replies and dms */
+    twitter_connection_foreach_endpoint_im(twitter, twitter_endpoint_im_start_foreach, NULL);
+
+    /* Immediately retrieve replies */
+
+    get_friends_timer_timeout = twitter_option_user_status_timeout(account);
+
+    //We will try to get all our friends' statuses, whether they're in the buddylist or not
+    if (get_friends_timer_timeout > 0) {
+        twitter->get_friends_timer = purple_timeout_add_seconds(60 * get_friends_timer_timeout, twitter_get_friends_timeout, account);
+        if (!twitter_option_get_following(account) && twitter_option_cutoff_time(account) > 0)
+            twitter_get_friends_timeout(account);
+    } else {
+        twitter->get_friends_timer = 0;
+    }
+    if (twitter_option_cutoff_time(account) > 0)
+        twitter->update_presence_timer = purple_timeout_add_seconds(TWITTER_UPDATE_PRESENCE_TIMEOUT * 60, twitter_update_presence_timeout, account);
+    twitter_init_auto_open_contexts(account);
+#endif
 }
 

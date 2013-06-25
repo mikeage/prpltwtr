@@ -50,6 +50,5 @@ typedef struct {
 //TwitterEndpointIm *twitter_connection_get_endpoint_im(TwitterConnectionData * twitter, TwitterImType type);
 //void            twitter_connection_set_endpoint_im(TwitterConnectionData * twitter, TwitterImType type, TwitterEndpointIm * endpoint);
 
-//TwitterRequestor *purple_account_get_requestor(PurpleAccount * account);
 
 #endif

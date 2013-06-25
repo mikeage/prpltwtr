@@ -25,7 +25,8 @@ void            pt_set_buddy_icon (PurpleConnection * gc, PurpleStoredImage * im
 void            pt_login (PurpleAccount * account);
 void            pt_recoverable_disconnect (PurpleAccount * account, const char *message);
 void            pt_disconnect (PurpleAccount * account, const char *message);
-void            pt_verify_connection (PurpleAccount * account);
+void            pt_connected(PurpleAccount * account);
 gboolean        pt_offline_message (const PurpleBuddy * buddy);
 void            pt_api_get_info (PurpleConnection * gc, const char *username);
 PurpleChat     *pt_blist_chat_find (PurpleAccount * account, const char *name);
+gboolean        pt_usernames_match (PurpleAccount * account, const gchar * u1, const gchar * u2);
