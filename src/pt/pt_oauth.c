@@ -536,10 +536,8 @@ static void verify_credentials_success_cb (PtRequestor * r, JsonNode * node, gpo
 #endif
 	else
 	{
-		purple_debug_info("pt-json", "Got screen name %s", screen_name);
-#if 0
-		prpltwtr_verify_connection (account);
-#endif 
+		pt_connected(account);
+//		prpltwtr_verify_connection (account);
 	}
 }
 

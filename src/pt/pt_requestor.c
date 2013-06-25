@@ -21,7 +21,7 @@ static void     pt_send_request_cb (PurpleUtilFetchUrlData * url_data, gpointer 
 static void     pt_requestor_on_error (PtRequestor * r, const PtRequestorErrorData * error_data, PtSendRequestErrorFunc called_error_cb, gpointer user_data);
 static void     pt_json_request_success_cb (PtRequestor * r, const gchar * response, gpointer user_data);
 static void     pt_json_request_error_cb (PtRequestor * r, const PtRequestorErrorData * error_data, gpointer user_data);
-static gchar   *pt_json_node_parse_error (const JsonNode * node);
+static const gchar   *pt_json_node_parse_error (JsonNode * node);
 
 #include "cipher.h"
 static gchar   *pt_oauth_sign (const gchar * txt, const gchar * key);
@@ -1442,7 +1442,7 @@ static void pt_json_request_error_cb (PtRequestor * r, const PtRequestorErrorDat
 	g_free (request_data);
 }
 
-static gchar   *pt_json_node_parse_error (const JsonNode * node)
+static const gchar   *pt_json_node_parse_error (JsonNode * node)
 {
 	/* I _think_ this is right, but it wasn't tested */
 	JsonObject *info;

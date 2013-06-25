@@ -88,6 +88,16 @@ PURPLE[]_DATADIR=$pkg_cv_[]PURPLE[]_DATADIR
 PURPLE[]_PLUGINDIR=$pkg_cv_[]PURPLE[]_PLUGINDIR
 AC_SUBST(PURPLE_PLUGINDIR)
 
+PKG_CHECK_MODULES([JSON], [json-glib-1.0 >= 0.6.2], ,
+				  [
+				   AC_SUBST(JSON_CFLAGS)
+				   AC_SUBST(JSON_LIBS)
+				   AC_MSG_RESULT(no)
+				   AC_MSG_ERROR([You must have JSON-GLib >= 0.6.2 development headers installed to build])
+				   ]
+				  )
+
+
 # Checks for header files.
 AC_HEADER_STDC
 AC_CHECK_HEADERS([stdlib.h string.h])

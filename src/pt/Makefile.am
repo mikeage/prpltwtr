@@ -15,7 +15,7 @@ PT_SOURCES = \
 AM_CFLAGS = \
 	$(st)
 
-libpt_la_LDFLAGS = -module -avoid-version $(PURPLE_LIBS)
+libpt_la_LDFLAGS = -module -avoid-version $(PURPLE_LIBS) $(JSON_LIBS)
 
 st = 
 
@@ -29,5 +29,6 @@ AM_CPPFLAGS = \
 	$(DEBUG_CFLAGS) \
 	$(GLIB_CFLAGS) \
 	$(PURPLE_CFLAGS) \
+	$(JSON_CFLAGS) \
 	$(PURPLE_PLUGINS) \
 	-DLOCALEDIR=\"$(LIBPURPLE_DATADIR)/locale\"
