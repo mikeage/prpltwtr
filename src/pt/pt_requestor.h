@@ -2,6 +2,7 @@
 #define _PT_REQUESTOR_H_
 
 #include <glib.h>
+#include <json-glib/json-glib.h>
 
 #include "prpl.h"
 
@@ -46,7 +47,7 @@ typedef struct
 
 typedef void    (*PtSendRequestSuccessFunc) (PtRequestor * r, const gchar * response, gpointer user_data);
 
-//typedef void    (*PtSendXmlRequestSuccessFunc) (PtRequestor * r, xmlnode * node, gpointer user_data);
+typedef void    (*PtSendJsonRequestSuccessFunc) (PtRequestor * r, JsonNode * node, gpointer user_data);
 typedef void    (*PtSendRequestErrorFunc) (PtRequestor * r, const PtRequestorErrorData * error_data, gpointer user_data);
 
 struct _PtRequestor
@@ -88,7 +89,7 @@ gpointer        pt_requestor_send (PtRequestor * r, gboolean post, const char *u
 
 void            pt_send_request (PtRequestor * r, gboolean post, const char *url, PtRequestorParams * params, PtSendRequestSuccessFunc success_callback, PtSendRequestErrorFunc error_callback, gpointer data);
 
-//void            twitter_send_xml_request(PtRequestor * r, gboolean post, const char *url, PtRequestorParams * params, PtSendXmlRequestSuccessFunc success_callback, PtSendRequestErrorFunc error_callback, gpointer data);
+void            pt_send_json_request (PtRequestor * r, gboolean post, const char *url, PtRequestorParams * params, PtSendJsonRequestSuccessFunc success_callback, PtSendRequestErrorFunc error_callback, gpointer data);
 
 ////don't include count in the query_string
 //void            twitter_send_xml_request_multipage_all(PtRequestor * r, const char *url, PtRequestorParams * params, PtSendRequestMultiPageAllSuccessFunc success_callback, PtSendRequestMultiPageAllErrorFunc error_callback, int expected_count, gint max_count, gpointer data);

@@ -134,7 +134,7 @@ static PurplePluginInfo info = {
 	0,			/* flags */
 	NULL,			/* dependencies */
 	PURPLE_PRIORITY_DEFAULT,	/* priority */
-	"pt",			/* id */
+	"prpl-pt",			/* id */
 	"Twitter v1.1 Protocol",	/* name */
 	PACKAGE_VERSION,	/* version */
 	"Twitter v1.1 Protocol Plugin",	/* summary */
@@ -542,15 +542,20 @@ static void requestor_post_failed(PtRequestor * requestor, const PtRequestorErro
     purple_debug_error("pt", "post_failed called for account %s, error %d, message %s\n", requestor->account->username, (*error_data)->error, (*error_data)->message ? (*error_data)->message : "");
     switch ((*error_data)->error) {
     case PT_REQUESTOR_ERROR_UNAUTHORIZED:
-#if 0
-        prpltwtr_auth_invalidate_token(requestor->account);
-#endif
+        pt_oauth_invalidate_token(requestor->account);
         pt_disconnect(requestor->account, _("Unauthorized"));
         break;
     default:
         break;
     }
 }
+
+void pt_recoverable_disconnect(PurpleAccount * account, const char *message)
+{
+    PurpleConnection *gc = purple_account_get_connection(account);
+    purple_connection_error_reason(gc, PURPLE_CONNECTION_ERROR_NETWORK_ERROR, (message));
+}
+
 void pt_disconnect(PurpleAccount * account, const char *message)
 {
     PurpleConnection *gc = purple_account_get_connection(account);
@@ -941,10 +946,9 @@ void pt_connected(PurpleAccount * account)
     twitter_connection_set_endpoint_im(twitter, TWITTER_IM_TYPE_AT_MSG, twitter_endpoint_im_new(account, twitter_endpoint_reply_get_settings(), twitter_option_get_history(account), TWITTER_INITIAL_REPLIES_COUNT));
     twitter_connection_set_endpoint_im(twitter, TWITTER_IM_TYPE_DM, twitter_endpoint_im_new(account, twitter_endpoint_dm_get_settings(), twitter_option_get_history(account), TWITTER_INITIAL_DMS_COUNT));
 #endif 
-    purple_connection_update_progress(gc, _("Connected"), 2,    /* which connection step this is */
-                                      3);        /* total number of steps */
+    purple_connection_update_progress(gc, _("Connected"), 1,    /* which connection step this is */
+                                      2);        /* total number of steps */
     purple_connection_set_state(gc, PURPLE_CONNECTED);
-
 
 #if 0
     twitter_blist_chat_timeline_new(account, 0);

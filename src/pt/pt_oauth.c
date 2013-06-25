@@ -7,6 +7,8 @@
 #include "pt_oauth.h"
 #include "pt_requestor.h"
 #include "pt_connection.h"
+#include "pt_api.h"
+#include <json-glib/json-glib.h>
 
 static void     oauth_request_token_success_cb (PtRequestor * r, const gchar * response, gpointer user_data);
 static void     oauth_request_token_error_cb (PtRequestor * r, const PtRequestorErrorData * error_data, gpointer user_data);
@@ -14,6 +16,8 @@ static void     oauth_request_pin_ok (PurpleAccount * account, const gchar * pin
 static void     oauth_request_pin_cancel (PurpleAccount * account, const gchar * pin);
 static void     oauth_access_token_success_cb (PtRequestor * r, const gchar * response, gpointer user_data);
 static void     oauth_access_token_error_cb (PtRequestor * r, const PtRequestorErrorData * error_data, gpointer user_data);
+static void     verify_credentials_success_cb (PtRequestor * r, JsonNode * node, gpointer user_data);
+static void     verify_credentials_error_cb (PtRequestor * r, const PtRequestorErrorData * error_data, gpointer user_data);
 static GHashTable *oauth_result_to_hashtable (const gchar * txt);
 
 #if 0
@@ -92,6 +96,12 @@ const gchar    *prpltwtr_auth_get_oauth_key (PurpleAccount * account)
 }
 
 #endif
+void pt_oauth_invalidate_token (PurpleAccount * account)
+{
+	purple_account_set_string (account, "oauth_token", NULL);
+	purple_account_set_string (account, "oauth_token_secret", NULL);
+}
+
 void pt_oauth_pre_send (PtRequestor * requestor, gboolean * post, const char **url, PtRequestorParams ** params, gchar *** header_fields, gpointer * requestor_data)
 {
 	PurpleAccount  *account = requestor->account;
@@ -141,8 +151,7 @@ void pt_oauth_login (PurpleAccount * account, PtConnectionData * conn_data)
 		purple_debug_info ("pt", "oauth token = %s, oauth_token_secret = %s\n", oauth_token, oauth_token_secret);
 		conn_data->oauth_token = g_strdup (oauth_token);
 		conn_data->oauth_token_secret = g_strdup (oauth_token_secret);
-		// we're basically connected here; continue working from here MHM. Look at the line labeled XXX
-//        twitter_api_verify_credentials(purple_account_get_requestor(account), verify_credentials_success_cb, verify_credentials_error_cb, NULL);
+		pt_api_verify_credentials (pt_requestor_get_requestor (account), verify_credentials_success_cb, verify_credentials_error_cb, NULL);
 	}
 	else
 	{
@@ -173,7 +182,7 @@ static void oauth_access_token_success_cb (PtRequestor * r, const gchar * respon
 		conn_data->oauth_token_secret = g_strdup (oauth_token_secret);
 
 		purple_account_set_string (account, "oauth_token", oauth_token);
-		purple_account_set_string (account, "oauth_token_secret", oauth_token);
+		purple_account_set_string (account, "oauth_token_secret", oauth_token_secret);
 
 		//FIXME: set this to be case insensitive
 		{
@@ -187,8 +196,7 @@ static void oauth_access_token_success_cb (PtRequestor * r, const gchar * respon
 			}
 			else
 			{
-				// XXX
-				pt_connected(account);
+				pt_api_verify_credentials (pt_requestor_get_requestor (account), verify_credentials_success_cb, verify_credentials_error_cb, NULL);
 			}
 			g_strfreev (userparts);
 		}
@@ -501,4 +509,58 @@ static void oauth_request_pin_ok (PurpleAccount * account, const gchar * pin)
 static void oauth_request_pin_cancel (PurpleAccount * account, const gchar * pin)
 {
 	pt_disconnect (account, _("Canceled PIN entry"));
+}
+
+static void verify_credentials_success_cb (PtRequestor * r, JsonNode * node, gpointer user_data)
+{
+
+	PurpleAccount  *account = r->account;
+	char          **userparts = g_strsplit (purple_account_get_username (account), "@", 2);
+	const char     *username = userparts[0];
+	gboolean        parsed;
+	JsonNode *tmp_node;
+	const gchar * screen_name;
+	JsonObject *info;
+
+	info = json_node_get_object(node);
+
+	screen_name=json_node_get_string(json_object_get_member(info, "screen_name"));
+	if (!screen_name) {
+		pt_disconnect(account, _("Could not verify credentials"));
+	}
+#if 0
+	else if (!twitter_usernames_match (account, user_tweet->screen_name, username))
+	{
+		account_username_change_verify (account, user_tweet->screen_name);
+	}
+#endif
+	else
+	{
+		purple_debug_info("pt-json", "Got screen name %s", screen_name);
+#if 0
+		prpltwtr_verify_connection (account);
+#endif 
+	}
+}
+
+static void verify_credentials_error_cb (PtRequestor * r, const PtRequestorErrorData * error_data, gpointer user_data)
+{
+	gchar          *error = g_strdup_printf (_("Error verifying credentials: %s"), error_data->message ? error_data->message : _("unknown error"));
+
+	switch (error_data->error)
+	{
+		case PT_REQUESTOR_ERROR_SERVER:
+		case PT_REQUESTOR_ERROR_CANCELED:
+			pt_recoverable_disconnect (r->account, error);
+			break;
+		case PT_REQUESTOR_ERROR_NONE:
+		case PT_REQUESTOR_ERROR_TWITTER_GENERAL:
+		case PT_REQUESTOR_ERROR_INVALID_XML:
+		case PT_REQUESTOR_ERROR_NO_OAUTH:
+		case PT_REQUESTOR_ERROR_UNAUTHORIZED:
+		default:
+			pt_disconnect (r->account, error);
+			break;
+	}
+	g_free (error);
 }

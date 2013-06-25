@@ -9,15 +9,18 @@
 MINGW_MAKEFILE=Makefile.mingw
 
 all:
+	$(MAKE) -C win32_only/json-glib -f $(MINGW_MAKEFILE) $@
 	$(MAKE) -C pt -f $(MINGW_MAKEFILE) $@
 #	$(MAKE) -C gtkpt -f $(MINGW_MAKEFILE) $@
 
 clean:
+	$(MAKE) -C win32_only/json-glib -f $(MINGW_MAKEFILE) $@
 	$(MAKE) -C pt -f $(MINGW_MAKEFILE) $@
 #	$(MAKE) -C gtkpt -f $(MINGW_MAKEFILE) $@
 
 installer: all dist
 
 dist:
+	$(MAKE) -C win32_only/json-glib -f $(MINGW_MAKEFILE) $@
 	$(MAKE) -C pt -f $(MINGW_MAKEFILE) $@
 #	$(MAKE) -C gtkpt -f $(MINGW_MAKEFILE) $@

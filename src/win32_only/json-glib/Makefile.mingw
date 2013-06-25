@@ -1,0 +1,89 @@
+#
+# Makefile.mingw
+#
+# Description: Makefile for gtkprpltwtr
+#
+
+ifndef PIDGIN_TREE_TOP
+$(error Please make sure PIDGIN_TREE_TOP is defined!)
+endif
+
+include $(PIDGIN_TREE_TOP)/libpurple/win32/global.mak
+
+TARGET = libjson-glib
+
+##
+## INCLUDE PATHS
+##
+INCLUDE_PATHS +=	-I. \
+			-I$(GTK_TOP)/include \
+			-I$(GTK_TOP)/include/gtk-2.0 \
+			-I$(GTK_TOP)/include/glib-2.0 \
+			-I$(GTK_TOP)/include/pango-1.0 \
+			-I$(GTK_TOP)/include/atk-1.0 \
+			-I$(GTK_TOP)/include/cairo \
+			-I$(GTK_TOP)/lib/glib-2.0/include \
+			-I$(GTK_TOP)/lib/gtk-2.0/include \
+
+LIB_PATHS +=		-L$(GTK_TOP)/lib \
+			-L$(PURPLE_TOP) \
+			-L$(PIDGIN_TOP) \
+            -L$(PRPLTWTR_PATH)
+
+DEFINES += \
+	-DJSON_COMPILATION=1		\
+	-DG_DISABLE_DEPRECATED 		\
+	-DG_LOG_DOMAIN=\"Json\" 	
+
+#LDADD = \
+	#$(JSON_LT_LDFLAGS) \
+	#-export-dynamic \
+	#-export-symbols-regex "^json.*" \
+	#-rpath $(libdir)
+
+##
+##  SOURCES, OBJECTS
+##
+C_SRC = \
+		json-array.c  json-enum-types.c  json-generator.c  json-gobject.c  json-marshal.c  json-node.c  json-object.c  json-parser.c  json-scanner.c
+
+
+OBJECTS = $(C_SRC:%.c=%.o)
+
+##
+## LIBRARIES
+##
+LIBS =	-lgtk-win32-2.0 \
+			-lglib-2.0 \
+			-lgdk-win32-2.0 \
+			-lgobject-2.0 \
+			-lintl \
+			-lgdk_pixbuf-2.0 \
+
+include $(PIDGIN_COMMON_RULES)
+
+##
+## TARGET DEFINITIONS
+##
+.PHONY: all install clean installer dist
+
+all: $(TARGET).dll
+
+$(OBJECTS): 
+
+$(TARGET).dll: $(OBJECTS) 
+	$(CC) -shared $(DEFINES) $(OBJECTS) $(LIB_PATHS) $(LIBS) $(DLL_LD_FLAGS) -g -o $(TARGET).dll
+	mv $(TARGET).dll $(TARGET).dll.dbgsym
+	$(STRIP) -g $(TARGET).dll.dbgsym -o $(TARGET).dll
+
+installer: all dist
+
+dist: all
+
+
+##
+## CLEAN RULES
+##
+clean:
+	rm -rf $(OBJECTS)
+	rm -rf $(TARGET).dll $(TARGET).dll.dbgsym

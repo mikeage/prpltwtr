@@ -19,9 +19,19 @@ static gchar   *pt_requestor_params_to_string (const PtRequestorParams * params)
 static gpointer pt_send_request_querystring (PtRequestor * r, gboolean post, const char *url, const char *query_string, char **header_fields, PtSendRequestSuccessFunc success_callback, PtSendRequestErrorFunc error_callback, gpointer data);
 static void     pt_send_request_cb (PurpleUtilFetchUrlData * url_data, gpointer user_data, const gchar * response_text, gsize len, const gchar * server_error_message);
 static void     pt_requestor_on_error (PtRequestor * r, const PtRequestorErrorData * error_data, PtSendRequestErrorFunc called_error_cb, gpointer user_data);
+static void     pt_json_request_success_cb (PtRequestor * r, const gchar * response, gpointer user_data);
+static void     pt_json_request_error_cb (PtRequestor * r, const PtRequestorErrorData * error_data, gpointer user_data);
+static gchar   *pt_json_node_parse_error (const JsonNode * node);
 
 #include "cipher.h"
 static gchar   *pt_oauth_sign (const gchar * txt, const gchar * key);
+
+typedef struct
+{
+	PtSendJsonRequestSuccessFunc success_func;
+	PtSendRequestErrorFunc error_func;
+	gpointer        user_data;
+} PtSendJsonRequestData;
 
 #if 0
 typedef struct
@@ -950,6 +960,18 @@ gpointer pt_requestor_send (PtRequestor * r, gboolean post, const char *url, PtR
 	return request;
 }
 
+void pt_send_json_request (PtRequestor * r, gboolean post, const char *url, PtRequestorParams * params, PtSendJsonRequestSuccessFunc success_callback, PtSendRequestErrorFunc error_callback, gpointer data)
+{
+
+	PtSendJsonRequestData *request_data = g_new0 (PtSendJsonRequestData, 1);
+
+	request_data->user_data = data;
+	request_data->success_func = success_callback;
+	request_data->error_func = error_callback;
+
+	pt_send_request (r, post, url, params, pt_json_request_success_cb, pt_json_request_error_cb, request_data);
+}
+
 void pt_send_request (PtRequestor * r, gboolean post, const char *url, PtRequestorParams * params, PtSendRequestSuccessFunc success_callback, PtSendRequestErrorFunc error_callback, gpointer data)
 {
 	gpointer        requestor_data = NULL;
@@ -1350,3 +1372,81 @@ static void pt_requestor_on_error (PtRequestor * r, const PtRequestorErrorData *
 		r->post_failed (r, &error_data);
 	}
 }
+#include <json-glib/json-glib.h>
+static void pt_json_request_success_cb (PtRequestor * r, const gchar * response, gpointer user_data)
+{
+	PtSendJsonRequestData *request_data = user_data;
+	const gchar    *error_message = NULL;
+	gchar          *error_node_text = NULL;
+	PtRequestorError error_type = PT_REQUESTOR_ERROR_NONE;
+
+	JsonParser *parser;
+	JsonNode *root;
+	purple_debug_info("json", "raw data is |%s|\n", response);
+	parser = json_parser_new ();
+	json_parser_load_from_data (parser, response, -1, NULL);
+	root = json_parser_get_root (parser);
+	if (!parser || !root) {
+		/* TODO */
+		purple_debug_error("pt", "Reponse error; invalid json\n");
+		error_type = PT_REQUESTOR_ERROR_INVALID_XML;
+		error_message = response;
+	} else {
+		if ((error_message = pt_json_node_parse_error (root)))
+		{
+			error_type = PT_REQUESTOR_ERROR_TWITTER_GENERAL;
+			error_message = error_node_text;
+			purple_debug_error (purple_account_get_protocol_id (r->account), "Response error: Twitter error %s\n", error_message);
+		}
+	}
+	if (error_type != PT_REQUESTOR_ERROR_NONE)
+	{
+		/* Turns out this wasn't really a success. We got a twitter error instead of an HTTP error
+		 * So go through the error cycle 
+		 */
+		/*TwitterRequestErrorData *error_data = g_new0 (TwitterRequestErrorData, 1);*/
+
+		/*error_data->type = error_type;*/
+		/*error_data->message = error_message;*/
+		/*twitter_requestor_on_error (r, error_data, request_data->error_func, request_data->user_data);*/
+
+		/*g_free (error_data);*/
+	}
+	else
+	{
+		purple_debug_info (purple_account_get_protocol_id (r->account), "Valid response, calling success func\n");
+		if (request_data->success_func) {
+			request_data->success_func (r, root, request_data->user_data);
+		}
+	}
+
+	g_object_unref (parser);
+	if (error_node_text != NULL) {
+		g_free (error_node_text);
+	}
+	g_free (request_data);
+}
+
+static void pt_json_request_error_cb (PtRequestor * r, const PtRequestorErrorData * error_data, gpointer user_data)
+{
+	/* This gets called after the pre_failed and before the post_failed.
+	 * So we just pass the error along to our caller. No need to call the requestor_on_fail 
+	 * In fact, if we do, we'll get an infinite loop
+	 */
+	PtSendJsonRequestData *request_data = user_data;
+
+	if (request_data->error_func)
+	{
+		request_data->error_func (r, error_data, request_data->user_data);
+	}
+	g_free (request_data);
+}
+
+static gchar   *pt_json_node_parse_error (const JsonNode * node)
+{
+	/* I _think_ this is right, but it wasn't tested */
+	JsonObject *info;
+	info = json_node_get_object(node);
+	return json_node_get_string(json_object_get_member(info, "error"));
+}
+
