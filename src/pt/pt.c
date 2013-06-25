@@ -35,7 +35,7 @@
 #include "pt_connection.h"
 #include "pt_oauth.h"
 #include "pt_requestor.h"
-
+#include "pt_prefs.h"
 
 static GList   *pt_protocol_options (void);
 static void     pt_init (PurplePlugin * plugin);
@@ -158,12 +158,12 @@ static GList   *pt_protocol_options (void)
 {
 	GList          *options = NULL;
 
-#if 0
 	PurpleAccountOption *option;
 	option = purple_account_option_bool_new (_("Enable HTTPS"),	/* text shown to user */
-						 TWITTER_PREF_USE_HTTPS,	/* pref name */
-						 TWITTER_PREF_USE_HTTPS_DEFAULT);	/* default value */
+						 PT_PREF_USE_HTTPS,	/* pref name */
+						 PT_PREF_USE_HTTPS_DEFAULT);	/* default value */
 	options = g_list_append (NULL, option);
+#if 0
 
 	/* Default sending im to buddy is to dm */
 	option = purple_account_option_bool_new (_("Default IM to buddy is a DM"), TWITTER_PREF_DEFAULT_DM, TWITTER_PREF_DEFAULT_DM_DEFAULT);
@@ -369,7 +369,7 @@ const char     *pt_list_icon(PurpleAccount * account, PurpleBuddy * buddy)
 
 char           *pt_status_text(PurpleBuddy * buddy)
 {
-    purple_debug_info(purple_account_get_protocol_id(buddy->account), "getting %s's status text for %s\n", buddy->name, buddy->account->username);
+    purple_debug_info("pt", "getting %s's status text for %s\n", buddy->name, buddy->account->username);
 
     if (purple_find_buddy(buddy->account, buddy->name)) {
         PurplePresence *presence = purple_buddy_get_presence(buddy);
@@ -390,7 +390,7 @@ void pt_tooltip_text(PurpleBuddy * buddy, PurpleNotifyUserInfo * info, gboolean 
     PurpleStatus   *status = purple_presence_get_active_status(presence);
     char           *msg;
 
-    purple_debug_info(purple_account_get_protocol_id(buddy->account), "showing %s tooltip for %s\n", (full) ? "full" : "short", buddy->name);
+    purple_debug_info("pt", "showing %s tooltip for %s\n", (full) ? "full" : "short", buddy->name);
 
     if ((msg = pt_status_text(buddy))) {
         purple_notify_user_info_add_pair(info, purple_status_get_name(status), msg);
@@ -696,7 +696,7 @@ int pt_send_im(PurpleConnection * gc, const char *conv_name, const char *message
 
 void pt_set_info(PurpleConnection * gc, const char *info)
 {
-    purple_debug_info(purple_account_get_protocol_id(purple_connection_get_account(gc)), "setting %s's user info to %s\n", gc->account->username, info);
+    purple_debug_info("pt", "setting %s's user info to %s\n", gc->account->username, info);
 }
 
 void pt_set_status(PurpleAccount * account, PurpleStatus * status)
@@ -705,7 +705,7 @@ void pt_set_status(PurpleAccount * account, PurpleStatus * status)
 
     //TODO: I'm pretty sure this is broken
     msg = purple_status_get_attr_string(status, "message");
-    purple_debug_info(purple_account_get_protocol_id(account), "setting %s's status to %s: %s\n", account->username, purple_status_get_name(status), msg);
+    purple_debug_info("pt", "setting %s's status to %s: %s\n", account->username, purple_status_get_name(status), msg);
 
     if (msg && strcmp("", msg)) {
 #if 0
@@ -727,7 +727,7 @@ void pt_add_buddies(PurpleConnection * gc, GList * buddies, GList * groups)
     GList          *buddy = buddies;
     GList          *group = groups;
 
-    purple_debug_info(purple_account_get_protocol_id(purple_connection_get_account(gc)), "adding multiple buddies\n");
+    purple_debug_info("pt", "adding multiple buddies\n");
 
     while (buddy && group) {
         pt_add_buddy(gc, (PurpleBuddy *) buddy->data, (PurpleGroup *) group->data);
@@ -755,7 +755,7 @@ void pt_remove_buddies(PurpleConnection * gc, GList * buddies, GList * groups)
     GList          *buddy = buddies;
     GList          *group = groups;
 
-    purple_debug_info(purple_account_get_protocol_id(purple_connection_get_account(gc)), "removing multiple buddies\n");
+    purple_debug_info("pt", "removing multiple buddies\n");
 
     while (buddy && group) {
         pt_remove_buddy(gc, (PurpleBuddy *) buddy->data, (PurpleGroup *) group->data);
@@ -767,7 +767,7 @@ void pt_remove_buddies(PurpleConnection * gc, GList * buddies, GList * groups)
 void pt_get_cb_info(PurpleConnection * gc, int id, const char *who)
 {
     PurpleConversation *conv = purple_find_chat(gc, id);
-    purple_debug_info(purple_account_get_protocol_id(purple_connection_get_account(gc)), "retrieving %s's info for %s in chat room %s\n", who, gc->account->username, conv->name);
+    purple_debug_info("pt", "retrieving %s's info for %s in chat room %s\n", who, gc->account->username, conv->name);
 
     pt_api_get_info(gc, who);
 }
@@ -899,7 +899,7 @@ void pt_convo_closed(PurpleConnection * gc, const gchar * conv_name)
 
 void pt_set_buddy_icon(PurpleConnection * gc, PurpleStoredImage * img)
 {
-    purple_debug_info(purple_account_get_protocol_id(purple_connection_get_account(gc)), "setting %s's buddy icon to %s\n", gc->account->username, purple_imgstore_get_filename(img));
+    purple_debug_info("pt", "setting %s's buddy icon to %s\n", gc->account->username, purple_imgstore_get_filename(img));
 }
 
 PurpleChat     *pt_blist_chat_find(PurpleAccount * account, const char *name)

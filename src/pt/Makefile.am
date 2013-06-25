@@ -7,6 +7,10 @@ PT_SOURCES = \
 				   defines.h \
 				   pt.h \
 				   pt.c \
+				   pt_api.h \
+				   pt_api.c \
+				   pt_prefs.h \
+				   pt_prefs.c \
 				   pt_oauth.c \
 				   pt_oauth.h \
 				   pt_requestor.c \

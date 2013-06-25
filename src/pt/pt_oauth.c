@@ -483,7 +483,7 @@ static void oauth_request_token_success_cb (PtRequestor * r, const gchar * respo
 	}
 	else
 	{
-		purple_debug_error (purple_account_get_protocol_id (account), "Unknown error receiving request token: %s\n", response);
+		purple_debug_error ("pt", "Unknown error receiving request token: %s\n", response);
 		pt_disconnect (account, _("Invalid response receiving request token"));
 	}
 	g_hash_table_destroy (results);
@@ -517,8 +517,6 @@ static void verify_credentials_success_cb (PtRequestor * r, JsonNode * node, gpo
 	PurpleAccount  *account = r->account;
 	char          **userparts = g_strsplit (purple_account_get_username (account), "@", 2);
 	const char     *username = userparts[0];
-	gboolean        parsed;
-	JsonNode *tmp_node;
 	const gchar * screen_name;
 	JsonObject *info;
 

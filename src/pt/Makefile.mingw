@@ -47,6 +47,7 @@ C_SRC = \
 		pt.c \
 		pt_oauth.c \
 		pt_requestor.c \
+		pt_prefs.c \
 		pt_api.c 
 
 OBJECTS = $(C_SRC:%.c=%.o)

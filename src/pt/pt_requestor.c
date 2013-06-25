@@ -9,6 +9,7 @@
 #include "defines.h"
 #include "pt_requestor.h"
 #include "pt_connection.h"
+#include "pt_prefs.h"
 
 #define USER_AGENT "Mozilla/4.0 (compatible; MSIE 5.5)"
 
@@ -1005,7 +1006,7 @@ void pt_send_request (PtRequestor * r, gboolean post, const char *url, PtRequest
 
 PtRequestorParams *pt_requestor_params_add_oauth_params (PurpleAccount * account, gboolean post, const gchar * url, const PtRequestorParams * params, const gchar * token, const gchar * signing_key)
 {
-	gboolean        use_https = TRUE;	// TODO twitter_option_use_https(account) && purple_ssl_is_supported();
+	gboolean        use_https = pt_prefs_get_use_https(account) && purple_ssl_is_supported();
 	PtRequestorParams *oauth_params = pt_requestor_params_clone (params);
 	gchar          *signme;
 	gchar          *signature;
@@ -1228,7 +1229,7 @@ static gpointer pt_send_request_querystring (PtRequestor * r, gboolean post, con
 {
 	PurpleAccount  *account = r->account;
 	gchar          *request;
-	gboolean        use_https = TRUE;	// TODO twitter_option_use_https (account) && purple_ssl_is_supported ();
+	gboolean        use_https = pt_prefs_get_use_https(account) && purple_ssl_is_supported ();
 	char           *slash = strchr (url, '/');
 	PtSendRequestData *request_data = g_new0 (PtSendRequestData, 1);
 	char           *host = slash ? g_strndup (url, slash - url) : g_strdup (url);
@@ -1237,7 +1238,7 @@ static gpointer pt_send_request_querystring (PtRequestor * r, gboolean post, con
 						    url);
 	char           *header_fields_text = (header_fields ? g_strjoinv ("\r\n", header_fields) : NULL);
 
-	purple_debug_info (purple_account_get_protocol_id (account), "Sending %s request to: %s ? %s\n", post ? "POST" : "GET", full_url, query_string ? query_string : "");
+	purple_debug_info ("pt", "Sending %s request to: %s ? %s\n", post ? "POST" : "GET", full_url, query_string ? query_string : "");
 
 	request_data->requestor = r;
 	request_data->user_data = data;
@@ -1345,7 +1346,7 @@ static void pt_send_request_cb (PurpleUtilFetchUrlData * url_data, gpointer user
 	{
 //              twitter_response_text_rate_limit (response_text, &(request_data->requestor->rate_limit_remaining), &(request_data->requestor->rate_limit_total));
 
-		purple_debug_info (purple_account_get_protocol_id (request_data->requestor->account), "Valid response, calling success func\n");
+		purple_debug_info ("pt", "Valid response, calling success func\n");
 		if (request_data->success_func)
 			request_data->success_func (request_data->requestor, url_text, request_data->user_data);
 	}
@@ -1382,7 +1383,9 @@ static void pt_json_request_success_cb (PtRequestor * r, const gchar * response,
 
 	JsonParser *parser;
 	JsonNode *root;
-	purple_debug_info("json", "raw data is |%s|\n", response);
+#ifdef EXTRA_DEBUG
+	purple_debug_info("pt", "raw data is |%s|\n", response);
+#endif
 	parser = json_parser_new ();
 	json_parser_load_from_data (parser, response, -1, NULL);
 	root = json_parser_get_root (parser);
@@ -1396,7 +1399,7 @@ static void pt_json_request_success_cb (PtRequestor * r, const gchar * response,
 		{
 			error_type = PT_REQUESTOR_ERROR_TWITTER_GENERAL;
 			error_message = error_node_text;
-			purple_debug_error (purple_account_get_protocol_id (r->account), "Response error: Twitter error %s\n", error_message);
+			purple_debug_error ("pt", "Response error: Twitter error %s\n", error_message);
 		}
 	}
 	if (error_type != PT_REQUESTOR_ERROR_NONE)
@@ -1414,7 +1417,7 @@ static void pt_json_request_success_cb (PtRequestor * r, const gchar * response,
 	}
 	else
 	{
-		purple_debug_info (purple_account_get_protocol_id (r->account), "Valid response, calling success func\n");
+		purple_debug_info ("pt", "Valid response, calling success func\n");
 		if (request_data->success_func) {
 			request_data->success_func (r, root, request_data->user_data);
 		}
