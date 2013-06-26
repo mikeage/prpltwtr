@@ -4,6 +4,8 @@
 
 #include <glib.h>
 
+#include "config.h"
+
 #include "debug.h"
 
 #include "defines.h"

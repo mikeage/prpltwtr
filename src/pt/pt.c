@@ -25,6 +25,8 @@
 #include <string.h>
 #include <glib/gstdio.h>
 
+#include "config.h"
+
 #include "prpl.h"
 #include "accountopt.h"
 #include "debug.h"

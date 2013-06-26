@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include "pt_prefs.h"
 
 gboolean pt_prefs_get_use_https(PurpleAccount * account)

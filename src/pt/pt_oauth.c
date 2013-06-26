@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include "debug.h"
 #include "prpl.h"
 #include "request.h"
