@@ -517,8 +517,8 @@ static void verify_credentials_success_cb (PtRequestor * r, JsonNode * node, gpo
 {
 
 	PurpleAccount  *account = r->account;
-	char          **userparts = g_strsplit (purple_account_get_username (account), "@", 2);
-	const char     *username = userparts[0];
+	/*char          **userparts = g_strsplit (purple_account_get_username (account), "@", 2);*/
+	/*const char     *username = userparts[0];*/
 	const gchar * screen_name;
 	JsonObject *info;
 

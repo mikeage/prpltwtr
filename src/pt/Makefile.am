@@ -14,7 +14,9 @@ PT_SOURCES = \
 				   pt_oauth.c \
 				   pt_oauth.h \
 				   pt_requestor.c \
-				   pt_requestor.h
+				   pt_requestor.h \
+				   pt_endpoint.c \
+				   pt_endpoint.h
 
 AM_CFLAGS = \
 	$(st)

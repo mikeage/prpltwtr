@@ -38,9 +38,14 @@
 #include "pt_oauth.h"
 #include "pt_requestor.h"
 #include "pt_prefs.h"
+#include "pt_endpoint_chat.h"
+#include "pt_endpoint_im.h"
+#include "pt_endpoint_reply.h"
+#include "pt_endpoint_dm.h"
 
 static GList   *pt_protocol_options (void);
 static void     pt_init (PurplePlugin * plugin);
+static PurpleChat *pt_blist_chat_timeline_new(PurpleAccount * account, gint timeline_id);
 
 static PurplePluginProtocolInfo prpl_info = {
 	OPT_PROTO_CHAT_TOPIC | OPT_PROTO_NO_PASSWORD,	/* options */
@@ -824,11 +829,9 @@ void pt_api_get_info(PurpleConnection * gc, const char *username)
 
 static void pt_chat_join_do(PurpleConnection * gc, GHashTable * components, gboolean open_conv)
 {
-#if 0
     const char     *conv_type_str = g_hash_table_lookup(components, "chat_type");
     gint            conv_type = conv_type_str == NULL ? 0 : strtol(conv_type_str, NULL, 10);
-    twitter_endpoint_chat_start(gc, twitter_get_endpoint_chat_settings(conv_type), components, open_conv);
-#endif 
+    pt_endpoint_chat_start(gc, pt_get_endpoint_chat_settings(conv_type), components, open_conv);
 }
 
 void pt_chat_join(PurpleConnection * gc, GHashTable * components)
@@ -838,65 +841,57 @@ void pt_chat_join(PurpleConnection * gc, GHashTable * components)
 
 char           *pt_chat_get_name(GHashTable * components)
 {
-#if 0
     const char     *chat_type_str = g_hash_table_lookup(components, "chat_type");
-    TwitterChatType chat_type = chat_type_str == NULL ? 0 : strtol(chat_type_str, NULL, 10);
+    PtChatType chat_type = chat_type_str == NULL ? 0 : strtol(chat_type_str, NULL, 10);
 
-    TwitterEndpointChatSettings *settings = twitter_get_endpoint_chat_settings(chat_type);
+    PtEndpointChatSettings *settings = pt_get_endpoint_chat_settings(chat_type);
     if (settings && settings->get_name)
         return settings->get_name(components);
-#endif 
     return NULL;
 }
 
 void pt_chat_leave(PurpleConnection * gc, int id)
 {
-#if 0
     PurpleConversation *conv = purple_find_chat(gc, id);
-    TwitterConnectionData *twitter = gc->proto_data;
+    PtConnectionData *conn_data= gc->proto_data;
     PurpleAccount  *account = purple_connection_get_account(gc);
-    TwitterEndpointChat *ctx = twitter_endpoint_chat_find(account, purple_conversation_get_name(conv));
+    PtEndpointChat *ctx = pt_endpoint_chat_find(account, purple_conversation_get_name(conv));
     PurpleChat     *blist_chat;
 
     g_return_if_fail(ctx != NULL);
     //TODO move me to twitter_endpoint_chat
 
-    blist_chat = twitter_blist_chat_find(account, ctx->chat_name);
-    if (blist_chat != NULL && twitter_blist_chat_is_auto_open(blist_chat)) {
+    blist_chat = pt_blist_chat_find(account, ctx->chat_name);
+    if (blist_chat != NULL && pt_blist_chat_is_auto_open(blist_chat)) {
         return;
     }
 
-    g_hash_table_remove(twitter->chat_contexts, purple_normalize(account, ctx->chat_name));
-#endif 
+    g_hash_table_remove(conn_data->chat_contexts, purple_normalize(account, ctx->chat_name));
 }
 
 int pt_chat_send(PurpleConnection * gc, int id, const char *message, PurpleMessageFlags flags)
 {
     int             rv = 0;
-#if 0
     PurpleConversation *conv = purple_find_chat(gc, id);
     PurpleAccount  *account = purple_connection_get_account(gc);
-    TwitterEndpointChat *ctx = twitter_endpoint_chat_find(account, purple_conversation_get_name(conv));
+    PtEndpointChat *ctx = pt_endpoint_chat_find(account, purple_conversation_get_name(conv));
     char           *stripped_message;
 
     g_return_val_if_fail(ctx != NULL, -1);
 
     stripped_message = purple_markup_strip_html(message);
 
-    rv = twitter_endpoint_chat_send(ctx, stripped_message);
+    rv = pt_endpoint_chat_send(ctx, stripped_message);
     g_free(stripped_message);
-#endif
     return rv;
 }
 
 void pt_convo_closed(PurpleConnection * gc, const gchar * conv_name)
 {
-#if 0
-    TwitterEndpointIm *im = twitter_conv_name_to_endpoint_im(purple_connection_get_account(gc), conv_name);
+    PtEndpointIm *im = pt_conv_name_to_endpoint_im(purple_connection_get_account(gc), conv_name);
     if (im) {
-        twitter_endpoint_im_convo_closed(im, conv_name);
+        pt_endpoint_im_convo_closed(im, conv_name);
     }
-#endif 
 }
 
 void pt_set_buddy_icon(PurpleConnection * gc, PurpleStoredImage * img)
@@ -907,7 +902,6 @@ void pt_set_buddy_icon(PurpleConnection * gc, PurpleStoredImage * img)
 PurpleChat     *pt_blist_chat_find(PurpleAccount * account, const char *name)
 {
     PurpleChat     *c = NULL;
-#if 0
     static char    *timeline = "Timeline: ";
     static char    *search = "Search: ";
     static char    *list = "List: ";
@@ -921,7 +915,6 @@ PurpleChat     *pt_blist_chat_find(PurpleAccount * account, const char *name)
         purple_debug_error(purple_account_get_protocol_id(account), "Invalid call to %s; assuming \"search\" for %s\n", G_STRFUNC, name);
         c = pt_blist_chat_find_search(account, name);
     }
-#endif
     return c;
 }
 
@@ -940,21 +933,21 @@ void pt_connected(PurpleAccount * account)
 {
     PurpleConnection *gc = purple_account_get_connection(account);
     PtConnectionData *conn_data = gc->proto_data;
-    int             get_friends_timer_timeout;
+    /*int             get_friends_timer_timeout;*/
 
 #if 0
     twitter->mb_prefs = twitter_mb_prefs_new(account);
-
-    twitter_connection_set_endpoint_im(twitter, TWITTER_IM_TYPE_AT_MSG, twitter_endpoint_im_new(account, twitter_endpoint_reply_get_settings(), twitter_option_get_history(account), TWITTER_INITIAL_REPLIES_COUNT));
-    twitter_connection_set_endpoint_im(twitter, TWITTER_IM_TYPE_DM, twitter_endpoint_im_new(account, twitter_endpoint_dm_get_settings(), twitter_option_get_history(account), TWITTER_INITIAL_DMS_COUNT));
 #endif 
+
+    pt_connection_set_endpoint_im(conn_data, PT_IM_TYPE_AT_MSG, pt_endpoint_im_new(account, pt_endpoint_reply_get_settings(), pt_option_get_history(account), PT_INITIAL_REPLIES_COUNT));
+    pt_connection_set_endpoint_im(conn_data, PT_IM_TYPE_DM, pt_endpoint_im_new(account, pt_endpoint_dm_get_settings(), pt_option_get_history(account), PT_INITIAL_DMS_COUNT));
     purple_connection_update_progress(gc, _("Connected"), 1,    /* which connection step this is */
                                       2);        /* total number of steps */
     purple_connection_set_state(gc, PURPLE_CONNECTED);
 
-#if 0
-    twitter_blist_chat_timeline_new(account, 0);
+    pt_blist_chat_timeline_new(account, 0);
 
+#if 0
         /* Retrieve user's saved search queries */
         twitter_api_get_saved_searches(purple_account_get_requestor(account), get_saved_searches_cb, NULL, NULL);
 
@@ -979,5 +972,36 @@ void pt_connected(PurpleAccount * account)
         twitter->update_presence_timer = purple_timeout_add_seconds(TWITTER_UPDATE_PRESENCE_TIMEOUT * 60, twitter_update_presence_timeout, account);
     twitter_init_auto_open_contexts(account);
 #endif
+}
+
+static PurpleChat *pt_blist_chat_timeline_new(PurpleAccount * account, gint timeline_id)
+{
+    PurpleGroup    *g;
+    PurpleChat     *c = pt_blist_chat_find_timeline(account, timeline_id);
+    GHashTable     *components;
+    if (c != NULL) {
+        return c;
+    }
+    /* No point in making this a preference (yet?)
+     * the idea is that this will only be done once, and the user can move the
+     * chat to wherever they want afterwards */
+    g = purple_find_group(PT_PREF_DEFAULT_TIMELINE_GROUP);
+    if (g == NULL) {
+        g = purple_group_new(PT_PREF_DEFAULT_TIMELINE_GROUP);
+	}
+
+    components = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, g_free);
+
+    //TODO: fix all of this
+    //1) FIXED: search shouldn't be set, but is currently a hack to fix purple_blist_find_chat (persistent chat, etc)
+    //2) need this to work with multiple timelines.
+    //3) this should be an option. Some people may not want the home timeline
+    g_hash_table_insert(components, "interval", g_strdup_printf("%d", pt_option_timeline_timeout(account)));
+    g_hash_table_insert(components, "chat_type", g_strdup_printf("%d", PT_CHAT_TIMELINE));
+    g_hash_table_insert(components, "timeline_id", g_strdup_printf("%d", timeline_id));
+
+    c = purple_chat_new(account, "Home Timeline", components);
+    purple_blist_add_chat(c, g, NULL);
+    return c;
 }
 

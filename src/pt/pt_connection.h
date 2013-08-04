@@ -3,6 +3,7 @@
 
 #include <glib.h>
 #include "pt_requestor.h"
+#include "pt_endpoint_im.h"
 
 typedef struct {
     PtRequestor *requestor;
@@ -20,7 +21,7 @@ typedef struct {
      * we have a blist node with auto_open = TRUE or a chat
      * already open. So we could pass the context between the two
      * but that would be much more annoying to write/maintain */
-    //GHashTable     *chat_contexts;
+	GHashTable     *chat_contexts;
 
     /* key: gchar *screen_name,
      * value: gchar *reply_id (then converted to long long)
@@ -36,7 +37,7 @@ typedef struct {
     //GHashTable     *icons;
 
     gboolean        requesting;
-    //TwitterEndpointIm *endpoint_ims[TWITTER_IM_TYPE_UNKNOWN];
+    PtEndpointIm *endpoint_ims[PT_IM_TYPE_UNKNOWN];
 
     gchar          *oauth_token;
     gchar          *oauth_token_secret;
@@ -46,9 +47,9 @@ typedef struct {
     //int             chat_id;
 } PtConnectionData;
 
-//void            twitter_connection_foreach_endpoint_im(TwitterConnectionData * twitter, void (*cb) (TwitterConnectionData * twitter, TwitterEndpointIm * im, gpointer data), gpointer data);
-//TwitterEndpointIm *twitter_connection_get_endpoint_im(TwitterConnectionData * twitter, TwitterImType type);
-//void            twitter_connection_set_endpoint_im(TwitterConnectionData * twitter, TwitterImType type, TwitterEndpointIm * endpoint);
+void            pt_connection_foreach_endpoint_im(PtConnectionData * conn_data, void (*cb) (PtConnectionData * conn_data, PtEndpointIm * im, gpointer data), gpointer data);
+PtEndpointIm *pt_connection_get_endpoint_im(PtConnectionData * conn_data, PtImType type);
+void            pt_connection_set_endpoint_im(PtConnectionData * conn_data, PtImType type, PtEndpointIm * endpoint);
 
 
 #endif

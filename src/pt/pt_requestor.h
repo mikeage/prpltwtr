@@ -82,8 +82,8 @@ void            twitter_requestor_free (PtRequestor * requestor);
     //int             expected_count;
 //};
 
-//typedef void    (*PtSendRequestMultiPageAllSuccessFunc) (PtRequestor * r, GList * nodes, gpointer user_data);
-//typedef         gboolean(*PtSendRequestMultiPageAllErrorFunc) (PtRequestor * r, const PtRequestorErrorData * error_data, gpointer user_data);
+typedef void    (*PtSendRequestMultiPageAllSuccessFunc) (PtRequestor * r, GList * nodes, gpointer user_data);
+typedef         gboolean(*PtSendRequestMultiPageAllErrorFunc) (PtRequestor * r, const PtRequestorErrorData * error_data, gpointer user_data);
 
 gpointer        pt_requestor_send (PtRequestor * r, gboolean post, const char *url, PtRequestorParams * params, char **header_fields, PtSendRequestSuccessFunc success_callback, PtSendRequestErrorFunc error_callback, gpointer data);
 

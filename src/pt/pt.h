@@ -30,3 +30,6 @@ gboolean        pt_offline_message (const PurpleBuddy * buddy);
 void            pt_api_get_info (PurpleConnection * gc, const char *username);
 PurpleChat     *pt_blist_chat_find (PurpleAccount * account, const char *name);
 gboolean        pt_usernames_match (PurpleAccount * account, const gchar * u1, const gchar * u2);
+long long       pt_get_long_long(PurpleAccount * account, const gchar * key, long long default_value);
+void            pt_set_long_long(PurpleAccount * account, const gchar * key, long long value);
+

@@ -11,10 +11,10 @@
 #define PT_PREF_USE_HTTPS "use_https"
 #define PT_PREF_USE_HTTPS_DEFAULT TRUE
 
-#if 0
 #define PT_PREF_RETRIEVE_HISTORY "retrieve_tweets_history_after_login"
 #define PT_PREF_RETRIEVE_HISTORY_DEFAULT TRUE
 
+#if 0
 #define PT_PREF_SYNC_STATUS "sync_availability_status_message_to_twitter"
 #define PT_PREF_SYNC_STATUS_DEFAULT FALSE
 
@@ -30,11 +30,12 @@
 #define PT_PREF_HOME_TIMELINE_MAX_TWEETS "home_timeline_max_tweets"
 #define PT_PREF_HOME_TIMELINE_MAX_TWEETS_DEFAULT 200
 
+#endif
 #define PT_PREF_TIMELINE_TIMEOUT "refresh_timeline_minutes"
 #define PT_PREF_TIMELINE_TIMEOUT_DEFAULT 1
 #define PT_PREF_LIST_TIMEOUT "refresh_list_minutes"
 #define PT_PREF_LIST_TIMEOUT_DEFAULT 10
-
+#if 0
 #define PT_PREF_REPLIES_TIMEOUT "refresh_replies_minutes"
 #define	PT_PREF_REPLIES_TIMEOUT_DEFAULT 30
 
@@ -50,8 +51,11 @@
 #define PT_PREF_GET_FRIENDS "get_friends"
 #define PT_PREF_GET_FRIENDS_DEFAULT TRUE
 
+#endif
 #define PT_PREF_DEFAULT_DM "default_message_is_dm"
 #define PT_PREF_DEFAULT_DM_DEFAULT FALSE
+
+#if 0
 
 #define PT_PREF_API_BASE "twitter_api_base_url"
 #define PT_PREF_API_BASE_DEFAULT "api.twitter.com/1"
@@ -104,8 +108,10 @@ GList          *prpltwtr_statusnet_get_protocol_options(void);
 const gchar    *twitter_option_alias_format(PurpleAccount * account);
 gboolean        twitter_option_add_link_to_tweet(PurpleAccount * account);
 gint            twitter_option_search_timeout(PurpleAccount * account);
-gint            twitter_option_timeline_timeout(PurpleAccount * account);
-gint            twitter_option_list_timeout(PurpleAccount * account);
+#endif 
+gint            pt_option_timeline_timeout(PurpleAccount * account);
+gint            pt_option_list_timeout(PurpleAccount * account);
+#if 0
 const gchar    *twitter_option_list_group(PurpleAccount * account);
 const gchar    *twitter_option_search_group(PurpleAccount * account);
 const gchar    *twitter_option_buddy_group(PurpleAccount * account);
@@ -113,13 +119,17 @@ gint            twitter_option_dms_timeout(PurpleAccount * account);
 gint            twitter_option_replies_timeout(PurpleAccount * account);
 gboolean        twitter_option_get_following(PurpleAccount * account);
 gint            twitter_option_user_status_timeout(PurpleAccount * account);
-gboolean        twitter_option_get_history(PurpleAccount * account);
+#endif 
+gboolean        pt_option_get_history(PurpleAccount * account);
+#if 0
 gboolean        twitter_option_sync_status(PurpleAccount * account);
 gboolean        twitter_option_use_https(PurpleAccount * account);
 gboolean        twitter_option_use_oauth(PurpleAccount * account);
 gint            twitter_option_home_timeline_max_tweets(PurpleAccount * account);
 gint            twitter_option_list_max_tweets(PurpleAccount * account);
-gboolean        twitter_option_default_dm(PurpleAccount * account);
+#endif
+gboolean        pt_option_default_dm(PurpleAccount * account);
+#if 0
 gboolean        twitter_option_enable_conv_icon(PurpleAccount * account);
 
 const gchar    *twitter_option_api_host(PurpleAccount * account);

@@ -22,16 +22,17 @@ gint twitter_option_search_timeout(PurpleAccount * account)
     return purple_account_get_int(account, TWITTER_PREF_SEARCH_TIMEOUT, TWITTER_PREF_SEARCH_TIMEOUT_DEFAULT);
 }
 
-gint twitter_option_timeline_timeout(PurpleAccount * account)
+#endif 
+gint pt_option_timeline_timeout(PurpleAccount * account)
 {
-    return purple_account_get_int(account, TWITTER_PREF_TIMELINE_TIMEOUT, TWITTER_PREF_TIMELINE_TIMEOUT_DEFAULT);
+    return purple_account_get_int(account, PT_PREF_TIMELINE_TIMEOUT, PT_PREF_TIMELINE_TIMEOUT_DEFAULT);
 }
 
-gint twitter_option_list_timeout(PurpleAccount * account)
+gint pt_option_list_timeout(PurpleAccount * account)
 {
-    return purple_account_get_int(account, TWITTER_PREF_LIST_TIMEOUT, TWITTER_PREF_LIST_TIMEOUT_DEFAULT);
+    return purple_account_get_int(account, PT_PREF_LIST_TIMEOUT, PT_PREF_LIST_TIMEOUT_DEFAULT);
 }
-
+#if 0
 const gchar    *twitter_option_list_group(PurpleAccount * account)
 {
     //TODO: create an option for this
@@ -70,11 +71,13 @@ gboolean twitter_option_get_following(PurpleAccount * account)
     return purple_account_get_bool(account, TWITTER_PREF_GET_FRIENDS, TWITTER_PREF_GET_FRIENDS_DEFAULT);
 }
 
-gboolean twitter_option_get_history(PurpleAccount * account)
+#endif
+gboolean pt_option_get_history(PurpleAccount * account)
 {
-    return purple_account_get_bool(account, TWITTER_PREF_RETRIEVE_HISTORY, TWITTER_PREF_RETRIEVE_HISTORY_DEFAULT);
+    return purple_account_get_bool(account, PT_PREF_RETRIEVE_HISTORY, PT_PREF_RETRIEVE_HISTORY_DEFAULT);
 }
 
+#if 0
 gboolean twitter_option_sync_status(PurpleAccount * account)
 {
     return purple_account_get_bool(account, TWITTER_PREF_SYNC_STATUS, TWITTER_PREF_SYNC_STATUS_DEFAULT);
@@ -104,11 +107,12 @@ gint twitter_option_list_max_tweets(PurpleAccount * account)
     return purple_account_get_int(account, TWITTER_PREF_HOME_TIMELINE_MAX_TWEETS, TWITTER_PREF_HOME_TIMELINE_MAX_TWEETS_DEFAULT);
 }
 
-gboolean twitter_option_default_dm(PurpleAccount * account)
+#endif
+gboolean pt_option_default_dm(PurpleAccount * account)
 {
-    return purple_account_get_bool(account, TWITTER_PREF_DEFAULT_DM, TWITTER_PREF_DEFAULT_DM_DEFAULT);
+    return purple_account_get_bool(account, PT_PREF_DEFAULT_DM, PT_PREF_DEFAULT_DM_DEFAULT);
 }
-
+#if 0
 static const gchar *twitter_get_host_from_base(const gchar * base)
 {
     static gchar    host[256];
