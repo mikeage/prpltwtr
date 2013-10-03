@@ -145,10 +145,12 @@ static const gchar *twitter_option_url_get_subscribed_lists(PurpleAccount * acco
     return twitter_api_create_url(account, TWITTER_PREF_URL_GET_SUBSCRIBED_LISTS);
 }
 
+#if 0
 static const gchar *twitter_option_url_verify_credentials(PurpleAccount * account)
 {
     return twitter_api_create_url(account, TWITTER_PREF_URL_VERIFY_CREDENTIALS);
 }
+#endif
 
 static const gchar *twitter_option_url_rt(PurpleAccount * account, long long id)
 {

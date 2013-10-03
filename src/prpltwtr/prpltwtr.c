@@ -109,6 +109,7 @@ static PurpleChat *twitter_blist_chat_timeline_new(PurpleAccount * account, gint
     return c;
 }
 
+#if 0
 static PurpleChat *twitter_blist_chat_list_new(PurpleAccount * account, const char *list_name, const char *owner, long long list_id)
 {
     PurpleGroup    *g;
@@ -141,7 +142,9 @@ static PurpleChat *twitter_blist_chat_list_new(PurpleAccount * account, const ch
     return c;
 }
 #endif
+#endif
 
+#if 0
 static PurpleChat *twitter_blist_chat_search_new(PurpleAccount * account, const char *searchtext)
 {
     PurpleGroup    *g;
@@ -165,6 +168,7 @@ static PurpleChat *twitter_blist_chat_search_new(PurpleAccount * account, const 
 
     return c;
 }
+#endif
 
 static void verify_connection_error_handler(PurpleAccount * account, const TwitterRequestErrorData * error_data)
 {
@@ -734,7 +738,6 @@ typedef struct {
 //TODO: rename
 void prpltwtr_verify_connection(PurpleAccount * account)
 {
-    gboolean        retrieve_history;
     PurpleConnection *gc;
 
     //To verify the connection, we get the user's friends.
@@ -742,7 +745,7 @@ void prpltwtr_verify_connection(PurpleAccount * account)
 
     /* If history retrieval enabled, read last reply id from config file.
      * There's no config file, just set last reply id to 0 */
-    retrieve_history = twitter_option_get_history(account);
+    twitter_option_get_history(account);
 
     //If we don't have a stored last reply id, we don't want to get the entire history (EVERY reply)
     gc = purple_account_get_connection(account);
@@ -1057,9 +1060,9 @@ static void twitter_blist_char_attach_search_toggle(PurpleBlistNode * node, gpoi
     char           *chat_name = twitter_chat_get_name(components);
     PurpleConversation *conv;
 
-    purple_debug_info(purple_account_get_protocol_id(account), "Setting attach for %s to %d\n", chat_name, (int) userdata);
+    purple_debug_info(purple_account_get_protocol_id(account), "Setting attach for %s to %p\n", chat_name, userdata);
     conv = purple_find_conversation_with_account(PURPLE_CONV_TYPE_CHAT, chat_name, account);
-    g_hash_table_replace(components, g_strdup("attach_search_text"), (g_strdup_printf("%d", (int) userdata)));
+    g_hash_table_replace(components, g_strdup("attach_search_text"), (g_strdup_printf("%p", userdata)));
     purple_signal_emit(purple_conversations_get_handle(), "prpltwtr-changed-attached-search", conv);
     g_free(chat_name);
 }

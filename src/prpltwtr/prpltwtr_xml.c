@@ -49,14 +49,14 @@ static time_t twitter_status_parse_timestamp(const char *timestamp)
 	localtime_r(&tval, &t);
 
 	if (sscanf(timestamp, "%03s %03s %02d %02d:%02d:%02d %05s %04d", day_name, month_str, &t.tm_mday, &t.tm_hour, &t.tm_min, &t.tm_sec, tz_str, &t.tm_year) == 8) {
-		gboolean        offset_positive = TRUE;
+		//gboolean        offset_positive = TRUE;
 		int             tzhrs;
 		int             tzmins;
 
 		for (t.tm_mon = 0; months[t.tm_mon] != NULL && strcmp(months[t.tm_mon], month_str) != 0; t.tm_mon++) ;
 		if (months[t.tm_mon] != NULL) {
 			if (*tz_str == '-') {
-				offset_positive = FALSE;
+				//offset_positive = FALSE;
 				tz_ptr++;
 			} else if (*tz_str == '+') {
 				tz_ptr++;
@@ -92,6 +92,7 @@ static gint _twitter_search_results_sort(TwitterUserTweet * _a, TwitterUserTweet
 		return 0;
 }
 
+#if 0
 static const gchar *twitter_search_entry_get_icon_url(xmlnode * entry_node)
 {
 	xmlnode        *link_node = xmlnode_get_child(entry_node, "link");
@@ -101,7 +102,9 @@ static const gchar *twitter_search_entry_get_icon_url(xmlnode * entry_node)
 		return xmlnode_get_attrib(link_node, "href");
 	return NULL;
 }
+#endif
 
+#if 0
 static TwitterUserTweet *twitter_search_entry_node_parse(xmlnode * entry_node)
 {
 	if (entry_node != NULL && entry_node->name && !strcmp(entry_node->name, "entry")) {
@@ -135,6 +138,7 @@ static TwitterUserTweet *twitter_search_entry_node_parse(xmlnode * entry_node)
 	}
 	return NULL;
 }
+#endif
 
 static TwitterSearchResults *twitter_search_results_new(GList * tweets, gchar * refresh_url, gint64 max_id)
 {

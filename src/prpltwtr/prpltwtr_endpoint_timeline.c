@@ -91,7 +91,7 @@ static gboolean twitter_get_home_timeline_all_error_cb(TwitterRequestor * r, con
     TwitterEndpointChatId *chat_id = (TwitterEndpointChatId *) user_data;
     TwitterEndpointChat *endpoint_chat;
 
-    purple_debug_warning(purple_account_get_protocol_id(r->account), "%s(0x%X): %s\n", G_STRFUNC, (int) user_data, error_data->message);
+    purple_debug_warning(purple_account_get_protocol_id(r->account), "%s(%p): %s\n", G_STRFUNC, user_data, error_data->message);
 
     g_return_val_if_fail(chat_id != NULL, TRUE);
     endpoint_chat = twitter_endpoint_chat_find_by_id(chat_id);
