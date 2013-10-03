@@ -28,6 +28,11 @@ PRPLTWTR_SOURCES = \
 	prpltwtr_endpoint_timeline.h \
 	prpltwtr_endpoint_list.c \
 	prpltwtr_endpoint_list.h \
+	prpltwtr_format.h \
+	prpltwtr_format_xml.h \
+	prpltwtr_format_xml.c \
+	prpltwtr_format_json.h \
+	prpltwtr_format_json.c \
 	prpltwtr.h \
 	prpltwtr_mbprefs.c \
 	prpltwtr_mbprefs.h \
@@ -45,9 +50,9 @@ PRPLTWTR_SOURCES = \
 AM_CFLAGS = \
 	$(st)
 
-libprpltwtr_twitter_la_LDFLAGS = -module -avoid-version $(PURPLE_LIBS)
+libprpltwtr_twitter_la_LDFLAGS = -module -avoid-version $(PURPLE_LIBS) $(JSON_LIBS)
 
-libprpltwtr_statusnet_la_LDFLAGS = -module -avoid-version $(PURPLE_LIBS)
+libprpltwtr_statusnet_la_LDFLAGS = -module -avoid-version $(PURPLE_LIBS) $(JSON_LIBS)
 
 st = 
 
@@ -69,5 +74,6 @@ AM_CPPFLAGS = \
 	$(DEBUG_CFLAGS) \
 	$(GLIB_CFLAGS) \
 	$(PURPLE_CFLAGS) \
+	$(JSON_CFLAGS) \
 	$(PURPLE_PLUGINS) \
 	-DLOCALEDIR=\"$(LIBPURPLE_DATADIR)/locale\"

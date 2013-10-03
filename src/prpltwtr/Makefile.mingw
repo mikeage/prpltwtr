@@ -22,6 +22,7 @@ DEFINES += -DPURPLE_PLUGINS
 ## INCLUDE PATHS
 ##
 INCLUDE_PATHS +=	-I. \
+					-I../win32_only \
 			-I$(GTK_TOP)/include \
 			-I$(GTK_TOP)/include/gtk-2.0 \
 			-I$(GTK_TOP)/include/glib-2.0 \
@@ -37,6 +38,7 @@ INCLUDE_PATHS +=	-I. \
 			-I$(PIDGIN_TREE_TOP)
 
 LIB_PATHS +=		-L$(GTK_TOP)/lib \
+					-L../win32_only/json-glib/ \
 			-L$(PURPLE_TOP) \
 			-L$(PIDGIN_TOP)
 
@@ -79,6 +81,7 @@ LIBS =	-lgtk-win32-2.0 \
 			-lgobject-2.0 \
 			-lintl \
 			-lpurple \
+			-ljson-glib
 #			-lgdk_pixbuf-2.0 \
 #			-lpidgin
 
