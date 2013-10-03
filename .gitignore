@@ -4,6 +4,8 @@
 # Libraries
 *.lib
 *.a
+*.la
+*.lo
 
 # Shared objects (inc. Windows DLLs)
 *.dll
@@ -29,6 +31,20 @@ Makefile.in
 /depcomp
 /install-sh
 /missing
+/config.h
+/config.guess
+/config.log
+/config.status
+/config.sub
+/libtool
+/ltmain.sh
+/*.in
+/po/*.gmo
+/po/POTFILES
+/po/Makefile.in.in
+
+Makefile
+stamp-*
 
 .*
 !.gitignore
