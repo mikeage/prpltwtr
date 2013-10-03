@@ -50,7 +50,7 @@ static void twitter_conv_id_write_message(PurpleAccount * account, TwitterConver
     g_free(conv_id);
 }
 
-static void twitter_send_rt_success_cb(TwitterRequestor * r, xmlnode * node, gpointer user_data)
+static void twitter_send_rt_success_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
     TwitterConversationId *conv_id = user_data;
     twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_SYSTEM, _("Successfully retweeted"));
@@ -64,7 +64,7 @@ static void twitter_send_rt_error_cb(TwitterRequestor * r, const TwitterRequestE
     g_free(error);
 }
 
-static void twitter_add_favorite_success_cb(TwitterRequestor * r, xmlnode * node, gpointer user_data)
+static void twitter_add_favorite_success_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
     TwitterConversationId *conv_id = user_data;
     twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_SYSTEM, _("Tweet favorited"));
@@ -78,7 +78,7 @@ static void twitter_add_favorite_error_cb(TwitterRequestor * r, const TwitterReq
     g_free(error);
 }
 
-static void twitter_delete_favorite_success_cb(TwitterRequestor * r, xmlnode * node, gpointer user_data)
+static void twitter_delete_favorite_success_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
     TwitterConversationId *conv_id = user_data;
     twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_SYSTEM, _("Tweet un-favorited"));
@@ -92,7 +92,7 @@ static void twitter_delete_favorite_error_cb(TwitterRequestor * r, const Twitter
     g_free(error);
 }
 
-static void twitter_report_spammer_success_cb(TwitterRequestor * r, xmlnode * node, gpointer user_data)
+static void twitter_report_spammer_success_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
     TwitterConversationId *conv_id = user_data;
     twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_SYSTEM, _("Successfully reported as spam"));
@@ -106,7 +106,7 @@ static void twitter_report_spammer_error_cb(TwitterRequestor * r, const TwitterR
     g_free(error);
 }
 
-static void twitter_get_status_success_cb(TwitterRequestor * r, xmlnode * node, gpointer user_data)
+static void twitter_get_status_success_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
     TwitterTweet   *status;
     TwitterUserData *user;
@@ -132,7 +132,8 @@ static void twitter_get_status_success_cb(TwitterRequestor * r, xmlnode * node, 
         return;
     }
 
-    user = twitter_user_node_parse(xmlnode_get_child(node, "user"));
+	gpointer user_node = r->format->get_node(node, "user");
+    user = twitter_user_node_parse(r, user_node);
     if (!user || !user->screen_name) {
         purple_debug_error(PLUGIN_ID, "Essential information missing from the user!\n");
         return;
@@ -170,7 +171,7 @@ static void twitter_get_status_error_cb(TwitterRequestor * r, const TwitterReque
     g_free(error);
 }
 
-static void twitter_delete_tweet_success_cb(TwitterRequestor * r, xmlnode * node, gpointer user_data)
+static void twitter_delete_tweet_success_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
     TwitterConversationId *conv_id = user_data;
     twitter_conv_id_write_message(r->account, conv_id, PURPLE_MESSAGE_SYSTEM, _("Successfully deleted"));
@@ -573,12 +574,12 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
         const char     *id_str;
         long long       id;
         PurpleConnection *gc = purple_account_get_connection(account);
-        TwitterConnectionData *twitter;
+
         if (!gc) {
             purple_debug_warning(PLUGIN_ID, "disconnected. Exiting\n.");
             return FALSE;
         }
-        twitter = gc->proto_data;
+
         conv_name_encoded = g_hash_table_lookup(params, "conv_name");
         conv_type_str = g_hash_table_lookup(params, "conv_type");
 
@@ -606,12 +607,12 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
         const char     *id_str;
         long long       id;
         PurpleConnection *gc = purple_account_get_connection(account);
-        TwitterConnectionData *twitter;
+
         if (!gc) {
             purple_debug_warning(PLUGIN_ID, "disconnected. Exiting\n.");
             return FALSE;
         }
-        twitter = gc->proto_data;
+
         conv_name_encoded = g_hash_table_lookup(params, "conv_name");
         conv_type_str = g_hash_table_lookup(params, "conv_type");
 
