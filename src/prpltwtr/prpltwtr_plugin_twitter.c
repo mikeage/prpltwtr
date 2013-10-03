@@ -25,8 +25,8 @@
 #include <glib/gstdio.h>
 
 #include "prpltwtr.h"
-
 #include "prpltwtr_mbprefs.h"
+#include "prpltwtr_plugin_twitter.h"
 
 static PurplePluginProtocolInfo prpl_info = {
     OPT_PROTO_CHAT_TOPIC | OPT_PROTO_NO_PASSWORD,   /* options */
@@ -143,3 +143,16 @@ static PurplePluginInfo info = {
 };
 
 PURPLE_INIT_PLUGIN(null, prpltwtr_plugin_init, info);
+
+void prpltwtr_plugin_twitter_setup(TwitterRequestor * requestor)
+{
+	PurpleAccount *account = requestor->account;
+	TwitterFormat *format = requestor->format;
+	TwitterUrls   *urls = requestor->urls;
+
+	format->extension = ".json";
+
+	// TODO urls->host = twitter_option_api_host(account);
+	// TODO urls->subdir = twitter_option_api_subdir(account);
+	urls->verify_credentials = twitter_api_create_url_ext(account, TWITTER_PREF_URL_VERIFY_CREDENTIALS, format->extension);
+}

@@ -81,7 +81,7 @@
 #define TWITTER_PREF_DEFAULT_DM_DEFAULT FALSE
 
 #define TWITTER_PREF_API_BASE "twitter_api_base_url"
-#define TWITTER_PREF_API_BASE_DEFAULT "api.twitter.com/1"
+#define TWITTER_PREF_API_BASE_DEFAULT "api.twitter.com/1.1"
 #define STATUSNET_PREF_API_BASE_DEFAULT "identi.ca/api"
 
 #define TWITTER_PREF_CONSUMER_KEY "consumer_key"
@@ -114,7 +114,7 @@
 #define TWITTER_PREF_URL_GET_SUBSCRIBED_LISTS "/lists/subscriptions.xml"
 #define TWITTER_PREF_URL_GET_PERSONAL_LISTS "/lists.xml"
 #define TWITTER_PREF_URL_GET_SEARCH_RESULTS "/search.atom"
-#define TWITTER_PREF_URL_VERIFY_CREDENTIALS "/account/verify_credentials.xml"
+#define TWITTER_PREF_URL_VERIFY_CREDENTIALS "/account/verify_credentials"
 #define TWITTER_PREF_URL_RT "/statuses/retweet"  /* Yay for inconsistency */
 #define TWITTER_PREF_URL_DELETE_STATUS "/statuses/destroy"  /* Yay for inconsistency */
 #define TWITTER_PREF_URL_ADD_FAVORITE "/favorites/create"   /* Yay for inconsistency */

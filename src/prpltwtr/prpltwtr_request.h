@@ -26,6 +26,8 @@
 #define _TWITTER_REQUEST_H_
 
 #include <glib.h>
+#include "prpltwtr_plugin.h"
+#include "prpltwtr_format.h"
 
 typedef struct {
     gchar          *name;
@@ -78,6 +80,9 @@ struct _TwitterRequestor {
     void            (*post_failed) (TwitterRequestor * r, const TwitterRequestErrorData ** error_data);
     int             rate_limit_total;
     int             rate_limit_remaining;
+
+	TwitterUrls    *urls;
+	TwitterFormat  *format;
 };
 
 void            twitter_requestor_free(TwitterRequestor * requestor);

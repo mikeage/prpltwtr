@@ -22,17 +22,21 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02111-1301  USA
  */
 
-#ifndef _TWITTER_FORMAT_H_
-#define _TWITTER_FORMAT_H_
+#include "prpltwtr.h"
+#include "prpltwtr_plugin.h"
+#include "prpltwtr_plugin_twitter.h"
 
-#include <glib.h>
+void prpltwtr_plugin_setup(TwitterRequestor * requestor)
+{
+    // Pull out the account and plugin.
+    PurpleAccount *account = requestor->account;
+    PurplePlugin *plugin = account->gc->prpl;
 
-/// Contains function pointers for reading the output from the social network
-/// and converting them into internal structures used by the plugin.
-typedef struct {
-	/// Contains the extension that is appended to the end of every request. This
-	/// needs to include the "." if required (e.g., ".json" or ".xml").
-	const gchar *extension;
-} TwitterFormat;
+    // Figure out which plugin we are dealing with.
+    if (!strcmp(plugin->info->id, TWITTER_PROTOCOL_ID)) {
+         prpltwtr_plugin_twitter_setup(requestor);
+     } else {
+         // DREM prpltwtr_plugin_statusnet_setup(requestor);
+     }
+}
 
-#endif

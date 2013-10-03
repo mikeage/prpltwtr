@@ -826,5 +826,7 @@ void twitter_requestor_free(TwitterRequestor * r)
         g_list_free(r->pending_requests);
         g_free(error_data);
     }
+	g_free(r->urls);
+	g_free(r->format);
     g_free(r);
 }

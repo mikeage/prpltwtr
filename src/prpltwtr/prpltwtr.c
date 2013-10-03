@@ -25,7 +25,6 @@
 #include <glib/gstdio.h>
 
 #include "prpltwtr.h"
-
 #include "prpltwtr_mbprefs.h"
 
 #if !PURPLE_VERSION_CHECK(2, 6, 0)
@@ -828,6 +827,8 @@ void prpltwtr_login(PurpleAccount * account)
     g_strfreev(userparts);
 
     twitter->requestor = g_new0(TwitterRequestor, 1);
+	twitter->requestor->format = g_new0(TwitterFormat, 1);
+	twitter->requestor->urls = g_new0(TwitterUrls, 1);
     twitter->requestor->account = account;
     twitter->requestor->post_failed = requestor_post_failed;
     twitter->requestor->do_send = twitter_requestor_send;
@@ -839,6 +840,9 @@ void prpltwtr_login(PurpleAccount * account)
         twitter->requestor->pre_send = prpltwtr_auth_pre_send_oauth;
         twitter->requestor->post_send = prpltwtr_auth_post_send_oauth;
     }
+
+	// Set up the URLs and formats for this requestor.
+	prpltwtr_plugin_setup(twitter->requestor);
 
     /* key: gchar *, value: TwitterEndpointChat */
     twitter->chat_contexts = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, (GDestroyNotify) twitter_endpoint_chat_free);

@@ -48,6 +48,20 @@ static const gchar *twitter_api_create_url(PurpleAccount * account, const gchar 
     return url;
 }
 
+const gchar *twitter_api_create_url_ext(PurpleAccount * account, const gchar * endpoint, const gchar * extension)
+{
+    static char     url[1024];
+    const gchar    *host = twitter_option_api_host(account);
+    const gchar    *subdir = twitter_option_api_subdir(account);
+    g_return_val_if_fail(host != NULL && host[0] != '\0' && endpoint != NULL && endpoint[0] != '\0', NULL);
+
+    if (subdir == NULL || subdir[0] == '\0')
+        subdir = "/";
+
+    snprintf(url, 1023, "%s%s%s%s%s%s", host, subdir[0] == '/' ? "" : "/", subdir, subdir[strlen(subdir) - 1] == '/' || endpoint[0] == '/' ? "" : "/", subdir[strlen(subdir) - 1] == '/' && endpoint[0] == '/' ? endpoint + 1 : endpoint, extension);
+    return url;
+}
+
 static const gchar *twitter_api_create_web_url(PurpleAccount * account, const gchar * endpoint)
 {
     static char     url[1024];
@@ -688,5 +702,5 @@ void twitter_api_search_refresh(TwitterRequestor * r, const char *refresh_url,  
 
 void twitter_api_verify_credentials(TwitterRequestor * r, TwitterSendXmlRequestSuccessFunc success_cb, TwitterSendRequestErrorFunc error_cb, gpointer user_data)
 {
-    twitter_send_xml_request(r, FALSE, twitter_option_url_verify_credentials(r->account), NULL, success_cb, error_cb, user_data);
+    twitter_send_xml_request(r, FALSE, r->urls->verify_credentials, NULL, success_cb, error_cb, user_data);
 }
