@@ -119,20 +119,21 @@ static void twitter_get_replies_all_cb(TwitterRequestor * r, GList * nodes, gpoi
     PurpleConnection *gc = purple_account_get_connection(r->account);
     TwitterConnectionData *twitter = gc->proto_data;
 
-    GList          *statuses = twitter_statuses_nodes_parse(nodes);
+    GList          *statuses = twitter_statuses_nodes_parse(r, nodes);
     _process_replies(r->account, statuses, twitter);
 
     g_list_free(statuses);
 }
 
-static void twitter_get_replies_get_last_since_id_success_cb(TwitterRequestor * r, xmlnode * node, gpointer user_data)
+static void twitter_get_replies_get_last_since_id_success_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
+	/* DREM
     TwitterLastSinceIdRequest *last = user_data;
     long long       id = 0;
     xmlnode        *status_node = xmlnode_get_child(node, "status");
     purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
     if (status_node != NULL) {
-        TwitterTweet   *status_data = twitter_status_node_parse(status_node);
+        TwitterTweet   *status_data = twitter_status_node_parse(r, status_node);
         if (status_data != NULL) {
             id = status_data->id;
 
@@ -141,6 +142,7 @@ static void twitter_get_replies_get_last_since_id_success_cb(TwitterRequestor * 
     }
     last->success_cb(r->account, id, last->user_data);
     g_free(last);
+	*/
 }
 
 static void twitter_get_last_since_id_error_cb(TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data)

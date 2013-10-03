@@ -41,6 +41,16 @@ gpointer prpltwtr_format_xml_from_str(const gchar * response, int response_lengt
 	return xmlnode_from_str(response, response_length);
 }
 
+gpointer prpltwtr_format_xml_get_node(gpointer node, const gchar *child_name)
+{
+	return xmlnode_get_child_data(node, child_name);
+}
+
+gchar *prpltwtr_format_xml_get_str(gpointer node, const gchar *child_name)
+{
+	return xmlnode_get_child_data(node, child_name);
+}
+
 const gchar *prpltwtr_format_xml_node_parse_error(gpointer node)
 {
 	purple_debug_info("prpltwtr", "DREM prpltwtr_format_xml_node_parse_error\n");
@@ -54,5 +64,7 @@ void prpltwtr_format_xml_setup(TwitterFormat *format)
 
 	format->free_node = prpltwtr_format_xml_free_node;
 	format->from_str = prpltwtr_format_xml_from_str;
+	format->get_node = prpltwtr_format_xml_get_node;
+	format->get_str = prpltwtr_format_xml_get_str;
 	format->parse_error = prpltwtr_format_xml_node_parse_error;
 }

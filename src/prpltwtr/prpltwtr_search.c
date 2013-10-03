@@ -37,10 +37,10 @@ typedef struct {
     gpointer        user_data;
 } TwitterSearchContext;
 
-static void twitter_send_search_success_cb(TwitterRequestor * r, xmlnode * response_node, gpointer user_data)
+static void twitter_send_search_success_cb(TwitterRequestor * r, gpointer response_node, gpointer user_data)
 {
     TwitterSearchContext *ctx = user_data;
-    TwitterSearchResults *results = twitter_search_results_node_parse(response_node);
+    TwitterSearchResults *results = twitter_search_results_node_parse(r, response_node);
 
     ctx->success_func(r->account, results->tweets, results->refresh_url, results->max_id, ctx->user_data);
 
@@ -59,7 +59,7 @@ void twitter_search(TwitterRequestor * r, TwitterRequestParams * params, Twitter
         ctx->user_data = data;
         ctx->success_func = success_cb;
         ctx->error_func = error_cb;
-        twitter_send_xml_request(r, FALSE, search_url, params, twitter_send_search_success_cb, NULL,    //TODO error
+        twitter_send_format_request(r, FALSE, search_url, params, twitter_send_search_success_cb, NULL,    //TODO error
                                  ctx);
 
     }

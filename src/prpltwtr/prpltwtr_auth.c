@@ -255,7 +255,7 @@ static void verify_credentials_success_cb(TwitterRequestor * r, gpointer node, g
 {
 	purple_debug_info("prpltwtr", "DREM verify_credentials_success_cb\n");
     PurpleAccount  *account = r->account;
-    TwitterUserTweet *user_tweet = twitter_verify_credentials_parse(node);
+    TwitterUserTweet *user_tweet = twitter_verify_credentials_parse(r, node);
     char          **userparts = g_strsplit(purple_account_get_username(r->account), "@", 2);
     const char     *username = userparts[0];
 

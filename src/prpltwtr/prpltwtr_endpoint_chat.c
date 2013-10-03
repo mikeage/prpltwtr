@@ -37,12 +37,11 @@ void twitter_endpoint_chat_init(const char *protocol_id)
 
 void twitter_endpoint_chat_free(TwitterEndpointChat * ctx)
 {
-    PurpleConnection *gc;
     GList          *l;
 
     if (ctx->settings && ctx->settings->endpoint_data_free)
         ctx->settings->endpoint_data_free(ctx->endpoint_data);
-    gc = purple_account_get_connection(ctx->account);
+    purple_account_get_connection(ctx->account);
 
     if (ctx->timer_handle) {
         purple_timeout_remove(ctx->timer_handle);
@@ -497,7 +496,8 @@ TwitterEndpointChat *twitter_endpoint_chat_find(PurpleAccount * account, const c
 static void twitter_endpoint_chat_send_success_cb(PurpleAccount * account, xmlnode * node, gboolean last, gpointer _ctx_id)
 {
     TwitterEndpointChatId *id = _ctx_id;
-    TwitterUserTweet *user_tweet = twitter_update_status_node_parse(node);
+	// DREM Need to fix this.
+    TwitterUserTweet *user_tweet = twitter_update_status_node_parse(NULL, node);
     TwitterTweet   *tweet = user_tweet ? user_tweet->status : NULL;
     TwitterEndpointChat *ctx = twitter_endpoint_chat_find_by_id(id);
 

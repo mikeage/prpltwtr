@@ -28,10 +28,10 @@
 #include <glib.h>
 
 typedef gpointer (*TwitterFormatNodeFromStringFunc)(const gchar *response, int response_length);
-
 typedef void (*TwitterFormatFromNodeFunc)(gpointer node);
-
 typedef const gchar *(*TwitterFormatStringFromNodeFunc)(gpointer node);
+typedef gchar *(*TwitterFormatStringFromChildNodeFunc)(gpointer node, const gchar *child_name);
+typedef gpointer (*TwitterFormatNodeFromChildNodeFunc)(gpointer node, const gchar *child_name);
 
 /// Contains function pointers for reading the output from the social network
 /// and converting them into internal structures used by the plugin.
@@ -47,6 +47,14 @@ typedef struct {
 	/// produces an opaque pointer suitable for use by other methods in this
 	/// structure.
 	TwitterFormatNodeFromStringFunc from_str;
+
+	/// A function pointer that retrieves a child node (also opaque) from the given
+	/// node for the child_name element.
+	TwitterFormatNodeFromChildNodeFunc get_node;
+	
+	/// A function pointer that retrieves a string from a child node of the given
+	/// node.
+	TwitterFormatStringFromChildNodeFunc get_str;
 
 	/// A function pointer for a method that takes the opaque node and returns
 	/// the error text inside it.

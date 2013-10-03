@@ -126,7 +126,7 @@ static void twitter_get_status_success_cb(TwitterRequestor * r, xmlnode * node, 
     if (!twitter)
         return;
 
-    status = twitter_status_node_parse(node);
+    status = twitter_status_node_parse(r, node);
     if (!status || !status->text || !status->id) {
         purple_debug_error(PLUGIN_ID, "Essential information missing from the tweet!\n");
         return;

@@ -63,7 +63,7 @@ static void twitter_get_dms_all_cb(TwitterRequestor * r, GList * nodes, gpointer
     PurpleConnection *gc = purple_account_get_connection(r->account);
     TwitterConnectionData *twitter = gc->proto_data;
 
-    GList          *dms = twitter_dms_nodes_parse(nodes);
+    GList          *dms = twitter_dms_nodes_parse(r, nodes);
     _process_dms(r->account, dms, twitter);
 
     g_list_free(dms);
@@ -74,14 +74,14 @@ static gboolean twitter_get_dms_all_timeout_error_cb(TwitterRequestor * r, const
     return TRUE;                                 //restart timer and try again
 }
 
-static void twitter_get_dms_get_last_since_id_success_cb(TwitterRequestor * r, xmlnode * node, gpointer user_data)
+static void twitter_get_dms_get_last_since_id_success_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
     TwitterLastSinceIdRequest *last = user_data;
     long long       id = 0;
-    xmlnode        *status_node = xmlnode_get_child(node, "direct_message");
+    gpointer       *status_node = r->format->get_node(node, "direct_message");
     purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
     if (status_node != NULL) {
-        TwitterTweet   *status_data = twitter_dm_node_parse(status_node);
+        TwitterTweet   *status_data = twitter_dm_node_parse(r, status_node);
         if (status_data != NULL) {
             id = status_data->id;
 

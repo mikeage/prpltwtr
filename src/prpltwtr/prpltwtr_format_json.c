@@ -55,7 +55,22 @@ gpointer prpltwtr_format_json_from_str(const gchar * response, int response_leng
 	return root;
 }
 
-const gchar *prpltwtr_format_json_get_str(gpointer node, const gchar *child_node_name)
+gpointer prpltwtr_format_json_get_node(gpointer node, const gchar *child_node_name)
+{
+	JsonObject *node_object = json_node_get_object(node);
+
+	// If we don't have the member, then return a NULL which indicates no error.
+	if (!json_object_has_member(node_object, child_node_name))
+	{
+		purple_debug_info("prpltwtr", "DREM prpltwtr_format_json_get_str %s (missing)\n", child_node_name);
+		return NULL;
+	}
+	
+	JsonNode *child = json_object_get_member(node_object, child_node_name);
+	return child;
+}
+
+gchar *prpltwtr_format_json_get_str(gpointer node, const gchar *child_node_name)
 {
 	purple_debug_info("prpltwtr", "DREM prpltwtr_format_json_get_str %s %d (start)\n", child_node_name, JSON_NODE_TYPE(node));
 	JsonObject *node_object = json_node_get_object(node);
@@ -68,7 +83,8 @@ const gchar *prpltwtr_format_json_get_str(gpointer node, const gchar *child_node
 		return NULL;
 	}
 	
-	const gchar *child_value = json_object_get_string_member(node_object, child_node_name);
+	const gchar *const_value = json_object_get_string_member(node_object, child_node_name);
+	gchar *child_value = g_strdup(const_value);
 	purple_debug_info("prpltwtr", "DREM prpltwtr_format_json_get_str %s=%s\n", child_node_name, child_value);
 	return child_value;
 }
@@ -85,5 +101,7 @@ void prpltwtr_format_json_setup(TwitterFormat *format)
 
 	format->free_node = prpltwtr_format_json_free_node;
 	format->from_str = prpltwtr_format_json_from_str;
+	format->get_node = prpltwtr_format_json_get_node;
+	format->get_str = prpltwtr_format_json_get_str;
 	format->parse_error = prpltwtr_format_json_node_parse_error;
 }

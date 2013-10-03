@@ -111,7 +111,7 @@ static void twitter_get_home_timeline_error_cb(TwitterRequestor * r, const Twitt
     return;
 }
 
-static void twitter_get_home_timeline_cb(TwitterRequestor * r, xmlnode * node, gpointer user_data)
+static void twitter_get_home_timeline_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
     TwitterEndpointChatId *chat_id = (TwitterEndpointChatId *) user_data;
     TwitterEndpointChat *endpoint_chat;
@@ -132,7 +132,7 @@ static void twitter_get_home_timeline_cb(TwitterRequestor * r, xmlnode * node, g
     endpoint_chat->retrieval_in_progress = FALSE;
     endpoint_chat->retrieval_in_progress_timeout = 0;
 
-    statuses = twitter_statuses_node_parse(node);
+    statuses = twitter_statuses_node_parse(r, node);
     twitter_get_home_timeline_parse_statuses(endpoint_chat, statuses);
 
 }
@@ -158,7 +158,7 @@ static void twitter_get_home_timeline_all_cb(TwitterRequestor * r, GList * nodes
     endpoint_chat->retrieval_in_progress = FALSE;
     endpoint_chat->retrieval_in_progress_timeout = 0;
 
-    statuses = twitter_statuses_nodes_parse(nodes);
+    statuses = twitter_statuses_nodes_parse(r, nodes);
     twitter_get_home_timeline_parse_statuses(endpoint_chat, statuses);
 }
 

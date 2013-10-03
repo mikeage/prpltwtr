@@ -51,14 +51,13 @@ static char    *twitter_list_chat_name_from_components(GHashTable * components)
 
 static void twitter_get_list_parse_statuses(TwitterEndpointChat * endpoint_chat, GList * statuses)
 {
-    PurpleConnection *gc;
     GList          *l;
     TwitterUserTweet *user_tweet;
 
     purple_debug_info(purple_account_get_protocol_id(endpoint_chat->account), "%s\n", G_STRFUNC);
 
     g_return_if_fail(endpoint_chat != NULL);
-    gc = purple_account_get_connection(endpoint_chat->account);
+    purple_account_get_connection(endpoint_chat->account);
 
     if (!statuses) {
         /* At least update the topic with the new rate limit info */
@@ -69,10 +68,6 @@ static void twitter_get_list_parse_statuses(TwitterEndpointChat * endpoint_chat,
     l = g_list_last(statuses);
     user_tweet = l->data;
     if (user_tweet && user_tweet->status)
-        /* Tweets might not be sequential anymore. Take since_id from the last one, not the greatest */
-#if 0
-        &&user_tweet->status->id > twitter_connection_get_last_home_timeline_id(gc)
-#endif                       /* 0 */
     {
         TwitterListTimeoutContext *ctx = endpoint_chat->endpoint_data;
         gchar          *key = g_strdup_printf("list_%s", ctx->list_name);
@@ -108,7 +103,7 @@ static void twitter_get_list_error_cb(TwitterRequestor * r, const TwitterRequest
     return;
 }
 
-static void twitter_get_list_cb(TwitterRequestor * r, xmlnode * node, gpointer user_data)
+static void twitter_get_list_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
     TwitterEndpointChatId *chat_id = (TwitterEndpointChatId *) user_data;
     TwitterEndpointChat *endpoint_chat;
@@ -129,7 +124,7 @@ static void twitter_get_list_cb(TwitterRequestor * r, xmlnode * node, gpointer u
     endpoint_chat->retrieval_in_progress = FALSE;
     endpoint_chat->retrieval_in_progress_timeout = 0;
 
-    statuses = twitter_statuses_node_parse(node);
+    statuses = twitter_statuses_node_parse(r, node);
     twitter_get_list_parse_statuses(endpoint_chat, statuses);
 
 }
@@ -155,7 +150,7 @@ static void twitter_get_list_all_cb(TwitterRequestor * r, GList * nodes, gpointe
     endpoint_chat->retrieval_in_progress = FALSE;
     endpoint_chat->retrieval_in_progress_timeout = 0;
 
-    statuses = twitter_statuses_nodes_parse(nodes);
+    statuses = twitter_statuses_nodes_parse(r, nodes);
     twitter_get_list_parse_statuses(endpoint_chat, statuses);
 }
 
