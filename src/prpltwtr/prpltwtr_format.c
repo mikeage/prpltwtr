@@ -22,11 +22,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02111-1301  USA
  */
 
-#ifndef _TWITTER_FORMAT_JSON_H_
-#define _TWITTER_FORMAT_JSON_H_
+#include "prpltwtr.h"
+#include "prpltwtr_format.h"
 
-/// Populates the format object with the various function pointers and settings to
-/// use JSON as the format used to communicate with the server.
-void prpltwtr_format_json_setup(TwitterFormat *format);
-
-#endif

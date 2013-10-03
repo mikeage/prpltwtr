@@ -176,7 +176,7 @@ static void verify_connection_error_handler(PurpleAccount * account, const Twitt
         reason = PURPLE_CONNECTION_ERROR_NETWORK_ERROR;
         error_message = error_data->message;
         break;
-    case TWITTER_REQUEST_ERROR_INVALID_XML:
+    case TWITTER_REQUEST_ERROR_INVALID_FORMAT:
         reason = PURPLE_CONNECTION_ERROR_NETWORK_ERROR;
         error_message = _("Received Invalid XML");
         break;
@@ -915,7 +915,7 @@ static void twitter_set_status_error_cb(TwitterRequestor * r, const TwitterReque
     const char     *message;
     if (error_data->type == TWITTER_REQUEST_ERROR_SERVER || error_data->type == TWITTER_REQUEST_ERROR_TWITTER_GENERAL) {
         message = error_data->message;
-    } else if (error_data->type == TWITTER_REQUEST_ERROR_INVALID_XML) {
+    } else if (error_data->type == TWITTER_REQUEST_ERROR_INVALID_FORMAT) {
         message = _("Unknown reply by twitter server");
     } else {
         message = _("Unknown error");

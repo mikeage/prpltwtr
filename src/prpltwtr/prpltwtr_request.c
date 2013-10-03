@@ -62,6 +62,12 @@ typedef struct {
 } TwitterSendXmlRequestData;
 
 typedef struct {
+    TwitterSendFormatRequestSuccessFunc success_func;
+    TwitterSendRequestErrorFunc error_func;
+    gpointer        user_data;
+} TwitterSendFormatRequestData;
+
+typedef struct {
     GList          *nodes;
     TwitterSendRequestMultiPageAllSuccessFunc success_callback;
     TwitterSendRequestMultiPageAllErrorFunc error_callback;
@@ -429,7 +435,7 @@ static void twitter_xml_request_success_cb(TwitterRequestor * r, const gchar * r
     response_node = xmlnode_from_str(response, strlen(response));
     if (!response_node) {
         purple_debug_error(purple_account_get_protocol_id(r->account), "Response error: invalid xml\n");
-        error_type = TWITTER_REQUEST_ERROR_INVALID_XML;
+        error_type = TWITTER_REQUEST_ERROR_INVALID_FORMAT;
         error_message = response;
     } else {
         if ((error_message = twitter_xml_node_parse_error(response_node))) {
@@ -483,6 +489,77 @@ void twitter_send_xml_request(TwitterRequestor * r, gboolean post, const char *u
     request_data->error_func = error_callback;
 
     twitter_send_request(r, post, url, params, twitter_xml_request_success_cb, twitter_xml_request_error_cb, request_data);
+}
+
+/// Called when a formatted request is successful. This handles converting the
+/// textual response into a format-specific version (opaque to this function
+/// via the gpointer) and retrieves the information from the request before
+/// calling the appropriate callback.
+static void twitter_format_request_success_cb(TwitterRequestor * r, const gchar * response, gpointer user_data)
+{
+    TwitterSendFormatRequestData *request_data = user_data;
+    const gchar *error_message = NULL;
+    gchar *error_node_text = NULL;
+    gpointer response_node = NULL;
+    TwitterRequestErrorType error_type = TWITTER_REQUEST_ERROR_NONE;
+	TwitterFormat *format = r->format;
+
+    response_node = format->from_str(response, strlen(response));
+    if (!response_node) {
+        purple_debug_error(purple_account_get_protocol_id(r->account), "Response error: invalid format\n");
+        error_type = TWITTER_REQUEST_ERROR_INVALID_FORMAT;
+        error_message = response;
+    } else {
+        if ((error_message = format->parse_error(response_node))) {
+            error_type = TWITTER_REQUEST_ERROR_TWITTER_GENERAL;
+            error_message = error_node_text;
+            purple_debug_error(purple_account_get_protocol_id(r->account), "Response error: Twitter error %s\n", error_message);
+        }
+    }
+
+    if (error_type != TWITTER_REQUEST_ERROR_NONE) {
+        /* Turns out this wasn't really a success. We got a twitter error instead of an HTTP error
+         * So go through the error cycle 
+         */
+        TwitterRequestErrorData *error_data = g_new0(TwitterRequestErrorData, 1);
+        error_data->type = error_type;
+        error_data->message = error_message;
+        twitter_requestor_on_error(r, error_data, request_data->error_func, request_data->user_data);
+
+        g_free(error_data);
+    } else {
+        purple_debug_info(purple_account_get_protocol_id(r->account), "Valid response, calling success func\n");
+        if (request_data->success_func)
+            request_data->success_func(r, response_node, request_data->user_data);
+    }
+
+    if (response_node != NULL)
+		format->free_node(response_node);
+	if (error_node_text != NULL)
+        g_free(error_node_text);
+    g_free(request_data);
+}
+
+static void twitter_format_request_error_cb(TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data)
+{
+    /* This gets called after the pre_failed and before the post_failed.
+     * So we just pass the error along to our caller. No need to call the requestor_on_fail 
+     * In fact, if we do, we'll get an infinite loop
+     */
+    TwitterSendFormatRequestData *request_data = user_data;
+    if (request_data->error_func)
+        request_data->error_func(r, error_data, request_data->user_data);
+    g_free(request_data);
+}
+
+void twitter_send_format_request(TwitterRequestor * r, gboolean post, const char *url, TwitterRequestParams * params, TwitterSendFormatRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback, gpointer data)
+{
+    TwitterSendFormatRequestData *request_data = g_new0(TwitterSendFormatRequestData, 1);
+    request_data->user_data = data;
+    request_data->success_func = success_callback;
+    request_data->error_func = error_callback;
+
+    twitter_send_request(r, post, url, params, twitter_format_request_success_cb, twitter_format_request_error_cb, request_data);
 }
 
 static long long twitter_oauth_generate_nonce()

@@ -29,6 +29,7 @@ PRPLTWTR_SOURCES = \
 	prpltwtr_endpoint_list.c \
 	prpltwtr_endpoint_list.h \
 	prpltwtr_format.h \
+	prpltwtr_format.c \
 	prpltwtr_format_xml.h \
 	prpltwtr_format_xml.c \
 	prpltwtr_format_json.h \
@@ -64,7 +65,7 @@ pkg_LTLIBRARIES = \
 	libprpltwtr_statusnet.la
 
 libprpltwtr_la_SOURCES = $(PRPLTWTR_SOURCES)
-libprpltwtr_la_LIBADD = $(GLIB_LIBS)
+libprpltwtr_la_LIBADD = $(GLIB_LIBS) $(JSON_LIBS)
 
 libprpltwtr_twitter_la_SOURCES = prpltwtr_plugin_twitter.c prpltwtr_plugin.h
 libprpltwtr_twitter_la_LIBADD = libprpltwtr.la

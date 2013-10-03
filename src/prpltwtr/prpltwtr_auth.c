@@ -35,7 +35,7 @@ static GHashTable *oauth_result_to_hashtable(const gchar * txt);
 static void     account_mismatch_screenname_change_cancel_cb(TwitterAccountUserNameChange * change, gint action_id);
 static void     account_mismatch_screenname_change_ok_cb(TwitterAccountUserNameChange * change, gint action_id);
 static void     account_username_change_verify(PurpleAccount * account, const gchar * username);
-static void     verify_credentials_success_cb(TwitterRequestor * r, xmlnode * node, gpointer user_data);
+static void     verify_credentials_success_cb(TwitterRequestor * r, gpointer node, gpointer user_data);
 static void     verify_credentials_error_cb(TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data);
 static void     oauth_request_token_success_cb(TwitterRequestor * r, const gchar * response, gpointer user_data);
 static void     oauth_request_token_error_cb(TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data);
@@ -251,8 +251,9 @@ static void account_username_change_verify(PurpleAccount * account, const gchar 
     g_free(secondary);
 }
 
-static void verify_credentials_success_cb(TwitterRequestor * r, xmlnode * node, gpointer user_data)
+static void verify_credentials_success_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
+	purple_debug_info("prpltwtr", "DREM verify_credentials_success_cb\n");
     PurpleAccount  *account = r->account;
     TwitterUserTweet *user_tweet = twitter_verify_credentials_parse(node);
     char          **userparts = g_strsplit(purple_account_get_username(r->account), "@", 2);
@@ -271,6 +272,7 @@ static void verify_credentials_success_cb(TwitterRequestor * r, xmlnode * node, 
 
 static void verify_credentials_error_cb(TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data)
 {
+	purple_debug_info("prpltwtr", "DREM verify_credentials_error_cb\n");
     gchar          *error = g_strdup_printf(_("Error verifying credentials: %s"), error_data->message ? error_data->message : _("unknown error"));
     switch (error_data->type) {
     case TWITTER_REQUEST_ERROR_SERVER:
@@ -279,7 +281,7 @@ static void verify_credentials_error_cb(TwitterRequestor * r, const TwitterReque
         break;
     case TWITTER_REQUEST_ERROR_NONE:
     case TWITTER_REQUEST_ERROR_TWITTER_GENERAL:
-    case TWITTER_REQUEST_ERROR_INVALID_XML:
+    case TWITTER_REQUEST_ERROR_INVALID_FORMAT:
     case TWITTER_REQUEST_ERROR_NO_OAUTH:
     case TWITTER_REQUEST_ERROR_UNAUTHORIZED:
     default:

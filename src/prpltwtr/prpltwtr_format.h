@@ -27,12 +27,30 @@
 
 #include <glib.h>
 
+typedef gpointer (*TwitterFormatNodeFromStringFunc)(const gchar *response, int response_length);
+
+typedef void (*TwitterFormatFromNodeFunc)(gpointer node);
+
+typedef const gchar *(*TwitterFormatStringFromNodeFunc)(gpointer node);
+
 /// Contains function pointers for reading the output from the social network
 /// and converting them into internal structures used by the plugin.
 typedef struct {
 	/// Contains the extension that is appended to the end of every request. This
 	/// needs to include the "." if required (e.g., ".json" or ".xml").
 	const gchar *extension;
+
+	/// A function pointer that releases the node returned by the from_str.
+	TwitterFormatFromNodeFunc free_node;
+
+	/// A function pointer for a method that takes a string and a length and
+	/// produces an opaque pointer suitable for use by other methods in this
+	/// structure.
+	TwitterFormatNodeFromStringFunc from_str;
+
+	/// A function pointer for a method that takes the opaque node and returns
+	/// the error text inside it.
+	TwitterFormatStringFromNodeFunc parse_error;
 } TwitterFormat;
 
 #endif

@@ -700,7 +700,7 @@ void twitter_api_search_refresh(TwitterRequestor * r, const char *refresh_url,  
     twitter_request_params_free(params);
 }
 
-void twitter_api_verify_credentials(TwitterRequestor * r, TwitterSendXmlRequestSuccessFunc success_cb, TwitterSendRequestErrorFunc error_cb, gpointer user_data)
+void twitter_api_verify_credentials(TwitterRequestor * r, TwitterSendFormatRequestSuccessFunc success_cb, TwitterSendRequestErrorFunc error_cb, gpointer user_data)
 {
-    twitter_send_xml_request(r, FALSE, r->urls->verify_credentials, NULL, success_cb, error_cb, user_data);
+    twitter_send_format_request(r, FALSE, r->urls->verify_credentials, NULL, success_cb, error_cb, user_data);
 }

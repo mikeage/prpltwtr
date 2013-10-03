@@ -51,7 +51,7 @@ typedef enum {
     TWITTER_REQUEST_ERROR_NONE,
     TWITTER_REQUEST_ERROR_SERVER,
     TWITTER_REQUEST_ERROR_TWITTER_GENERAL,
-    TWITTER_REQUEST_ERROR_INVALID_XML,
+    TWITTER_REQUEST_ERROR_INVALID_FORMAT,
     TWITTER_REQUEST_ERROR_NO_OAUTH,
     TWITTER_REQUEST_ERROR_CANCELED,
 
@@ -67,6 +67,11 @@ typedef struct {
 typedef void    (*TwitterSendRequestSuccessFunc) (TwitterRequestor * r, const gchar * response, gpointer user_data);
 
 typedef void    (*TwitterSendXmlRequestSuccessFunc) (TwitterRequestor * r, xmlnode * node, gpointer user_data);
+
+/// The signature for a successful callback that doesn't matter if it is an `xmlnode` or
+/// a `JsonNode` or any other format-specific element.
+typedef void    (*TwitterSendFormatRequestSuccessFunc) (TwitterRequestor * r, gpointer node, gpointer user_data);
+
 typedef void    (*TwitterSendRequestErrorFunc) (TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data);
 
 struct _TwitterRequestor {

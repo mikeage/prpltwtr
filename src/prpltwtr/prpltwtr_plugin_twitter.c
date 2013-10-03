@@ -27,6 +27,7 @@
 #include "prpltwtr.h"
 #include "prpltwtr_mbprefs.h"
 #include "prpltwtr_plugin_twitter.h"
+#include "prpltwtr_format_json.h"
 
 static PurplePluginProtocolInfo prpl_info = {
     OPT_PROTO_CHAT_TOPIC | OPT_PROTO_NO_PASSWORD,   /* options */
@@ -150,7 +151,8 @@ void prpltwtr_plugin_twitter_setup(TwitterRequestor * requestor)
 	TwitterFormat *format = requestor->format;
 	TwitterUrls   *urls = requestor->urls;
 
-	format->extension = ".json";
+	// Configure the system to use JSON as the communication format.
+	prpltwtr_format_json_setup(format);
 
 	// TODO urls->host = twitter_option_api_host(account);
 	// TODO urls->subdir = twitter_option_api_subdir(account);

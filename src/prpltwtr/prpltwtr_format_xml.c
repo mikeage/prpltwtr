@@ -22,5 +22,37 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02111-1301  USA
  */
 
+#include <glib.h>
+#include <debug.h>
+#include <request.h>
+
 #include "prpltwtr_format.h"
 #include "prpltwtr_format_xml.h"
+#include "prpltwtr_xml.h"
+
+void prpltwtr_format_xml_free_node(gpointer node)
+{
+	xmlnode_free(node);
+}
+
+gpointer prpltwtr_format_xml_from_str(const gchar * response, int response_length)
+{
+	purple_debug_info("prpltwtr", "DREM prpltwtr_format_xml_from_str\n");
+	return xmlnode_from_str(response, response_length);
+}
+
+const gchar *prpltwtr_format_xml_node_parse_error(gpointer node)
+{
+	purple_debug_info("prpltwtr", "DREM prpltwtr_format_xml_node_parse_error\n");
+	xmlnode *xml_node = node;
+    return xmlnode_get_child_data(xml_node, "error");
+}
+
+void prpltwtr_format_xml_setup(TwitterFormat *format)
+{
+	format->extension = ".xml";
+
+	format->free_node = prpltwtr_format_xml_free_node;
+	format->from_str = prpltwtr_format_xml_from_str;
+	format->parse_error = prpltwtr_format_xml_node_parse_error;
+}
