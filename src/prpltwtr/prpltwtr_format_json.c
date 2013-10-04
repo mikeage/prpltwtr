@@ -33,6 +33,12 @@ void prpltwtr_format_json_free_node(gpointer node)
 	json_node_free(node);
 }
 
+gpointer prpltwtr_format_json_copy_node(gpointer node)
+{
+	JsonNode *copy = json_node_copy(node);
+	return copy;
+}
+
 gpointer prpltwtr_format_json_from_str(const gchar * response, int response_length)
 {
 	purple_debug_info("prpltwtr", "DREM prpltwtr_format_json_from_str\n%s\n", response);
@@ -99,6 +105,7 @@ void prpltwtr_format_json_setup(TwitterFormat *format)
 {
 	format->extension = ".json";
 
+	format->copy_node = prpltwtr_format_json_copy_node;
 	format->free_node = prpltwtr_format_json_free_node;
 	format->from_str = prpltwtr_format_json_from_str;
 	format->get_node = prpltwtr_format_json_get_node;

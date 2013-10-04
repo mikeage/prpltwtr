@@ -30,6 +30,7 @@
 typedef gpointer (*TwitterFormatNodeFromStringFunc)(const gchar *response, int response_length);
 typedef void (*TwitterFormatFromNodeFunc)(gpointer node);
 typedef const gchar *(*TwitterFormatStringFromNodeFunc)(gpointer node);
+typedef gpointer (*TwitterFormatNodeFromNodeFunc)(gpointer node);
 typedef gchar *(*TwitterFormatStringFromChildNodeFunc)(gpointer node, const gchar *child_name);
 typedef gpointer (*TwitterFormatNodeFromChildNodeFunc)(gpointer node, const gchar *child_name);
 
@@ -40,7 +41,12 @@ typedef struct {
 	/// needs to include the "." if required (e.g., ".json" or ".xml").
 	const gchar *extension;
 
+	/// A function pointer that copies a given node and returns an identical,
+	/// deep copy. This copy needs to be released.
+	TwitterFormatNodeFromNodeFunc copy_node;
+	
 	/// A function pointer that releases the node returned by the from_str.
+	/// This assumes the node is the one returned from from_str.
 	TwitterFormatFromNodeFunc free_node;
 
 	/// A function pointer for a method that takes a string and a length and

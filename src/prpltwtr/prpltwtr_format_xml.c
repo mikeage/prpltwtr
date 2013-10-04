@@ -35,6 +35,11 @@ void prpltwtr_format_xml_free_node(gpointer node)
 	xmlnode_free(node);
 }
 
+gpointer prpltwtr_format_xml_copy_node(gpointer node)
+{
+	return xmlnode_copy(node);
+}
+
 gpointer prpltwtr_format_xml_from_str(const gchar * response, int response_length)
 {
 	purple_debug_info("prpltwtr", "DREM prpltwtr_format_xml_from_str\n");
@@ -62,6 +67,7 @@ void prpltwtr_format_xml_setup(TwitterFormat *format)
 {
 	format->extension = ".xml";
 
+	format->copy_node = prpltwtr_format_xml_copy_node;
 	format->free_node = prpltwtr_format_xml_free_node;
 	format->from_str = prpltwtr_format_xml_from_str;
 	format->get_node = prpltwtr_format_xml_get_node;
