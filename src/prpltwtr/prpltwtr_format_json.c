@@ -41,7 +41,6 @@ gpointer prpltwtr_format_json_copy_node(gpointer node)
 
 gpointer prpltwtr_format_json_from_str(const gchar * response, int response_length)
 {
-	purple_debug_info("prpltwtr", "DREM prpltwtr_format_json_from_str\n%s\n", response);
 	JsonParser *parser = json_parser_new();
 	
 	GError *error = NULL;
@@ -57,7 +56,6 @@ gpointer prpltwtr_format_json_from_str(const gchar * response, int response_leng
 	
 	JsonNode *root = json_parser_get_root(parser);
 	// DREM Need to release this at some point g_object_unref (parser);
-	purple_debug_info("prpltwtr", "DREM prpltwtr_format_json_from_str %d (start)\n", JSON_NODE_TYPE(root));
 	return root;
 }
 
@@ -68,7 +66,6 @@ gpointer prpltwtr_format_json_get_node(gpointer node, const gchar *child_node_na
 	// If we don't have the member, then return a NULL which indicates no error.
 	if (!json_object_has_member(node_object, child_node_name))
 	{
-		purple_debug_info("prpltwtr", "DREM prpltwtr_format_json_get_str %s (missing)\n", child_node_name);
 		return NULL;
 	}
 	
@@ -78,26 +75,21 @@ gpointer prpltwtr_format_json_get_node(gpointer node, const gchar *child_node_na
 
 gchar *prpltwtr_format_json_get_str(gpointer node, const gchar *child_node_name)
 {
-	purple_debug_info("prpltwtr", "DREM prpltwtr_format_json_get_str %s %d (start)\n", child_node_name, JSON_NODE_TYPE(node));
 	JsonObject *node_object = json_node_get_object(node);
-	purple_debug_info("prpltwtr", "DREM prpltwtr_format_json_get_str %s (object)\n", child_node_name);
 
 	// If we don't have the member, then return a NULL which indicates no error.
 	if (!json_object_has_member(node_object, child_node_name))
 	{
-		purple_debug_info("prpltwtr", "DREM prpltwtr_format_json_get_str %s (missing)\n", child_node_name);
 		return NULL;
 	}
 	
 	const gchar *const_value = json_object_get_string_member(node_object, child_node_name);
 	gchar *child_value = g_strdup(const_value);
-	purple_debug_info("prpltwtr", "DREM prpltwtr_format_json_get_str %s=%s\n", child_node_name, child_value);
 	return child_value;
 }
 
 const gchar *prpltwtr_format_json_node_parse_error(gpointer node)
 {
-	purple_debug_info("prpltwtr", "DREM prpltwtr_format_json_node_parse_error %p\n", node);
 	return prpltwtr_format_json_get_str(node, "error");
 }
 

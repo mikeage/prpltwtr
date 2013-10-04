@@ -810,12 +810,13 @@ void twitter_send_xml_request_multipage_all(TwitterRequestor * r, const char *ur
  *  Request with cursor
  ******************************************************/
 
-static void twitter_request_with_cursor_data_free(TwitterRequestWithCursorData * request_data)
+static void twitter_request_with_cursor_data_free(TwitterRequestor * r, TwitterRequestWithCursorData * request_data)
 {
     GList          *l;
 
     for (l = request_data->nodes; l; l = l->next)
-        xmlnode_free(l->data);
+		r->format->free_node(l->data);
+	
     g_list_free(request_data->nodes);
     g_free(request_data->url);
     twitter_request_params_free(request_data->params);
@@ -852,7 +853,7 @@ static void twitter_send_xml_request_with_cursor_cb(TwitterRequestor * r, xmlnod
         twitter_request_params_set_size(request_data->params, len);
     } else {
         request_data->success_callback(r, request_data->nodes, request_data->user_data);
-        twitter_request_with_cursor_data_free(request_data);
+        twitter_request_with_cursor_data_free(r, request_data);
     }
 }
 
@@ -882,7 +883,7 @@ static void twitter_send_format_request_with_cursor_cb(TwitterRequestor * r, gpo
         twitter_request_params_set_size(request_data->params, len);
     } else {
         request_data->success_callback(r, request_data->nodes, request_data->user_data);
-        twitter_request_with_cursor_data_free(request_data);
+        twitter_request_with_cursor_data_free(r, request_data);
     }
 }
 
@@ -893,7 +894,7 @@ static void twitter_send_xml_request_with_cursor_error_cb(TwitterRequestor * r, 
         twitter_send_xml_request(r, FALSE, request_data->url, request_data->params, twitter_send_xml_request_with_cursor_cb, twitter_send_xml_request_with_cursor_error_cb, request_data);
         return;
     }
-    twitter_request_with_cursor_data_free(request_data);
+    twitter_request_with_cursor_data_free(r, request_data);
 }
 
 static void twitter_send_format_request_with_cursor_error_cb(TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data)
@@ -903,7 +904,7 @@ static void twitter_send_format_request_with_cursor_error_cb(TwitterRequestor * 
         twitter_send_format_request(r, FALSE, request_data->url, request_data->params, twitter_send_format_request_with_cursor_cb, twitter_send_format_request_with_cursor_error_cb, request_data);
         return;
     }
-    twitter_request_with_cursor_data_free(request_data);
+    twitter_request_with_cursor_data_free(r, request_data);
 }
 
 void twitter_send_xml_request_with_cursor(TwitterRequestor * r, const char *url, TwitterRequestParams * params, long long cursor, TwitterSendRequestMultiPageAllSuccessFunc success_callback, TwitterSendRequestMultiPageAllErrorFunc error_callback, gpointer data)
