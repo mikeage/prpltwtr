@@ -376,7 +376,7 @@ static gpointer twitter_send_request_querystring(TwitterRequestor * r, gboolean 
                                                url);
     char           *header_fields_text = (header_fields ? g_strjoinv("\r\n", header_fields) : NULL);
 
-    purple_debug_info(purple_account_get_protocol_id(account), "Sending %s request to: %s ? %s\n", post ? "POST" : "GET", full_url, query_string ? query_string : "");
+    purple_debug_info(purple_account_get_protocol_id(account), "Sending %s request to: %s?%s\n", post ? "POST" : "GET", full_url, query_string ? query_string : "");
 
     request_data->requestor = r;
     request_data->user_data = data;

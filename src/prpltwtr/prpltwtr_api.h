@@ -24,6 +24,7 @@
 #include "prpltwtr_prefs.h"
 #include "prpltwtr_search.h"
 
+const gchar *twitter_api_create_url(PurpleAccount * account, const gchar * endpoint);
 const gchar *twitter_api_create_url_ext(PurpleAccount * account, const gchar * endpoint, const gchar * extension);
 
 typedef void    (*TwitterApiMultiStatusSuccessFunc) (PurpleAccount * account, xmlnode * node, gboolean last_page, gpointer user_data);

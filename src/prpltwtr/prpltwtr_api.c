@@ -35,7 +35,7 @@
 #include "prpltwtr_conn.h"
 #include "prpltwtr_request.h"
 
-static const gchar *twitter_api_create_url(PurpleAccount * account, const gchar * endpoint)
+const gchar *twitter_api_create_url(PurpleAccount * account, const gchar * endpoint)
 {
     static char     url[1024];
     const gchar    *host = twitter_option_api_host(account);
@@ -79,26 +79,6 @@ static const gchar *twitter_api_create_web_url(PurpleAccount * account, const gc
     return url;
 }
 
-static const gchar *twitter_option_url_get_user_info(PurpleAccount * account)
-{
-    return twitter_api_create_url(account, TWITTER_PREF_URL_GET_USER_INFO);
-}
-
-static const gchar *twitter_option_url_get_rate_limit_status(PurpleAccount * account)
-{
-    return twitter_api_create_url(account, TWITTER_PREF_URL_GET_RATE_LIMIT_STATUS);
-}
-
-static const gchar *twitter_option_url_get_friends(PurpleAccount * account)
-{
-    return twitter_api_create_url(account, TWITTER_PREF_URL_GET_FRIENDS);
-}
-
-static const gchar *twitter_option_url_get_home_timeline(PurpleAccount * account)
-{
-    return twitter_api_create_url(account, TWITTER_PREF_URL_GET_HOME_TIMELINE);
-}
-
 static const gchar *twitter_option_url_get_list(PurpleAccount * account, const char *owner)
 {
     gchar          *url = g_strdup_printf("%s%s",
@@ -109,48 +89,6 @@ static const gchar *twitter_option_url_get_list(PurpleAccount * account, const c
     g_free(url);
     return result;
 }
-
-static const gchar *twitter_option_url_get_mentions(PurpleAccount * account)
-{
-    return twitter_api_create_url(account, TWITTER_PREF_URL_GET_MENTIONS);
-}
-
-static const gchar *twitter_option_url_get_dms(PurpleAccount * account)
-{
-    return twitter_api_create_url(account, TWITTER_PREF_URL_GET_DMS);
-}
-
-static const gchar *twitter_option_url_update_status(PurpleAccount * account)
-{
-    return twitter_api_create_url(account, TWITTER_PREF_URL_UPDATE_STATUS);
-}
-
-static const gchar *twitter_option_url_new_dm(PurpleAccount * account)
-{
-    return twitter_api_create_url(account, TWITTER_PREF_URL_NEW_DM);
-}
-
-static const gchar *twitter_option_url_get_saved_searches(PurpleAccount * account)
-{
-    return twitter_api_create_url(account, TWITTER_PREF_URL_GET_SAVED_SEARCHES);
-}
-
-static const gchar *twitter_option_url_get_personal_lists(PurpleAccount * account)
-{
-    return twitter_api_create_url(account, TWITTER_PREF_URL_GET_PERSONAL_LISTS);
-}
-
-static const gchar *twitter_option_url_get_subscribed_lists(PurpleAccount * account)
-{
-    return twitter_api_create_url(account, TWITTER_PREF_URL_GET_SUBSCRIBED_LISTS);
-}
-
-#if 0
-static const gchar *twitter_option_url_verify_credentials(PurpleAccount * account)
-{
-    return twitter_api_create_url(account, TWITTER_PREF_URL_VERIFY_CREDENTIALS);
-}
-#endif
 
 static const gchar *twitter_option_url_rt(PurpleAccount * account, long long id)
 {
@@ -163,47 +101,50 @@ static const gchar *twitter_option_url_rt(PurpleAccount * account, long long id)
     return result;
 }
 
-static const gchar *twitter_option_url_report_spam(PurpleAccount * account)
+static const gchar *twitter_option_url_get_status(TwitterRequestor * r, long long id)
 {
-    return twitter_api_create_url(account, TWITTER_PREF_URL_REPORT_SPAMMER);
-}
-
-static const gchar *twitter_option_url_get_status(PurpleAccount * account, long long id)
-{
-    gchar          *url = g_strdup_printf("%s/%lld.xml",
+	PurpleAccount  *account = r->account;
+    gchar          *url = g_strdup_printf("%s/%lld%s",
                                           TWITTER_PREF_URL_GET_STATUS,
-                                          id);
+                                          id,
+										  r->format->extension);
     const gchar    *result = twitter_api_create_url(account,
                                                     url);
     g_free(url);
     return result;
 }
 
-static const gchar *twitter_option_url_delete_status(PurpleAccount * account, long long id)
+static const gchar *twitter_option_url_delete_status(TwitterRequestor * r, long long id)
 {
-    gchar          *url = g_strdup_printf("%s/%lld.xml",
+	PurpleAccount  *account = r->account;
+    gchar          *url = g_strdup_printf("%s/%lld%s",
                                           TWITTER_PREF_URL_DELETE_STATUS,
-                                          id);
+                                          id,
+										  r->format->extension);
     const gchar    *result = twitter_api_create_url(account, url);
     g_free(url);
     return result;
 }
 
-static const gchar *twitter_option_url_add_favorite(PurpleAccount * account, long long id)
+static const gchar *twitter_option_url_add_favorite(TwitterRequestor * r, long long id)
 {
-    gchar          *url = g_strdup_printf("%s/%lld.xml",
+	PurpleAccount  *account = r->account;
+    gchar          *url = g_strdup_printf("%s/%lld%s",
                                           TWITTER_PREF_URL_ADD_FAVORITE,
-                                          id);
+                                          id,
+										  r->format->extension);
     const gchar    *result = twitter_api_create_url(account, url);
     g_free(url);
     return result;
 }
 
-static const gchar *twitter_option_url_delete_favorite(PurpleAccount * account, long long id)
+static const gchar *twitter_option_url_delete_favorite(TwitterRequestor * r, long long id)
 {
-    gchar          *url = g_strdup_printf("%s/%lld.xml",
+	PurpleAccount  *account = r->account;
+    gchar          *url = g_strdup_printf("%s/%lld%s",
                                           TWITTER_PREF_URL_DELETE_FAVORITE,
-                                          id);
+                                          id,
+										  r->format->extension);
     const gchar    *result = twitter_api_create_url(account, url);
     g_free(url);
     return result;
@@ -305,13 +246,13 @@ void prpltwtr_api_refresh_user(TwitterRequestor * r, const char *username, Twitt
 
     params = twitter_request_params_new();
     twitter_request_params_add(params, twitter_request_param_new("screen_name", username));
-    twitter_send_format_request(r, FALSE, twitter_option_url_get_user_info(r->account), params, success_func, error_func, NULL);
+    twitter_send_format_request(r, FALSE, r->urls->get_user_info, params, success_func, error_func, NULL);
     twitter_request_params_free(params);
 }
 
 void twitter_api_get_rate_limit_status(TwitterRequestor * r, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
 {
-    twitter_send_format_request(r, FALSE, twitter_option_url_get_rate_limit_status(r->account), NULL, success_func, error_func, data);
+    twitter_send_format_request(r, FALSE, r->urls->get_rate_limit_status, NULL, success_func, error_func, data);
 }
 
 void twitter_api_web_open_favorites(PurplePluginAction * action)
@@ -355,7 +296,7 @@ void twitter_api_get_friends(TwitterRequestor * r, TwitterSendRequestMultiPageAl
 
     twitter_request_params_add(params, twitter_request_param_new("screen_name", r->account->username));
 
-    twitter_send_format_request_with_cursor(r, twitter_option_url_get_friends(r->account), params, -1, success_func, error_func, data);
+    twitter_send_format_request_with_cursor(r, r->urls->get_friends, params, -1, success_func, error_func, data);
 
 }
 
@@ -378,7 +319,7 @@ static void twitter_api_send_request_single(TwitterRequestor * r, const gchar * 
 
 void twitter_api_get_home_timeline(TwitterRequestor * r, long long since_id, int count, int page, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
 {
-    twitter_api_send_request_single(r, twitter_option_url_get_home_timeline(r->account), since_id, count, page, success_func, error_func, data);
+    twitter_api_send_request_single(r, r->urls->get_home_timeline, since_id, count, page, success_func, error_func, data);
 }
 
 void twitter_api_get_list(TwitterRequestor * r, const gchar * list_id, const gchar * owner, long long since_id, int count, int page, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
@@ -405,7 +346,7 @@ static void twitter_api_get_all_since(TwitterRequestor * r, const gchar * url, l
 
 void twitter_api_get_home_timeline_all(TwitterRequestor * r, long long since_id, TwitterSendRequestMultiPageAllSuccessFunc success_func, TwitterSendRequestMultiPageAllErrorFunc error_func, gint max_count, gpointer data)
 {
-    twitter_api_get_all_since(r, twitter_option_url_get_home_timeline(r->account), since_id, success_func, error_func, TWITTER_HOME_TIMELINE_PAGE_COUNT, max_count, data);
+    twitter_api_get_all_since(r, r->urls->get_home_timeline, since_id, success_func, error_func, TWITTER_HOME_TIMELINE_PAGE_COUNT, max_count, data);
 }
 
 void twitter_api_get_list_all(TwitterRequestor * r, const gchar * list_id, const gchar * owner, long long since_id, TwitterSendRequestMultiPageAllSuccessFunc success_func, TwitterSendRequestMultiPageAllErrorFunc error_func, gint max_count, gpointer data)
@@ -420,23 +361,23 @@ void twitter_api_get_list_all(TwitterRequestor * r, const gchar * list_id, const
 
 void twitter_api_get_replies(TwitterRequestor * r, long long since_id, int count, int page, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
 {
-    twitter_api_send_request_single(r, twitter_option_url_get_mentions(r->account), since_id, count, page, success_func, error_func, data);
+    twitter_api_send_request_single(r, r->urls->get_mentions, since_id, count, page, success_func, error_func, data);
 }
 
 void twitter_api_get_replies_all(TwitterRequestor * r, long long since_id, TwitterSendRequestMultiPageAllSuccessFunc success_func, TwitterSendRequestMultiPageAllErrorFunc error_func, gint max_count, gpointer data)
 {
-    twitter_api_get_all_since(r, twitter_option_url_get_mentions(r->account), since_id, success_func, error_func, TWITTER_EVERY_REPLIES_COUNT, max_count, data);
+    twitter_api_get_all_since(r, r->urls->get_mentions, since_id, success_func, error_func, TWITTER_EVERY_REPLIES_COUNT, max_count, data);
 }
 
 void twitter_api_get_dms(TwitterRequestor * r, long long since_id, int count, int page, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
 {
 	// DREM
-	//    twitter_api_send_request_single(r, twitter_option_url_get_dms(r->account), since_id, count, page, success_func, error_func, data);
+	//    twitter_api_send_request_single(r, r->urls->get_dms(r->account), since_id, count, page, success_func, error_func, data);
 }
 
 void twitter_api_get_dms_all(TwitterRequestor * r, long long since_id, TwitterSendRequestMultiPageAllSuccessFunc success_func, TwitterSendRequestMultiPageAllErrorFunc error_func, gint max_count, gpointer data)
 {
-    twitter_api_get_all_since(r, twitter_option_url_get_dms(r->account), since_id, success_func, error_func, TWITTER_EVERY_DMS_COUNT, max_count, data);
+    twitter_api_get_all_since(r, r->urls->get_dms, since_id, success_func, error_func, TWITTER_EVERY_DMS_COUNT, max_count, data);
 }
 
 void twitter_api_set_status(TwitterRequestor * r, const char *msg, long long in_reply_to_status_id, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
@@ -448,7 +389,7 @@ void twitter_api_set_status(TwitterRequestor * r, const char *msg, long long in_
     twitter_request_params_add(params, twitter_request_param_new("status", msg));
     if (in_reply_to_status_id)
         twitter_request_params_add(params, twitter_request_param_new_ll("in_reply_to_status_id", in_reply_to_status_id));
-    twitter_send_format_request(r, TRUE, twitter_option_url_update_status(r->account), params, success_func, error_func, data);
+    twitter_send_format_request(r, TRUE, r->urls->update_status, params, success_func, error_func, data);
     twitter_request_params_free(params);
 }
 
@@ -526,7 +467,7 @@ void twitter_api_send_dm(TwitterRequestor * r, const char *user, const char *msg
     params = twitter_request_params_new();
     twitter_request_params_add(params, twitter_request_param_new("text", msg));
     twitter_request_params_add(params, twitter_request_param_new("user", user));
-    twitter_send_format_request(r, TRUE, twitter_option_url_new_dm(r->account), params, success_func, error_func, data);
+    twitter_send_format_request(r, TRUE, r->urls->new_dm, params, success_func, error_func, data);
     twitter_request_params_free(params);
 
 }
@@ -543,7 +484,7 @@ void twitter_api_add_favorite(TwitterRequestor * r, long long id, TwitterSendFor
 {
     g_return_if_fail(id > 0);
 
-    twitter_send_format_request(r, TRUE, twitter_option_url_add_favorite(r->account, id), NULL, success_func, error_func, data);
+    twitter_send_format_request(r, TRUE, twitter_option_url_add_favorite(r, id), NULL, success_func, error_func, data);
 
 }
 
@@ -551,7 +492,7 @@ void twitter_api_delete_favorite(TwitterRequestor * r, long long id, TwitterSend
 {
     g_return_if_fail(id > 0);
 
-    twitter_send_format_request(r, TRUE, twitter_option_url_delete_favorite(r->account, id), NULL, success_func, error_func, data);
+    twitter_send_format_request(r, TRUE, twitter_option_url_delete_favorite(r, id), NULL, success_func, error_func, data);
 
 }
 
@@ -563,7 +504,7 @@ void twitter_api_report_spammer(TwitterRequestor * r, const gchar * user, Twitte
 
     params = twitter_request_params_new();
     twitter_request_params_add(params, twitter_request_param_new("screen_name", user));
-    twitter_send_format_request(r, TRUE, twitter_option_url_report_spam(r->account), params, success_func, error_func, data);
+    twitter_send_format_request(r, TRUE, r->urls->report_spammer, params, success_func, error_func, data);
     twitter_request_params_free(params);
 }
 
@@ -571,14 +512,14 @@ void twitter_api_get_status(TwitterRequestor * r, long long id, TwitterSendForma
 {
     g_return_if_fail(id > 0);
 
-    twitter_send_format_request(r, FALSE, twitter_option_url_get_status(r->account, id), NULL, success_func, error_func, data);
+    twitter_send_format_request(r, FALSE, twitter_option_url_get_status(r, id), NULL, success_func, error_func, data);
 }
 
 void twitter_api_delete_status(TwitterRequestor * r, long long id, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
 {
     g_return_if_fail(id > 0);
 
-    twitter_send_format_request(r, TRUE, twitter_option_url_delete_status(r->account, id), NULL, success_func, error_func, data);
+    twitter_send_format_request(r, TRUE, twitter_option_url_delete_status(r, id), NULL, success_func, error_func, data);
 
 }
 
@@ -645,7 +586,7 @@ void twitter_api_send_dms(TwitterRequestor * r, const gchar * who, GArray * stat
 
 void twitter_api_get_personal_lists(TwitterRequestor * r, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
 {
-    const gchar    *url = twitter_option_url_get_personal_lists(r->account);
+    const gchar    *url = r->urls->get_personal_lists;
     purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
 
     if (url && url[0] != '\0') {
@@ -655,7 +596,7 @@ void twitter_api_get_personal_lists(TwitterRequestor * r, TwitterSendFormatReque
 
 void twitter_api_get_subscribed_lists(TwitterRequestor * r, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
 {
-    const gchar    *url = twitter_option_url_get_subscribed_lists(r->account);
+    const gchar    *url = r->urls->get_subscribed_lists;
     purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
 
     if (url && url[0] != '\0') {
@@ -665,7 +606,7 @@ void twitter_api_get_subscribed_lists(TwitterRequestor * r, TwitterSendFormatReq
 
 void twitter_api_get_saved_searches(TwitterRequestor * r, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
 {
-    const gchar    *url = twitter_option_url_get_saved_searches(r->account);
+    const gchar    *url = r->urls->get_saved_searches;
     purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
 
     if (url && url[0] != '\0') {
