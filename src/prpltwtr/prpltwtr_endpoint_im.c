@@ -12,6 +12,8 @@ static TwitterImType twitter_account_get_default_im_type(PurpleAccount * account
 
 TwitterEndpointIm *twitter_endpoint_im_find(PurpleAccount * account, TwitterImType type)
 {
+    purple_debug_info(purple_account_get_protocol_id(account), "BEGIN: %s\n", G_STRFUNC);
+
     PurpleConnection *gc;
     TwitterConnectionData *twitter;
 
@@ -64,6 +66,8 @@ TwitterEndpointIm *twitter_conv_name_to_endpoint_im(PurpleAccount * account, con
 
 TwitterEndpointIm *twitter_endpoint_im_new(PurpleAccount * account, TwitterEndpointImSettings * settings, gboolean retrieve_history, gint initial_max_retrieve)
 {
+    purple_debug_info(purple_account_get_protocol_id(account), "BEGIN: %s\n", G_STRFUNC);
+
     TwitterEndpointIm *endpoint = g_new0(TwitterEndpointIm, 1);
     endpoint->account = account;
     endpoint->settings = settings;
@@ -83,6 +87,8 @@ void twitter_endpoint_im_free(TwitterEndpointIm * ctx)
 
 static gboolean twitter_endpoint_im_error_cb(TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data)
 {
+    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
+
     TwitterEndpointIm *ctx = (TwitterEndpointIm *) user_data;
     if (ctx->settings->error_cb(r, error_data, NULL)) {
         twitter_endpoint_im_start_timer(ctx);
@@ -92,6 +98,8 @@ static gboolean twitter_endpoint_im_error_cb(TwitterRequestor * r, const Twitter
 
 static void twitter_endpoint_im_success_cb(TwitterRequestor * r, GList * nodes, gpointer user_data)
 {
+    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
+
     TwitterEndpointIm *ctx = (TwitterEndpointIm *) user_data;
     ctx->settings->success_cb(r, nodes, NULL);
     ctx->ran_once = TRUE;

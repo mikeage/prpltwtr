@@ -60,13 +60,17 @@ gpointer prpltwtr_format_json_from_str(const gchar * response, int response_leng
 		g_object_unref (parser);
 		return NULL;
     }
-	
+
 	JsonNode *root = json_parser_get_root(parser);
+    // purple_debug_info("prpltwtr", "%s: isObject %d isArray %d\n", G_STRFUNC, JSON_NODE_TYPE(root) == JSON_NODE_OBJECT, JSON_NODE_TYPE(root) == JSON_NODE_ARRAY);
 	return root;
 }
 
 gchar *prpltwtr_format_json_get_attr(gpointer node, const gchar *attr_name)
 {
+	if (JSON_NODE_TYPE(node) != JSON_NODE_OBJECT)
+		return NULL;
+	
 	return prpltwtr_format_json_get_str(node, attr_name);
 }
 
@@ -85,6 +89,9 @@ gchar *prpltwtr_format_json_get_name(gpointer node)
 
 gpointer prpltwtr_format_json_get_node(gpointer node, const gchar *child_node_name)
 {
+	if (JSON_NODE_TYPE(node) != JSON_NODE_OBJECT)
+		return NULL;
+	
 	JsonObject *node_object = json_node_get_object(node);
 
 	// If we don't have the member, then return a NULL which indicates no error.
@@ -105,6 +112,9 @@ gint prpltwtr_format_json_get_node_child_count(gpointer node)
 
 gchar *prpltwtr_format_json_get_str(gpointer node, const gchar *child_node_name)
 {
+	if (JSON_NODE_TYPE(node) != JSON_NODE_OBJECT)
+		return NULL;
+	
 	JsonObject *node_object = json_node_get_object(node);
 
 	// If we don't have the member, then return a NULL which indicates no error.

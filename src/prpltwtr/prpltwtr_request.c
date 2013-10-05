@@ -510,6 +510,8 @@ void twitter_send_xml_request(TwitterRequestor * r, gboolean post, const char *u
 /// calling the appropriate callback.
 static void twitter_format_request_success_cb(TwitterRequestor * r, const gchar * response, gpointer user_data)
 {
+    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
+
     TwitterSendFormatRequestData *request_data = user_data;
     const gchar *error_message = NULL;
     gchar *error_node_text = NULL;
@@ -518,6 +520,7 @@ static void twitter_format_request_success_cb(TwitterRequestor * r, const gchar 
 	TwitterFormat *format = r->format;
 
     response_node = format->from_str(response, strlen(response));
+
     if (!response_node) {
         purple_debug_error(purple_account_get_protocol_id(r->account), "Response error: invalid format\n");
         error_type = TWITTER_REQUEST_ERROR_INVALID_FORMAT;
@@ -685,6 +688,8 @@ int xmlnode_child_count(xmlnode * parent)
 
 static void twitter_send_xml_request_multipage_cb(TwitterRequestor * r, xmlnode * node, gpointer user_data)
 {
+    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
+
     TwitterMultiPageRequestData *request_data = user_data;
     int             count = 0;
     gboolean        get_next_page;
@@ -749,6 +754,8 @@ void twitter_send_xml_request_multipage_do(TwitterRequestor * r, TwitterMultiPag
 
 static void twitter_send_format_request_multipage_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
+    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
+
     TwitterFormatMultiPageRequestData *request_data = user_data;
     int             count = 0;
     gboolean        get_next_page;
@@ -851,7 +858,7 @@ static gboolean twitter_send_xml_request_multipage_all_success_cb(TwitterRequest
 {
     TwitterMultiPageAllRequestData *request_data_all = user_data;
 
-    purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
+    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
 
     request_data_all->nodes = g_list_prepend(request_data_all->nodes, xmlnode_copy(node));  //TODO: update
     request_data_all->current_count += xmlnode_child_count(node);
@@ -895,9 +902,11 @@ static gboolean twitter_send_format_request_multipage_all_success_cb(TwitterRequ
 {
     TwitterMultiPageAllRequestData *request_data_all = user_data;
 
-    purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
+    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
 
-    request_data_all->nodes = g_list_prepend(request_data_all->nodes, r->format->copy_node(node));  //TODO: update
+	gpointer node_copy = r->format->copy_node(node);
+	
+    request_data_all->nodes = g_list_prepend(request_data_all->nodes, node_copy);  //TODO: update
     request_data_all->current_count += r->format->get_node_child_count(node);
 
     purple_debug_info(purple_account_get_protocol_id(r->account), "%s last_page: %d current_count: %d max_count: %d count: %d\n", G_STRFUNC, last_page ? 1 : 0, request_data_all->current_count, request_data_all->max_count, request_multi->expected_count);
@@ -922,6 +931,8 @@ static gboolean twitter_send_format_request_multipage_all_error_cb(TwitterReques
 
 void twitter_send_format_request_multipage_all(TwitterRequestor * r, const char *url, TwitterRequestParams * params, TwitterSendFormatRequestMultiPageAllSuccessFunc success_callback, TwitterSendRequestMultiPageAllErrorFunc error_callback, int expected_count, gint max_count, gpointer data)
 {
+    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
+
     TwitterFormatMultiPageAllRequestData *request_data_all = g_new0(TwitterFormatMultiPageAllRequestData, 1);
     request_data_all->success_callback = success_callback;
     request_data_all->error_callback = error_callback;
