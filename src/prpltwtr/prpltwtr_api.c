@@ -371,8 +371,7 @@ void twitter_api_get_replies_all(TwitterRequestor * r, long long since_id, Twitt
 
 void twitter_api_get_dms(TwitterRequestor * r, long long since_id, int count, int page, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
 {
-	// DREM
-	//    twitter_api_send_request_single(r, r->urls->get_dms(r->account), since_id, count, page, success_func, error_func, data);
+	twitter_api_send_request_single(r, r->urls->get_dms, since_id, count, page, success_func, error_func, data);
 }
 
 void twitter_api_get_dms_all(TwitterRequestor * r, long long since_id, TwitterSendRequestMultiPageAllSuccessFunc success_func, TwitterSendRequestMultiPageAllErrorFunc error_func, gint max_count, gpointer data)

@@ -42,13 +42,35 @@ gpointer prpltwtr_format_xml_copy_node(gpointer node)
 
 gpointer prpltwtr_format_xml_from_str(const gchar * response, int response_length)
 {
-	purple_debug_info("prpltwtr", "DREM prpltwtr_format_xml_from_str\n");
 	return xmlnode_from_str(response, response_length);
+}
+
+gchar *prpltwtr_format_xml_get_attr(gpointer node, const gchar *attr_name)
+{
+	const gchar *value = xmlnode_get_attrib(node, "rel");
+	return g_strdup(value);
+}
+
+gpointer prpltwtr_format_xml_get_iter_node(gpointer iter)
+{
+	return iter;
+}
+
+gchar *prpltwtr_format_xml_get_name(gpointer node)
+{
+	xmlnode *xml = node;
+	const gchar *name = xml->name;
+	return g_strdup(name);
 }
 
 gpointer prpltwtr_format_xml_get_node(gpointer node, const gchar *child_name)
 {
 	return xmlnode_get_child_data(node, child_name);
+}
+
+gint prpltwtr_format_xml_get_node_child_count(gpointer node)
+{
+	return xmlnode_child_count(node);
 }
 
 gchar *prpltwtr_format_xml_get_str(gpointer node, const gchar *child_name)
@@ -58,9 +80,23 @@ gchar *prpltwtr_format_xml_get_str(gpointer node, const gchar *child_name)
 
 const gchar *prpltwtr_format_xml_node_parse_error(gpointer node)
 {
-	purple_debug_info("prpltwtr", "DREM prpltwtr_format_xml_node_parse_error\n");
 	xmlnode *xml_node = node;
     return xmlnode_get_child_data(xml_node, "error");
+}
+
+gpointer prpltwtr_format_xml_iter_start(gpointer node, const gchar * child_name)
+{
+	return prpltwtr_format_xml_get_node(node, child_name);
+}
+
+gboolean prpltwtr_format_xml_iter_done(gpointer iter)
+{
+	return iter == NULL;
+}
+
+gpointer prpltwtr_format_xml_iter_next(gpointer iter)
+{
+	return xmlnode_get_next_twin(iter);
 }
 
 void prpltwtr_format_xml_setup(TwitterFormat *format)
@@ -70,7 +106,14 @@ void prpltwtr_format_xml_setup(TwitterFormat *format)
 	format->copy_node = prpltwtr_format_xml_copy_node;
 	format->free_node = prpltwtr_format_xml_free_node;
 	format->from_str = prpltwtr_format_xml_from_str;
+	format->get_attr = prpltwtr_format_xml_get_attr;
+	format->get_iter_node = prpltwtr_format_xml_get_iter_node;
+	format->get_name = prpltwtr_format_xml_get_name;
 	format->get_node = prpltwtr_format_xml_get_node;
+	format->get_node_child_count = prpltwtr_format_xml_get_node_child_count;
 	format->get_str = prpltwtr_format_xml_get_str;
+	format->iter_start = prpltwtr_format_xml_iter_start;
+	format->iter_done = prpltwtr_format_xml_iter_done;
+	format->iter_next = prpltwtr_format_xml_iter_next;
 	format->parse_error = prpltwtr_format_xml_node_parse_error;
 }

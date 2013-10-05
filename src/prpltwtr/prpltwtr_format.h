@@ -29,8 +29,11 @@
 
 typedef gpointer (*TwitterFormatNodeFromStringFunc)(const gchar *response, int response_length);
 typedef void (*TwitterFormatFromNodeFunc)(gpointer node);
-typedef const gchar *(*TwitterFormatStringFromNodeFunc)(gpointer node);
+typedef const gchar *(*TwitterFormatConstStringFromNodeFunc)(gpointer node);
+typedef gchar *(*TwitterFormatStringFromNodeFunc)(gpointer node);
 typedef gpointer (*TwitterFormatNodeFromNodeFunc)(gpointer node);
+typedef gboolean (*TwitterFormatBoolFromNodeFunc)(gpointer node);
+typedef gint (*TwitterFormatIntFromNodeFunc)(gpointer node);
 typedef gchar *(*TwitterFormatStringFromChildNodeFunc)(gpointer node, const gchar *child_name);
 typedef gpointer (*TwitterFormatNodeFromChildNodeFunc)(gpointer node, const gchar *child_name);
 
@@ -54,17 +57,46 @@ typedef struct {
 	/// structure.
 	TwitterFormatNodeFromStringFunc from_str;
 
-	/// A function pointer that retrieves a child node (also opaque) from the given
-	/// node for the child_name element.
+	/// A function pointer that retrieves a string from an attribute of the
+	/// given node. The string parameter is the name of the attribute.
+	TwitterFormatStringFromChildNodeFunc get_attr;
+
+	/// A function pointer that retrieves the name of the given node and
+	/// returns it.
+	TwitterFormatStringFromNodeFunc get_name;
+	
+	/// A function pointer that gets a usable node from a given iterator. This
+	/// node can be used with get_str and other functions.
+	TwitterFormatNodeFromNodeFunc get_iter_node;
+
+	/// A function pointer that retrieves a child node (also opaque) from the
+	/// given node for the child_name element.
 	TwitterFormatNodeFromChildNodeFunc get_node;
 	
-	/// A function pointer that retrieves a string from a child node of the given
-	/// node.
+	/// A function pointer that returns the number of child elements
+	/// underneath the given node.
+	TwitterFormatIntFromNodeFunc get_node_child_count;
+	
+	/// A function pointer that retrieves a string from a child node of the
+	/// given node.
 	TwitterFormatStringFromChildNodeFunc get_str;
+
+	/// A function pointer that takes the iterator from `iter_next` or
+	/// `iter_start` and determines if a node (using `get_iter_node`) can be
+	/// retrieved from it.
+	TwitterFormatBoolFromNodeFunc iter_done;
+
+	/// A function pointer that advances an iterator (from `iter_start`) to
+	/// the next node.
+	TwitterFormatNodeFromNodeFunc iter_next;
+
+	/// A function pointer that gets an iterator from a child element of the
+	/// supplied node. The name is the name of the child node.
+	TwitterFormatNodeFromChildNodeFunc iter_start;
 
 	/// A function pointer for a method that takes the opaque node and returns
 	/// the error text inside it.
-	TwitterFormatStringFromNodeFunc parse_error;
+	TwitterFormatConstStringFromNodeFunc parse_error;
 } TwitterFormat;
 
 #endif

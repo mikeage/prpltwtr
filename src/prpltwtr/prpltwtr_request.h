@@ -92,9 +92,13 @@ struct _TwitterRequestor {
 
 void            twitter_requestor_free(TwitterRequestor * requestor);
 
+int xmlnode_child_count(xmlnode * parent);
+
 typedef struct _TwitterMultiPageRequestData TwitterMultiPageRequestData;
+typedef struct _TwitterFormatMultiPageRequestData TwitterFormatMultiPageRequestData;
 
 typedef         gboolean(*TwitterSendRequestMultiPageSuccessFunc) (TwitterRequestor * r, xmlnode * node, gboolean last_page, TwitterMultiPageRequestData * request, gpointer user_data);
+typedef         gboolean(*TwitterSendFormatRequestMultiPageSuccessFunc) (TwitterRequestor * r, gpointer node, gboolean last_page, TwitterFormatMultiPageRequestData * request, gpointer user_data);
 typedef         gboolean(*TwitterSendRequestMultiPageErrorFunc) (TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data);
 
 struct _TwitterMultiPageRequestData {
@@ -108,7 +112,19 @@ struct _TwitterMultiPageRequestData {
     int             expected_count;
 };
 
+struct _TwitterFormatMultiPageRequestData {
+    gpointer        user_data;
+    char           *url;
+    //char *query_string;
+    TwitterRequestParams *params;
+    TwitterSendFormatRequestMultiPageSuccessFunc success_callback;
+    TwitterSendRequestMultiPageErrorFunc error_callback;
+    int             page;
+    int             expected_count;
+};
+
 typedef void    (*TwitterSendRequestMultiPageAllSuccessFunc) (TwitterRequestor * r, GList * nodes, gpointer user_data);
+typedef void    (*TwitterSendFormatRequestMultiPageAllSuccessFunc) (TwitterRequestor * r, GList * nodes, gpointer user_data);
 typedef         gboolean(*TwitterSendRequestMultiPageAllErrorFunc) (TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data);
 
 gpointer        twitter_requestor_send(TwitterRequestor * r, gboolean post, const char *url, TwitterRequestParams * params, char **header_fields, TwitterSendRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback, gpointer data);

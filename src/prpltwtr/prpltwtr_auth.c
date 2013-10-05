@@ -253,7 +253,6 @@ static void account_username_change_verify(PurpleAccount * account, const gchar 
 
 static void verify_credentials_success_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
-	purple_debug_info("prpltwtr", "DREM verify_credentials_success_cb\n");
     PurpleAccount  *account = r->account;
     TwitterUserTweet *user_tweet = twitter_verify_credentials_parse(r, node);
     char          **userparts = g_strsplit(purple_account_get_username(r->account), "@", 2);
@@ -272,7 +271,6 @@ static void verify_credentials_success_cb(TwitterRequestor * r, gpointer node, g
 
 static void verify_credentials_error_cb(TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data)
 {
-	purple_debug_info("prpltwtr", "DREM verify_credentials_error_cb\n");
     gchar          *error = g_strdup_printf(_("Error verifying credentials: %s"), error_data->message ? error_data->message : _("unknown error"));
     switch (error_data->type) {
     case TWITTER_REQUEST_ERROR_SERVER:
