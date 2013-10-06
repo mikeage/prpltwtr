@@ -30,7 +30,9 @@
 
 typedef struct {
 	JsonArray *array;
+	gpointer   node;
 	gint       index;
+	gint       count;
 } _TwitterJsonIter;
 
 gchar *prpltwtr_format_json_get_str(gpointer node, const gchar *child_node_name);
@@ -105,8 +107,7 @@ gchar *prpltwtr_format_json_get_attr(gpointer node, const gchar *attr_name)
 gpointer prpltwtr_format_json_get_iter_node(gpointer iter)
 {
 	_TwitterJsonIter *json_iter = iter;
-	
-	return json_array_get_element(json_iter->array, json_iter->index);
+	return json_iter->node;
 }
 
 gchar *prpltwtr_format_json_get_name(gpointer node)
@@ -180,7 +181,7 @@ gpointer prpltwtr_format_json_iter_start(gpointer node, const gchar * child_name
 	// If we are currently in an array, then we just use it.
 	if (JSON_NODE_TYPE(node) == JSON_NODE_ARRAY)
 	{
-		iter->array = node;
+		iter->array = json_node_get_array(node);
 	}
 	else
 	{
@@ -193,6 +194,18 @@ gpointer prpltwtr_format_json_iter_start(gpointer node, const gchar * child_name
 		JsonNode *child = prpltwtr_format_json_get_node(node, child_name);
 		
 		iter->array = json_node_get_array(child);
+	}
+
+	// Populate the items.
+	iter->count = json_array_get_length(iter->array);
+
+	if (iter->count)
+	{
+		iter->node = json_array_get_element(iter->array, 0);
+	}
+	else
+	{
+		iter->node = NULL;
 	}
 
 	// Return the resulting iterator.
@@ -209,13 +222,14 @@ gpointer prpltwtr_format_json_iter_next(gpointer iter)
 	_TwitterJsonIter *json_iter = iter;
 	json_iter->index++;
 
-	if (json_iter->index >= json_array_get_length(json_iter->array))
+	if (json_iter->index >= json_iter->count)
 	{
 		// Free the item since we've finished with it.
 		g_free(json_iter);
 		return NULL;
 	}
 
+	json_iter->node = json_array_get_element(json_iter->array, json_iter->index);
 	return iter;
 }
 

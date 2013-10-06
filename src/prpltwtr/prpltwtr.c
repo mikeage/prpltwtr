@@ -310,13 +310,13 @@ void get_lists_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 
 void get_saved_searches_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
+	gpointer iter;
     gpointer search;
 
-    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
-
-	search = r->format->iter_start(node, NULL);
+	purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
 	
-    for (; !r->format->iter_done(search); search = r->format->iter_next(search)) {
+    for (iter = r->format->iter_start(node, NULL); !r->format->iter_done(iter); iter = r->format->iter_next(iter)) {
+		search = r->format->get_iter_node(iter);
         if (r->format->get_name(search) && !g_strcmp0(r->format->get_name(search), "saved_search")) {
             gchar          *query = r->format->get_str(search, "query");
 #ifdef _HAZE_

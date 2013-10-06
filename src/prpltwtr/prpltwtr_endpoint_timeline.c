@@ -117,7 +117,7 @@ static void twitter_get_home_timeline_cb(TwitterRequestor * r, gpointer node, gp
     TwitterEndpointChat *endpoint_chat;
     GList          *statuses;
 
-    purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
+    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
 
     g_return_if_fail(chat_id != NULL);
     endpoint_chat = twitter_endpoint_chat_find_by_id(chat_id);
@@ -169,10 +169,10 @@ static gboolean twitter_timeline_timeout(TwitterEndpointChat * endpoint_chat)
     TwitterEndpointChatId *chat_id = NULL;
     long long       since_id = twitter_connection_get_last_home_timeline_id(gc);
 
-    purple_debug_info(purple_account_get_protocol_id(account), "%s() %s\n", G_STRFUNC, account->username);
+    purple_debug_info(purple_account_get_protocol_id(account), "BEGIN: %s %s\n", G_STRFUNC, account->username);
 
     if (endpoint_chat->retrieval_in_progress && endpoint_chat->retrieval_in_progress_timeout <= 0) {
-        purple_debug_warning(purple_account_get_protocol_id(account), "There was a retreival in progress, but it appears dead. Ignoring it\n");
+        purple_debug_warning(purple_account_get_protocol_id(account), "There was a retrieval in progress, but it appears dead. Ignoring it\n");
         endpoint_chat->retrieval_in_progress = FALSE;
     }
 
@@ -188,10 +188,10 @@ static gboolean twitter_timeline_timeout(TwitterEndpointChat * endpoint_chat)
     endpoint_chat->retrieval_in_progress_timeout = 2;
 
     if (since_id == 0) {
-        purple_debug_info(purple_account_get_protocol_id(account), "Retrieving %s statuses for first time\n", gc->account->username);
+        purple_debug_info(purple_account_get_protocol_id(account), "%s: Retrieving %s statuses for first time\n", G_STRFUNC, gc->account->username);
         twitter_api_get_home_timeline(purple_account_get_requestor(account), since_id, TWITTER_HOME_TIMELINE_INITIAL_COUNT, 1, twitter_get_home_timeline_cb, twitter_get_home_timeline_error_cb, chat_id);
     } else {
-        purple_debug_info(purple_account_get_protocol_id(account), "Retrieving %s statuses since %lld\n", gc->account->username, since_id);
+        purple_debug_info(purple_account_get_protocol_id(account), "%s: Retrieving %s statuses since %lld\n", G_STRFUNC, gc->account->username, since_id);
         twitter_api_get_home_timeline_all(purple_account_get_requestor(account), since_id, twitter_get_home_timeline_all_cb, twitter_get_home_timeline_all_error_cb, twitter_option_home_timeline_max_tweets(account), chat_id);
     }
     return TRUE;
