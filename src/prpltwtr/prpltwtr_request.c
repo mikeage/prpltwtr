@@ -27,6 +27,7 @@
 #include <time.h>
 
 #include <glib.h>
+#include <json-glib/json-glib.h>
 
 /* If you're using this as the basis of a prpl that will be distributed
  * separately from libpurple, remove the internal.h include below and replace
@@ -752,7 +753,7 @@ void twitter_send_xml_request_multipage_do(TwitterRequestor * r, TwitterMultiPag
     twitter_request_params_set_size(request_data->params, len);
 }
 
-static void twitter_send_format_request_multipage_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
+void twitter_send_format_request_multipage_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
     purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
 
@@ -902,12 +903,10 @@ static gboolean twitter_send_format_request_multipage_all_success_cb(TwitterRequ
 {
     TwitterMultiPageAllRequestData *request_data_all = user_data;
 
-    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
+    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s: object %d array %d\n", G_STRFUNC, JSON_NODE_TYPE(node) == JSON_NODE_OBJECT, JSON_NODE_TYPE(node) == JSON_NODE_ARRAY);
 
-	gpointer node_copy = r->format->copy_node(node);
-	
-    request_data_all->nodes = g_list_prepend(request_data_all->nodes, node_copy);  //TODO: update
-    request_data_all->current_count += r->format->get_node_child_count(node);
+	request_data_all->nodes = r->format->copy_into(node, request_data_all->nodes);
+    request_data_all->current_count += g_list_length(request_data_all->nodes);
 
     purple_debug_info(purple_account_get_protocol_id(r->account), "%s last_page: %d current_count: %d max_count: %d count: %d\n", G_STRFUNC, last_page ? 1 : 0, request_data_all->current_count, request_data_all->max_count, request_multi->expected_count);
     if (last_page || (request_data_all->max_count > 0 && request_data_all->current_count >= request_data_all->max_count)) {

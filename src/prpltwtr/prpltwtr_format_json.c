@@ -40,8 +40,36 @@ void prpltwtr_format_json_free_node(gpointer node)
 	json_node_free(node);
 }
 
+GList *prpltwtr_format_json_copy_into(gpointer node, GList *list)
+{
+	purple_debug_info("prpltwtr", "BEGIN: %s: is array %d\n", G_STRFUNC, JSON_NODE_TYPE(node) == JSON_NODE_ARRAY);
+
+	if (JSON_NODE_TYPE(node) != JSON_NODE_ARRAY)
+	{
+		purple_debug_info("prpltwtr", "END: %s: incorrect data type\n", G_STRFUNC);
+		return list;
+	}
+
+	JsonArray *array = json_node_get_array(node);
+	int count = json_array_get_length(array);
+	int i;
+
+	purple_debug_info("prpltwtr", "MIDDLE: %s: count %d\n", G_STRFUNC, count);
+
+	for (i = 0; i < count; i++)
+	{
+		JsonNode *child = json_array_get_element(array, i);
+		list = g_list_prepend(list, child);
+	}
+
+	purple_debug_info("prpltwtr", "END: %s\n", G_STRFUNC);
+
+	return list;
+}
+
 gpointer prpltwtr_format_json_copy_node(gpointer node)
 {
+	purple_debug_info("prpltwtr", "BEGIN: %s: node %d\n", G_STRFUNC, JSON_NODE_TYPE(node));
 	JsonNode *copy = json_node_copy(node);
 	return copy;
 }
@@ -106,8 +134,23 @@ gpointer prpltwtr_format_json_get_node(gpointer node, const gchar *child_node_na
 
 gint prpltwtr_format_json_get_node_child_count(gpointer node)
 {
-	JsonObject *node_obj = json_node_get_object(node);
-	return json_object_get_size(node_obj);
+	purple_debug_info("prpltwtr", "BEGIN: %s\n", G_STRFUNC);
+	
+	if (JSON_NODE_TYPE(node) == JSON_NODE_OBJECT)
+	{
+		JsonObject *node_obj = json_node_get_object(node);
+		int count = json_object_get_size(node_obj);
+		purple_debug_info("prpltwtr", "END: %s: object %d\n", G_STRFUNC, count);
+		return count;
+
+	}
+	else
+	{
+		JsonArray *node_array = json_node_get_array(node);
+		int count = json_array_get_length(node_array);
+		purple_debug_info("prpltwtr", "END: %s: array %d\n", G_STRFUNC, count);
+		return count;
+	}
 }
 
 gchar *prpltwtr_format_json_get_str(gpointer node, const gchar *child_node_name)
@@ -185,6 +228,7 @@ void prpltwtr_format_json_setup(TwitterFormat *format)
 {
 	format->extension = ".json";
 
+	format->copy_into = prpltwtr_format_json_copy_into;
 	format->copy_node = prpltwtr_format_json_copy_node;
 	format->free_node = prpltwtr_format_json_free_node;
 	format->from_str = prpltwtr_format_json_from_str;

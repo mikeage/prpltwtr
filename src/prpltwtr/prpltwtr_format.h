@@ -36,6 +36,7 @@ typedef gboolean (*TwitterFormatBoolFromNodeFunc)(gpointer node);
 typedef gint (*TwitterFormatIntFromNodeFunc)(gpointer node);
 typedef gchar *(*TwitterFormatStringFromChildNodeFunc)(gpointer node, const gchar *child_name);
 typedef gpointer (*TwitterFormatNodeFromChildNodeFunc)(gpointer node, const gchar *child_name);
+typedef GList *(*TwitterFormatListFromChildNodeListFunc)(gpointer node, GList *list);
 
 /// Contains function pointers for reading the output from the social network
 /// and converting them into internal structures used by the plugin.
@@ -44,6 +45,10 @@ typedef struct {
 	/// needs to include the "." if required (e.g., ".json" or ".xml").
 	const gchar *extension;
 
+	/// A function pointer that copies the contents of a node into the given
+	/// list. This returns the resulting populated list.
+	TwitterFormatListFromChildNodeListFunc copy_into;
+	
 	/// A function pointer that copies a given node and returns an identical,
 	/// deep copy. This copy needs to be released.
 	TwitterFormatNodeFromNodeFunc copy_node;

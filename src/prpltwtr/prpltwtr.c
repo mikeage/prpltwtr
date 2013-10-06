@@ -263,7 +263,7 @@ char           *twitter_chat_get_name(GHashTable * components)
     return NULL;
 }
 
-static void get_lists_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
+void get_lists_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
 	gpointer list;
 	
@@ -308,7 +308,7 @@ static void get_lists_cb(TwitterRequestor * r, gpointer node, gpointer user_data
 	}
 }
 
-static void get_saved_searches_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
+void get_saved_searches_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
     gpointer search;
 
