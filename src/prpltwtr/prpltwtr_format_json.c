@@ -130,10 +130,29 @@ gchar *prpltwtr_format_json_get_str(gpointer node, const gchar *child_node_name)
 
 gpointer prpltwtr_format_json_iter_start(gpointer node, const gchar * child_name)
 {
-	JsonNode *child = prpltwtr_format_json_get_node(node, child_name);
+	// Initialize the
 	_TwitterJsonIter *iter = g_new0(_TwitterJsonIter, 1);
-	iter->array = json_node_get_array(child);
 	iter->index = 0;
+
+	// If we are currently in an array, then we just use it.
+	if (JSON_NODE_TYPE(node) == JSON_NODE_ARRAY)
+	{
+		iter->array = node;
+	}
+	else
+	{
+		if (child_name == NULL)
+		{
+			purple_debug_info("prpltwtr", "ERROR: %s: Node is not an array and name is not provided", G_STRFUNC);
+			return NULL;
+		}
+		
+		JsonNode *child = prpltwtr_format_json_get_node(node, child_name);
+		
+		iter->array = json_node_get_array(child);
+	}
+
+	// Return the resulting iterator.
 	return iter;
 }
 

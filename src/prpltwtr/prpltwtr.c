@@ -109,8 +109,7 @@ static PurpleChat *twitter_blist_chat_timeline_new(PurpleAccount * account, gint
     return c;
 }
 
-#if 0
-static PurpleChat *twitter_blist_chat_list_new(PurpleAccount * account, const char *list_name, const char *owner, long long list_id)
+PurpleChat *twitter_blist_chat_list_new(PurpleAccount * account, const char *list_name, const char *owner, long long list_id)
 {
     PurpleGroup    *g;
     PurpleChat     *c = twitter_blist_chat_find_list(account, list_name);
@@ -142,10 +141,8 @@ static PurpleChat *twitter_blist_chat_list_new(PurpleAccount * account, const ch
     return c;
 }
 #endif
-#endif
 
-#if 0
-static PurpleChat *twitter_blist_chat_search_new(PurpleAccount * account, const char *searchtext)
+PurpleChat *twitter_blist_chat_search_new(PurpleAccount * account, const char *searchtext)
 {
     PurpleGroup    *g;
     PurpleChat     *c = twitter_blist_chat_find_search(account, searchtext);
@@ -168,7 +165,6 @@ static PurpleChat *twitter_blist_chat_search_new(PurpleAccount * account, const 
 
     return c;
 }
-#endif
 
 static void verify_connection_error_handler(PurpleAccount * account, const TwitterRequestErrorData * error_data)
 {
@@ -269,59 +265,59 @@ char           *twitter_chat_get_name(GHashTable * components)
 
 static void get_lists_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
-	// DREM
-/*     xmlnode        *list; */
-
-/*     purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC); */
-/*     if (!node) */
-/*         return; */
-
-/*     list = xmlnode_get_child(node, "lists"); */
-
-/*     if (!list) { */
-/*         return; */
-/*     } */
-
-/*     for (list = list->child; list; list = list->next) { */
-/*         if (list->name && !g_strcmp0(list->name, "list")) { */
-/*             long long       id; */
-/*             gchar          *owner = NULL; */
-/*             gchar          *id_str = xmlnode_get_child_data(list, "id"); */
-/*             gchar          *name = xmlnode_get_child_data(list, "full_name"); */
-/*             xmlnode        *user = xmlnode_get_child(list, "user"); */
-/*             if (user) { */
-/*                 owner = xmlnode_get_child_data(user, "screen_name"); */
-/*             } */
-
-/*             if (id_str) { */
-/*                 id = strtoll(id_str, NULL, 10); */
-/*             } else { */
-/*                 id = 0; */
-/*                 purple_debug_warning(purple_account_get_protocol_id(r->account), "error with xmlnode. name = 0x%p, id_str=0x%p\n", name, id_str); */
-/*             } */
-/* #ifdef _HAZE_ */
-/*             /\* TODO *\/ */
-/* #else */
-/*             purple_debug_info(purple_account_get_protocol_id(r->account), "List found: name %s, id %lld\n", name, id); */
-/*             twitter_blist_chat_list_new(r->account, name, owner, id); */
-/* #endif */
-
-/*             g_free(id_str); */
-/*             g_free(name); */
-/*             g_free(owner); */
-/*         } */
-/*     } */
+	gpointer list;
+	
+	purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
+	if (!node)
+		return;
+	
+	list = r->format->iter_start(node, "lists");
+	
+	if (!list) {
+		return;
+	}
+	
+	for (; !r->format->iter_done(list); list = r->format->iter_next(list)) {
+		if (r->format->get_name(list) && !g_strcmp0(r->format->get_name(list), "list")) {
+			long long       id;
+			gchar          *owner = NULL;
+			gchar          *id_str = r->format->get_str(list, "id");
+			gchar          *name = r->format->get_str(list, "full_name");
+			gpointer        user = r->format->get_node(list, "user");
+			if (user) {
+				owner = r->format->get_str(user, "screen_name");
+			}
+			
+			if (id_str) {
+				id = strtoll(id_str, NULL, 10);
+			} else {
+				id = 0;
+				purple_debug_warning(purple_account_get_protocol_id(r->account), "error with xmlnode. name = 0x%p, id_str=0x%p\n", name, id_str);
+			}
+#ifdef _HAZE_
+			// TODO
+#else
+			purple_debug_info(purple_account_get_protocol_id(r->account), "List found: name %s, id %lld\n", name, id);
+			twitter_blist_chat_list_new(r->account, name, owner, id);
+#endif
+			
+			g_free(id_str);
+			g_free(name);
+			g_free(owner);
+		}
+	}
 }
 
 static void get_saved_searches_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
-	/* DREM
-    xmlnode        *search;
+    gpointer search;
 
-    purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
+    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
 
-    for (search = node->child; search; search = search->next) {
-        if (search->name && !g_strcmp0(search->name, "saved_search")) {
+	search = r->format->iter_start(node, NULL);
+	
+    for (; !r->format->iter_done(search); search = r->format->iter_next(search)) {
+        if (r->format->get_name(search) && !g_strcmp0(r->format->get_name(search), "saved_search")) {
             gchar          *query = r->format->get_str(search, "query");
 #ifdef _HAZE_
             char           *buddy_name = g_strdup_printf("#%s", query);
@@ -335,7 +331,6 @@ static void get_saved_searches_cb(TwitterRequestor * r, gpointer node, gpointer 
             g_free(query);
         }
     }
-	*/
 }
 
 void twitter_chat_leave(PurpleConnection * gc, int id)
@@ -500,10 +495,12 @@ static void twitter_connected(PurpleAccount * account)
     /* Status.net doesn't support lists or saved searches */
     if (!strcmp(purple_account_get_protocol_id(account), TWITTER_PROTOCOL_ID)) {
         /* Retrieve user's saved search queries */
+		/* DREM
         twitter_api_get_saved_searches(purple_account_get_requestor(account), get_saved_searches_cb, NULL, NULL);
 
         twitter_api_get_personal_lists(purple_account_get_requestor(account), get_lists_cb, NULL, NULL);
         twitter_api_get_subscribed_lists(purple_account_get_requestor(account), get_lists_cb, NULL, NULL);
+		*/
     }
 
     /* Install periodic timers to retrieve replies and dms */
@@ -546,19 +543,21 @@ static void twitter_get_rate_limit_status_cb(TwitterRequestor * r, gpointer node
      * </hash>
      */
 
-	/* DREM
-    xmlnode        *child;
+    gpointer        child;
     int             remaining_hits = 0;
     int             hourly_limit = 0;
     char           *message;
-    for (child = node->child; child; child = child->next) {
-        if (child->name) {
-            if (!strcmp(child->name, "remaining-hits")) {
-                char           *data = xmlnode_get_data_unescaped(child);
+
+	child = r->format->iter_start(node, NULL);
+	
+    for (; !r->format->iter_done(node); child = r->format->iter_next(child)) {
+        if (r->format->get_name(child)) {
+            if (!strcmp(r->format->get_name(child), "remaining-hits")) {
+                char           *data = r->format->get_str(child, "remaining-hits"); // TODO unescaped?
                 remaining_hits = atoi(data);
                 g_free(data);
-            } else if (!strcmp(child->name, "hourly-limit")) {
-                char           *data = xmlnode_get_data_unescaped(child);
+            } else if (!strcmp(r->format->get_name(child), "hourly-limit")) {
+                char           *data = r->format->get_str(child, "hourly-limit");
                 hourly_limit = atoi(data);
                 g_free(data);
             }
@@ -568,7 +567,6 @@ static void twitter_get_rate_limit_status_cb(TwitterRequestor * r, gpointer node
     purple_notify_info(NULL,                     // plugin handle or PurpleConnection
                        _("Rate Limit Status"), _("Rate Limit Status"), (message));
     g_free(message);
-    */
 }
 
 /*

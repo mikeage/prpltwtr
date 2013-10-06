@@ -493,11 +493,10 @@ TwitterEndpointChat *twitter_endpoint_chat_find(PurpleAccount * account, const c
     }
 }
 
-static void twitter_endpoint_chat_send_success_cb(PurpleAccount * account, xmlnode * node, gboolean last, gpointer _ctx_id)
+static void twitter_endpoint_chat_send_success_cb(PurpleAccount * account, gpointer node, gboolean last, gpointer _ctx_id)
 {
     TwitterEndpointChatId *id = _ctx_id;
-	// DREM Need to fix this.
-    TwitterUserTweet *user_tweet = twitter_update_status_node_parse(NULL, node);
+    TwitterUserTweet *user_tweet = twitter_update_status_node_parse(purple_account_get_requestor(account), node);
     TwitterTweet   *tweet = user_tweet ? user_tweet->status : NULL;
     TwitterEndpointChat *ctx = twitter_endpoint_chat_find_by_id(id);
 
