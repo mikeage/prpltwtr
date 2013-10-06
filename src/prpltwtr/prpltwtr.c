@@ -495,12 +495,10 @@ static void twitter_connected(PurpleAccount * account)
     /* Status.net doesn't support lists or saved searches */
     if (!strcmp(purple_account_get_protocol_id(account), TWITTER_PROTOCOL_ID)) {
         /* Retrieve user's saved search queries */
-		/* DREM
         twitter_api_get_saved_searches(purple_account_get_requestor(account), get_saved_searches_cb, NULL, NULL);
 
         twitter_api_get_personal_lists(purple_account_get_requestor(account), get_lists_cb, NULL, NULL);
         twitter_api_get_subscribed_lists(purple_account_get_requestor(account), get_lists_cb, NULL, NULL);
-		*/
     }
 
     /* Install periodic timers to retrieve replies and dms */

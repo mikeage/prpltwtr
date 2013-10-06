@@ -422,9 +422,8 @@ GList          *twitter_dms_nodes_parse(TwitterRequestor * r, GList * nodes)
 GList          *twitter_users_node_parse(TwitterRequestor * r, gpointer users_node)
 {
 	GList          *users = NULL;
-
 	/* DREM
-	xmlnode        *user_node;
+	gpointer        user_node;
 	for (user_node = users_node->child; user_node; user_node = user_node->next) {
 		if (user_node->name && !strcmp(user_node->name, "user")) {
 			TwitterUserData *user = twitter_user_node_parse(user_node);
@@ -463,32 +462,32 @@ GList          *twitter_users_ids_nodes_parse(TwitterRequestor * r, GList * node
 GList          *twitter_users_nodes_parse(TwitterRequestor * r, GList * nodes)
 {
 	GList          *l_users_data = NULL;
-	/* DREM
 	GList          *l;
+
 	for (l = nodes; l; l = l->next) {
-		xmlnode        *node = l->data;
-		l_users_data = g_list_concat(twitter_users_node_parse(node), l_users_data);
+		gpointer node = l->data;
+		l_users_data = g_list_append(l_users_data, twitter_users_node_parse(r, node));
 	}
-	*/
+
 	return l_users_data;
 }
 
 GList          *twitter_statuses_node_parse(TwitterRequestor * r, gpointer statuses_node)
 {
 	GList          *statuses = NULL;
-	/* DREM
-	xmlnode        *status_node;
-
-	for (status_node = statuses_node->child; status_node; status_node = status_node->next) {
-		if (status_node->name && !strcmp(status_node->name, "status")) {
-			TwitterUserData *user = twitter_user_node_parse(xmlnode_get_child(status_node, "user"));
-			TwitterTweet   *tweet = twitter_dm_node_parse(status_node);
+	gpointer        status_node;
+	gpointer        iter;
+	
+	for (iter = r->format->iter_start(statuses_node, NULL); !r->format->iter_done(iter); iter = r->format->iter_next(iter)) {
+		status_node = r->format->get_iter_node(iter);
+		if (r->format->get_name(status_node) && !strcmp(r->format->get_name(status_node), "status")) {
+			TwitterUserData *user = twitter_user_node_parse(r, r->format->get_node(status_node, "user"));
+			TwitterTweet   *tweet = twitter_dm_node_parse(r, status_node);
 			TwitterUserTweet *data = twitter_user_tweet_new(user->screen_name, user->profile_image_url, user, tweet);
 
 			statuses = g_list_prepend(statuses, data);
 		}
 	}
-	*/
 
 	return statuses;
 }
