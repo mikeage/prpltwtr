@@ -317,7 +317,7 @@ void get_saved_searches_cb(TwitterRequestor * r, gpointer node, gpointer user_da
 	
     for (iter = r->format->iter_start(node, NULL); !r->format->iter_done(iter); iter = r->format->iter_next(iter)) {
 		search = r->format->get_iter_node(iter);
-        if (r->format->get_name(search) && !g_strcmp0(r->format->get_name(search), "saved_search")) {
+        if (r->format->is_name(search, "saved_search")) {
             gchar          *query = r->format->get_str(search, "query");
 #ifdef _HAZE_
             char           *buddy_name = g_strdup_printf("#%s", query);
@@ -541,6 +541,7 @@ static void twitter_get_rate_limit_status_cb(TwitterRequestor * r, gpointer node
      * </hash>
      */
 
+	/*
     gpointer        child;
     int             remaining_hits = 0;
     int             hourly_limit = 0;
@@ -550,7 +551,7 @@ static void twitter_get_rate_limit_status_cb(TwitterRequestor * r, gpointer node
 	
     for (; !r->format->iter_done(node); child = r->format->iter_next(child)) {
         if (r->format->get_name(child)) {
-            if (!strcmp(r->format->get_name(child), "remaining-hits")) {
+            if (r->format->is_name(child, "remaining-hits")) {
                 char           *data = r->format->get_str(child, "remaining-hits"); // TODO unescaped?
                 remaining_hits = atoi(data);
                 g_free(data);
@@ -565,6 +566,7 @@ static void twitter_get_rate_limit_status_cb(TwitterRequestor * r, gpointer node
     purple_notify_info(NULL,                     // plugin handle or PurpleConnection
                        _("Rate Limit Status"), _("Rate Limit Status"), (message));
     g_free(message);
+	*/
 }
 
 /*

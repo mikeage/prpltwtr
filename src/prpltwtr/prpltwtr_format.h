@@ -33,6 +33,7 @@ typedef const gchar *(*TwitterFormatConstStringFromNodeFunc)(gpointer node);
 typedef gchar *(*TwitterFormatStringFromNodeFunc)(gpointer node);
 typedef gpointer (*TwitterFormatNodeFromNodeFunc)(gpointer node);
 typedef gboolean (*TwitterFormatBoolFromNodeFunc)(gpointer node);
+typedef gboolean (*TwitterFormatBoolFromNodeStringFunc)(gpointer node, const gchar *child_name);
 typedef gint (*TwitterFormatIntFromNodeFunc)(gpointer node);
 typedef gchar *(*TwitterFormatStringFromChildNodeFunc)(gpointer node, const gchar *child_name);
 typedef gpointer (*TwitterFormatNodeFromChildNodeFunc)(gpointer node, const gchar *child_name);
@@ -86,6 +87,10 @@ typedef struct {
 	/// given node.
 	TwitterFormatStringFromChildNodeFunc get_str;
 
+	/// A function pointer that takes a node and string and determines if the
+	/// node matches.
+	TwitterFormatBoolFromNodeStringFunc is_name;
+	
 	/// A function pointer that takes the iterator from `iter_next` or
 	/// `iter_start` and determines if a node (using `get_iter_node`) can be
 	/// retrieved from it.

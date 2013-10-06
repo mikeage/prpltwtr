@@ -84,6 +84,11 @@ const gchar *prpltwtr_format_xml_node_parse_error(gpointer node)
     return xmlnode_get_child_data(xml_node, "error");
 }
 
+gboolean prpltwtr_format_xml_is_name(gpointer node, const gchar *child_name)
+{
+	return prpltwtr_format_xml_get_name(node) && !strcmp(prpltwtr_format_xml_get_name(node), child_name);
+}
+
 gpointer prpltwtr_format_xml_iter_start(gpointer node, const gchar * child_name)
 {
 	return prpltwtr_format_xml_get_node(node, child_name);
@@ -112,6 +117,7 @@ void prpltwtr_format_xml_setup(TwitterFormat *format)
 	format->get_node = prpltwtr_format_xml_get_node;
 	format->get_node_child_count = prpltwtr_format_xml_get_node_child_count;
 	format->get_str = prpltwtr_format_xml_get_str;
+	format->is_name = prpltwtr_format_xml_is_name;
 	format->iter_start = prpltwtr_format_xml_iter_start;
 	format->iter_done = prpltwtr_format_xml_iter_done;
 	format->iter_next = prpltwtr_format_xml_iter_next;

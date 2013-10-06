@@ -172,6 +172,11 @@ gchar *prpltwtr_format_json_get_str(gpointer node, const gchar *child_node_name)
 	return child_value;
 }
 
+gboolean prpltwtr_format_json_is_name(gpointer node, const gchar *child_name)
+{
+	return TRUE;
+}
+
 gpointer prpltwtr_format_json_iter_start(gpointer node, const gchar * child_name)
 {
 	// Initialize the
@@ -252,6 +257,7 @@ void prpltwtr_format_json_setup(TwitterFormat *format)
 	format->get_node = prpltwtr_format_json_get_node;
 	format->get_node_child_count = prpltwtr_format_json_get_node_child_count;
 	format->get_str = prpltwtr_format_json_get_str;
+	format->is_name = prpltwtr_format_json_is_name;
 	format->iter_start = prpltwtr_format_json_iter_start;
 	format->iter_done = prpltwtr_format_json_iter_done;
 	format->iter_next = prpltwtr_format_json_iter_next;

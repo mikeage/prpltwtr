@@ -104,7 +104,7 @@ static const gchar *twitter_search_entry_get_icon_url(TwitterRequestor *r, gpoin
 
 TwitterUserTweet *twitter_search_entry_node_parse(TwitterRequestor * r, gpointer entry_node)
 {
-	if (entry_node != NULL && r->format->get_name(entry_node) && !strcmp(r->format->get_name(entry_node), "entry")) {
+	if (entry_node != NULL && r->format->is_name(entry_node, "entry")) {
 		TwitterUserTweet *entry;
 		TwitterTweet   *tweet = g_new0(TwitterTweet, 1);
 		gchar          *id_str = r->format->get_str(entry_node, "id");
@@ -480,7 +480,7 @@ GList          *twitter_statuses_node_parse(TwitterRequestor * r, gpointer statu
 	
 	for (iter = r->format->iter_start(statuses_node, NULL); !r->format->iter_done(iter); iter = r->format->iter_next(iter)) {
 		status_node = r->format->get_iter_node(iter);
-		if (r->format->get_name(status_node) && !strcmp(r->format->get_name(status_node), "status")) {
+		if (r->format->is_name(status_node, "status")) {
 			TwitterUserData *user = twitter_user_node_parse(r, r->format->get_node(status_node, "user"));
 			TwitterTweet   *tweet = twitter_dm_node_parse(r, status_node);
 			TwitterUserTweet *data = twitter_user_tweet_new(user->screen_name, user->profile_image_url, user, tweet);
