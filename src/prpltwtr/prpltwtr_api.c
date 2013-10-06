@@ -302,6 +302,8 @@ void twitter_api_get_friends(TwitterRequestor * r, TwitterSendRequestMultiPageAl
 
 static void twitter_api_send_request_single(TwitterRequestor * r, const gchar * url, long long since_id, int count, int page, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
 {
+    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s: url %s\n", G_STRFUNC, url);
+
     TwitterRequestParams *params = twitter_request_params_new();
     twitter_request_params_add(params, twitter_request_param_new_int("count", count));
     /* Timelines use count. Lists use per_page. But twitter seems to accept both w/o complaining */
