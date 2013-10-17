@@ -317,19 +317,25 @@ void get_saved_searches_cb(TwitterRequestor * r, gpointer node, gpointer user_da
 	
     for (iter = r->format->iter_start(node, NULL); !r->format->iter_done(iter); iter = r->format->iter_next(iter)) {
 		search = r->format->get_iter_node(iter);
+		purple_debug_info(purple_account_get_protocol_id(r->account), "%s: Found item: %p\n", G_STRFUNC, search);
         if (r->format->is_name(search, "saved_search")) {
             gchar          *query = r->format->get_str(search, "query");
-#ifdef _HAZE_
-            char           *buddy_name = g_strdup_printf("#%s", query);
 
-            twitter_buddy_new(r->account, buddy_name, NULL);
-            purple_prpl_got_user_status(r->account, buddy_name, TWITTER_STATUS_ONLINE, NULL);
-            g_free(buddy_name);
+			if (query != NULL)
+			{
+#ifdef _HAZE_
+				char           *buddy_name = g_strdup_printf("#%s", query);
+				
+				twitter_buddy_new(r->account, buddy_name, NULL);
+				purple_prpl_got_user_status(r->account, buddy_name, TWITTER_STATUS_ONLINE, NULL);
+				g_free(buddy_name);
 #else
-            twitter_blist_chat_search_new(r->account, query);
+				purple_debug_info(purple_account_get_protocol_id(r->account), "%s: Calling twitter_blist_chat_search_new: %s\n", G_STRFUNC, query);
+				twitter_blist_chat_search_new(r->account, query);
 #endif
-            g_free(query);
-        }
+				g_free(query);
+			}
+		}
     }
 }
 

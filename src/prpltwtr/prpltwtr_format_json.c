@@ -168,6 +168,12 @@ gchar *prpltwtr_format_json_get_str(gpointer node, const gchar *child_node_name)
 	}
 	
 	const gchar *const_value = json_object_get_string_member(node_object, child_node_name);
+
+	if (!g_strcmp0(const_value, "(null)"))
+	{
+		return NULL;
+	}
+	
 	gchar *child_value = g_strdup(const_value);
 	return child_value;
 }
@@ -192,7 +198,7 @@ gpointer prpltwtr_format_json_iter_start(gpointer node, const gchar * child_name
 	{
 		if (child_name == NULL)
 		{
-			purple_debug_info("prpltwtr", "ERROR: %s: Node is not an array and name is not provided", G_STRFUNC);
+			purple_debug_info("prpltwtr", "ERROR: %s: Node is not an array and name is not provided\n", G_STRFUNC);
 			return NULL;
 		}
 		
@@ -210,7 +216,7 @@ gpointer prpltwtr_format_json_iter_start(gpointer node, const gchar * child_name
 	}
 	else
 	{
-		iter->node = NULL;
+		iter->node = NULL;	
 	}
 
 	// Return the resulting iterator.
