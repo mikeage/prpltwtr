@@ -83,6 +83,7 @@ static void twitter_get_home_timeline_parse_statuses(TwitterEndpointChat * endpo
         }
         twitter_connection_set_last_home_timeline_id(gc, user_tweet->status->id);
     }
+
     twitter_chat_got_user_tweets(endpoint_chat, statuses);
 }
 

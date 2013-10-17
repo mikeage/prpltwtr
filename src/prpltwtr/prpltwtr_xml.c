@@ -224,15 +224,17 @@ TwitterUserData *twitter_user_node_parse(TwitterRequestor * r, gpointer user_nod
 	}
 
 	user->name = format->get_str(user_node, "name");
-
-	purple_debug_info("prpltwtr/user_node_parse", "Loading user: %s (%s)\n", user->screen_name, user->name);
-
 	user->profile_image_url = format->get_str(user_node, "profile_image_url");
-	id_str = format->get_str(user_node, "id");
+
+	id_str = format->get_str(user_node, "id_str"); // Need a generic way of handling this.
+	
 	if (id_str) {
 		user->id = strtoll(id_str, NULL, 10);
 		g_free(id_str);
 	}
+
+	purple_debug_info("prpltwtr/user_node_parse", "Loading user: %s (%s, %lld)\n", user->screen_name, user->name, user->id);
+
 	user->statuses_count = format->get_str(user_node, "statuses_count");
 	user->friends_count = format->get_str(user_node, "friends_count");
 	user->followers_count = format->get_str(user_node, "followers_count");
