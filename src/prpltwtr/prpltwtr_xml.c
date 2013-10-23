@@ -1,4 +1,7 @@
+#include <json-glib/json-glib.h>
+
 #include "prpltwtr_xml.h"
+
 //TODO move back
 gchar          *xmlnode_get_child_data(const xmlnode * node, const char *name)
 {
@@ -479,17 +482,36 @@ GList          *twitter_statuses_node_parse(TwitterRequestor * r, gpointer statu
 	GList          *statuses = NULL;
 	gpointer        status_node;
 	gpointer        iter;
-	
-	for (iter = r->format->iter_start(statuses_node, NULL); !r->format->iter_done(iter); iter = r->format->iter_next(iter)) {
-		status_node = r->format->get_iter_node(iter);
-		if (r->format->is_name(status_node, "status")) {
-			TwitterUserData *user = twitter_user_node_parse(r, r->format->get_node(status_node, "user"));
-			TwitterTweet   *tweet = twitter_dm_node_parse(r, status_node);
-			TwitterUserTweet *data = twitter_user_tweet_new(user->screen_name, user->profile_image_url, user, tweet);
 
-			statuses = g_list_prepend(statuses, data);
+	purple_debug_info("prpltwtr", "%s: BEGIN array %d object %d value %d\n", G_STRFUNC, JSON_NODE_TYPE(statuses_node) == JSON_NODE_ARRAY, JSON_NODE_TYPE(statuses_node) == JSON_NODE_OBJECT, JSON_NODE_TYPE(statuses_node) == JSON_NODE_VALUE);
+
+	if (JSON_NODE_TYPE(statuses_node) == JSON_NODE_ARRAY) {
+		for (iter = r->format->iter_start(statuses_node, NULL); !r->format->iter_done(iter); iter = r->format->iter_next(iter)) {
+			status_node = r->format->get_iter_node(iter);
+			
+			if (status_node != NULL) {
+				if (r->format->is_name(status_node, "status")) {
+					TwitterUserData *user = twitter_user_node_parse(r, r->format->get_node(status_node, "user"));
+					TwitterTweet   *tweet = twitter_dm_node_parse(r, status_node);
+					TwitterUserTweet *data = twitter_user_tweet_new(user->screen_name, user->profile_image_url, user, tweet);
+					
+					statuses = g_list_prepend(statuses, data);
+				}
+			}
 		}
 	}
+	else if (JSON_NODE_TYPE(statuses_node) == JSON_NODE_OBJECT)
+	{
+		// DREM Utter violation of the format.
+		TwitterUserData *user = twitter_user_node_parse(r, r->format->get_node(statuses_node, "user"));
+		TwitterTweet   *tweet = twitter_dm_node_parse(r, statuses_node);
+		TwitterUserTweet *data = twitter_user_tweet_new(user->screen_name, user->profile_image_url, user, tweet);
+
+		purple_debug_info("prpltwtr", "%s: object: %s\n", G_STRFUNC, tweet->text);
+		statuses = g_list_prepend(statuses, data);
+	}
+	
+	purple_debug_info("prpltwtr", "%s: END\n", G_STRFUNC);
 
 	return statuses;
 }
@@ -499,8 +521,18 @@ GList          *twitter_statuses_nodes_parse(TwitterRequestor * r, GList * nodes
 	GList          *l_users_data = NULL;
 	GList          *l;
 	for (l = nodes; l; l = l->next) {
-		xmlnode        *node = l->data;
-		l_users_data = g_list_concat(l_users_data, twitter_statuses_node_parse(r, node));
+		gpointer node = l->data;
+		gpointer user = twitter_statuses_node_parse(r, node);
+
+		if (user != NULL)
+		{
+			l_users_data = g_list_concat(l_users_data, user);
+		}
+		else
+		{
+			// DREM
+			purple_debug_info("prpltwtr", "%s: Got a NULL user from node\n", G_STRFUNC);
+		}
 	}
 	return l_users_data;
 }

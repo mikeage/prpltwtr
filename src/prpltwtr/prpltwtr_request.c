@@ -845,11 +845,11 @@ static void twitter_send_format_request_multipage(TwitterRequestor * r, const ch
     twitter_send_format_request_multipage_do(r, request_data);
 }
 
-static void twitter_multipage_all_request_data_free(TwitterMultiPageAllRequestData * request_data_all)
+static void twitter_multipage_all_request_data_free(TwitterRequestor * r, TwitterMultiPageAllRequestData * request_data_all)
 {
     GList          *l = request_data_all->nodes;
     for (l = request_data_all->nodes; l; l = l->next) {
-        xmlnode_free(l->data);
+        r->format->free_node(l->data);
     }
     g_list_free(request_data_all->nodes);
     g_free(request_data_all);
@@ -867,7 +867,7 @@ static gboolean twitter_send_xml_request_multipage_all_success_cb(TwitterRequest
     purple_debug_info(purple_account_get_protocol_id(r->account), "%s last_page: %d current_count: %d max_count: %d count: %d\n", G_STRFUNC, last_page ? 1 : 0, request_data_all->current_count, request_data_all->max_count, request_multi->expected_count);
     if (last_page || (request_data_all->max_count > 0 && request_data_all->current_count >= request_data_all->max_count)) {
         request_data_all->success_callback(r, request_data_all->nodes, request_data_all->user_data);
-        twitter_multipage_all_request_data_free(request_data_all);
+        twitter_multipage_all_request_data_free(r, request_data_all);
         return FALSE;
     } else if (request_data_all->max_count > 0 && (request_data_all->current_count + request_multi->expected_count > request_data_all->max_count)) {
         request_multi->expected_count = request_data_all->max_count - request_data_all->current_count;
@@ -880,7 +880,7 @@ static gboolean twitter_send_xml_request_multipage_all_error_cb(TwitterRequestor
     TwitterMultiPageAllRequestData *request_data_all = user_data;
     if (request_data_all->error_callback && request_data_all->error_callback(r, error_data, request_data_all->user_data))
         return TRUE;
-    twitter_multipage_all_request_data_free(request_data_all);
+    twitter_multipage_all_request_data_free(r, request_data_all);
     return FALSE;
 }
 
@@ -903,7 +903,7 @@ static gboolean twitter_send_format_request_multipage_all_success_cb(TwitterRequ
 {
     TwitterMultiPageAllRequestData *request_data_all = user_data;
 
-    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s: object %d array %d\n", G_STRFUNC, JSON_NODE_TYPE(node) == JSON_NODE_OBJECT, JSON_NODE_TYPE(node) == JSON_NODE_ARRAY);
+    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s: object %d array %d count %d\n", G_STRFUNC, JSON_NODE_TYPE(node) == JSON_NODE_OBJECT, JSON_NODE_TYPE(node) == JSON_NODE_ARRAY, g_list_length(request_data_all->nodes));
 
 	request_data_all->nodes = r->format->copy_into(node, request_data_all->nodes);
     request_data_all->current_count += g_list_length(request_data_all->nodes);
@@ -911,7 +911,7 @@ static gboolean twitter_send_format_request_multipage_all_success_cb(TwitterRequ
     purple_debug_info(purple_account_get_protocol_id(r->account), "%s last_page: %d current_count: %d max_count: %d count: %d\n", G_STRFUNC, last_page ? 1 : 0, request_data_all->current_count, request_data_all->max_count, request_multi->expected_count);
     if (last_page || (request_data_all->max_count > 0 && request_data_all->current_count >= request_data_all->max_count)) {
         request_data_all->success_callback(r, request_data_all->nodes, request_data_all->user_data);
-        twitter_multipage_all_request_data_free(request_data_all);
+        twitter_multipage_all_request_data_free(r, request_data_all);
         return FALSE;
     } else if (request_data_all->max_count > 0 && (request_data_all->current_count + request_multi->expected_count > request_data_all->max_count)) {
         request_multi->expected_count = request_data_all->max_count - request_data_all->current_count;
@@ -924,7 +924,7 @@ static gboolean twitter_send_format_request_multipage_all_error_cb(TwitterReques
     TwitterMultiPageAllRequestData *request_data_all = user_data;
     if (request_data_all->error_callback && request_data_all->error_callback(r, error_data, request_data_all->user_data))
         return TRUE;
-    twitter_multipage_all_request_data_free(request_data_all);
+    twitter_multipage_all_request_data_free(r, request_data_all);
     return FALSE;
 }
 

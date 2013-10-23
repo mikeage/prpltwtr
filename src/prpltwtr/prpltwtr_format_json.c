@@ -81,6 +81,7 @@ gpointer prpltwtr_format_json_from_str(const gchar * response, int response_leng
 	JsonParser *parser = json_parser_new();
 	
 	GError *error = NULL;
+	//purple_debug_info("prpltwtr", "%s: %s", G_STRFUNC, response);
 	json_parser_load_from_data (parser, response, response_length, &error);
 	
 	if (error)
@@ -92,7 +93,7 @@ gpointer prpltwtr_format_json_from_str(const gchar * response, int response_leng
     }
 
 	JsonNode *root = json_parser_get_root(parser);
-    // purple_debug_info("prpltwtr", "%s: isObject %d isArray %d\n", G_STRFUNC, JSON_NODE_TYPE(root) == JSON_NODE_OBJECT, JSON_NODE_TYPE(root) == JSON_NODE_ARRAY);
+    purple_debug_info("prpltwtr", "%s: isObject %d isArray %d\n", G_STRFUNC, JSON_NODE_TYPE(root) == JSON_NODE_OBJECT, JSON_NODE_TYPE(root) == JSON_NODE_ARRAY);
 	return root;
 }
 
