@@ -905,9 +905,15 @@ static gboolean twitter_send_format_request_multipage_all_success_cb(TwitterRequ
 
     purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s: object %d array %d count %d\n", G_STRFUNC, JSON_NODE_TYPE(node) == JSON_NODE_OBJECT, JSON_NODE_TYPE(node) == JSON_NODE_ARRAY, g_list_length(request_data_all->nodes));
 
-	request_data_all->nodes = r->format->copy_into(node, request_data_all->nodes);
-    request_data_all->current_count += g_list_length(request_data_all->nodes);
+	gint node_count;
 
+	// DREM If we clean this out, it will blow away.
+	// DREM request_data_all->nodes = NULL;
+	// DREM request_data_all->current_count = 0;
+	
+	request_data_all->nodes = r->format->copy_into(node, request_data_all->nodes, &node_count);
+    request_data_all->current_count += node_count;
+	
     purple_debug_info(purple_account_get_protocol_id(r->account), "%s last_page: %d current_count: %d max_count: %d count: %d\n", G_STRFUNC, last_page ? 1 : 0, request_data_all->current_count, request_data_all->max_count, request_multi->expected_count);
     if (last_page || (request_data_all->max_count > 0 && request_data_all->current_count >= request_data_all->max_count)) {
         request_data_all->success_callback(r, request_data_all->nodes, request_data_all->user_data);

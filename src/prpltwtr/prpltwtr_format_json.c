@@ -42,7 +42,7 @@ void prpltwtr_format_json_free_node(gpointer node)
 	json_node_free(node);
 }
 
-GList *prpltwtr_format_json_copy_into(gpointer node, GList *list)
+GList *prpltwtr_format_json_copy_into(gpointer node, GList *list, gint *count_ref)
 {
 	purple_debug_info("prpltwtr", "BEGIN: %s: is array %d\n", G_STRFUNC, JSON_NODE_TYPE(node) == JSON_NODE_ARRAY);
 
@@ -65,6 +65,8 @@ GList *prpltwtr_format_json_copy_into(gpointer node, GList *list)
 	}
 
 	purple_debug_info("prpltwtr", "END: %s\n", G_STRFUNC);
+
+	*count_ref = count;
 
 	return list;
 }
