@@ -161,10 +161,11 @@ static gboolean twitter_list_timeout(TwitterEndpointChat * endpoint_chat)
     TwitterEndpointChatId *chat_id = NULL;
     gchar          *key = g_strdup_printf("list_%s", ctx->list_name);
 
-    ctx->last_tweet_id = purple_account_get_long_long(endpoint_chat->account, key, -1);
+	// DREM Discard const gchar *
+    ctx->last_tweet_id = (gchar *)purple_account_get_string(endpoint_chat->account, key, NULL);
     g_free(key);
 
-    purple_debug_info(purple_account_get_protocol_id(account), "Resuming list for %s from %lld\n", ctx->list_name, ctx->last_tweet_id);
+    purple_debug_info(purple_account_get_protocol_id(account), "Resuming list for %s from %s\n", ctx->list_name, ctx->last_tweet_id);
 
     if (endpoint_chat->retrieval_in_progress && endpoint_chat->retrieval_in_progress_timeout <= 0) {
         purple_debug_warning(purple_account_get_protocol_id(account), "There was a retreival in progress, but it appears dead. Ignoring it\n");
@@ -186,7 +187,7 @@ static gboolean twitter_list_timeout(TwitterEndpointChat * endpoint_chat)
         purple_debug_info(purple_account_get_protocol_id(account), "Retrieving %s statuses for first time\n", ctx->list_name);
         twitter_api_get_list(purple_account_get_requestor(account), ctx->list_id, ctx->owner, ctx->last_tweet_id, TWITTER_LIST_INITIAL_COUNT, 1, twitter_get_list_cb, twitter_get_list_error_cb, chat_id);
     } else {
-        purple_debug_info(purple_account_get_protocol_id(account), "Retrieving %s statuses since %lld\n", ctx->list_name, ctx->last_tweet_id);
+        purple_debug_info(purple_account_get_protocol_id(account), "Retrieving %s statuses since %s\n", ctx->list_name, ctx->last_tweet_id);
         twitter_api_get_list_all(purple_account_get_requestor(account), ctx->list_id, ctx->owner, ctx->last_tweet_id, twitter_get_list_all_cb, twitter_get_list_all_error_cb, twitter_option_list_max_tweets(account), chat_id);
     }
 

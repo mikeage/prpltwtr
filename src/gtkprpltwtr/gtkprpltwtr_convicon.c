@@ -361,7 +361,7 @@ void twitter_conv_icon_got_user_icon(PurpleAccount * account, const char *user_n
         //and with a different url
         gboolean        new_icon = !conv_icon->icon_url || (strcmp(url, conv_icon->icon_url) && icon_time > conv_icon->mtime);
 
-        purple_debug_info(PLUGIN_ID, "Have icon %s (%lld) for user %s, looking for %s (%lld)\n", conv_icon->icon_url, (long long int) conv_icon->mtime, user_name, url, (long long int) icon_time);
+        purple_debug_info(PLUGIN_ID, "Have icon %s (%lld) for user %s, looking for %s (%lld)\n", conv_icon->icon_url, (long long) conv_icon->mtime, user_name, url, (long long) icon_time);
 
         if (icon_time > conv_icon->mtime)
             conv_icon->mtime = icon_time;

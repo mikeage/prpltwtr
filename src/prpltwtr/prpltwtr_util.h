@@ -32,7 +32,7 @@
 
 gboolean        twitter_usernames_match(PurpleAccount * account, const gchar * u1, const gchar * u2);
 long long       purple_account_get_long_long(PurpleAccount * account, const gchar * key, long long default_value);
-void            purple_account_set_long_long(PurpleAccount * account, const gchar * key, long long value);
+void            purple_account_set_long_long(PurpleAccount * account, const gchar * key, gchar * value);
 
 gchar          *twitter_utf8_find_last_pos(const gchar * str, const gchar * needles, glong str_len);
 char           *twitter_utf8_get_segment(const gchar * message, int max_len, const gchar * add_text, const gchar ** new_start, gboolean prepend);
@@ -48,5 +48,5 @@ GArray         *twitter_utf8_get_segments(const gchar * message, int segment_len
 #endif
 
 //TODO: move this?
-char           *twitter_format_tweet(PurpleAccount * account, const char *src_user, const char *message, long long tweet_id, PurpleConversationType conv_type, const gchar * conv_name, gboolean is_tweet, long long in_reply_to_status_id, gboolean favorited);
+char           *twitter_format_tweet(PurpleAccount * account, const char *src_user, const char *message, gchar * tweet_id, PurpleConversationType conv_type, const gchar * conv_name, gboolean is_tweet, gchar * in_reply_to_status_id, gboolean favorited);
 #endif                       /* UTIL_H_ */

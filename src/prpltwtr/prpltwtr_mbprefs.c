@@ -39,9 +39,9 @@ static gchar   *get_user_profile_url_twitter(TwitterMbPrefs * mb_prefs, const gc
     return g_strdup_printf("http://twitter.com/%s", who);
 }
 
-static gchar   *get_status_url_twitter(TwitterMbPrefs * mb_prefs, const gchar * who, long long tweet_id)
+static gchar   *get_status_url_twitter(TwitterMbPrefs * mb_prefs, const gchar * who, gchar * tweet_id)
 {
-    return g_strdup_printf("http://twitter.com/%s/status/%lld", who, tweet_id);
+    return g_strdup_printf("http://twitter.com/%s/status/%s", who, tweet_id);
 }
 
 static TwitterMbPrefsSettings TwitterMbPrefsSettingsTwitter = {
@@ -60,9 +60,9 @@ static gchar   *get_user_profile_url_statusnet(TwitterMbPrefs * mb_prefs, const 
     return g_strdup_printf("http://%s/%s", (gchar *) mb_prefs->data, who);
 }
 
-static gchar   *get_status_url_statusnet(TwitterMbPrefs * mb_prefs, const gchar * who, long long tweet_id)
+static gchar   *get_status_url_statusnet(TwitterMbPrefs * mb_prefs, const gchar * who, gchar * tweet_id)
 {
-    return g_strdup_printf("http://%s/notice/%lld", (gchar *) mb_prefs->data, tweet_id);
+    return g_strdup_printf("http://%s/notice/%s", (gchar *) mb_prefs->data, tweet_id);
 }
 
 static void mb_prefs_free_statusnet(TwitterMbPrefs * mb_prefs)
@@ -92,7 +92,7 @@ gchar          *twitter_mb_prefs_get_user_profile_url(TwitterMbPrefs * mb_prefs,
     return mb_prefs && mb_prefs->settings->get_user_profile_url ? mb_prefs->settings->get_user_profile_url(mb_prefs, who) : NULL;
 }
 
-gchar          *twitter_mb_prefs_get_status_url(TwitterMbPrefs * mb_prefs, const gchar * who, long long tweet_id)
+gchar          *twitter_mb_prefs_get_status_url(TwitterMbPrefs * mb_prefs, const gchar * who, gchar * tweet_id)
 {
     return mb_prefs && mb_prefs->settings->get_status_url ? mb_prefs->settings->get_status_url(mb_prefs, who, tweet_id) : NULL;
 }

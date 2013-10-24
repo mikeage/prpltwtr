@@ -1,7 +1,7 @@
 #include "prpltwtr_endpoint_dm.h"
 #include "prpltwtr_util.h"
 
-static void twitter_send_dm_success_cb(PurpleAccount * account, xmlnode * node, gboolean last, gpointer _who)
+static void twitter_send_dm_success_cb(PurpleAccount * account, gpointer node, gboolean last, gpointer _who)
 {
     purple_debug_info(purple_account_get_protocol_id(account), "BEGIN: %s\n", G_STRFUNC);
 
@@ -38,7 +38,7 @@ static int twitter_send_dm_do(PurpleAccount * account, const char *who, const ch
 }
 
 typedef struct {
-    void            (*success_cb) (PurpleAccount * account, long long id, gpointer user_data);
+    void            (*success_cb) (PurpleAccount * account, gchar * id, gpointer user_data);
     void            (*error_cb) (PurpleAccount * account, const TwitterRequestErrorData * error_data, gpointer user_data);
     gpointer        user_data;
 } TwitterLastSinceIdRequest;
@@ -89,7 +89,7 @@ static void twitter_get_dms_get_last_since_id_success_cb(TwitterRequestor * r, g
     purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
 
     TwitterLastSinceIdRequest *last = user_data;
-    long long       id = 0;
+    gchar *       id = 0;
     gpointer       *status_node = r->format->get_node(node, "direct_message");
     purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
     if (status_node != NULL) {
@@ -113,7 +113,7 @@ static void twitter_get_last_since_id_error_cb(TwitterRequestor * r, const Twitt
     g_free(last);
 }
 
-static void twitter_get_dms_last_since_id(PurpleAccount * account, void (*success_cb) (PurpleAccount * account, long long id, gpointer user_data), void (*error_cb) (PurpleAccount * account, const TwitterRequestErrorData * error_data, gpointer user_data), gpointer user_data)
+static void twitter_get_dms_last_since_id(PurpleAccount * account, void (*success_cb) (PurpleAccount * account, gchar * id, gpointer user_data), void (*error_cb) (PurpleAccount * account, const TwitterRequestErrorData * error_data, gpointer user_data), gpointer user_data)
 {
     purple_debug_info(purple_account_get_protocol_id(account), "BEGIN: %s\n", G_STRFUNC);
 

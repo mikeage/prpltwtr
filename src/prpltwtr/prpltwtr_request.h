@@ -142,7 +142,7 @@ void            twitter_send_format_request_multipage_all(TwitterRequestor * r, 
 
 /* statuses/friends API deprecated page based retrieval,
  * and use cursor based method instead */
-void            twitter_send_xml_request_with_cursor(TwitterRequestor * r, const char *url, TwitterRequestParams * params, long long cursor, TwitterSendRequestMultiPageAllSuccessFunc success_callback, TwitterSendRequestMultiPageAllErrorFunc error_callback, gpointer data);
+void            twitter_send_xml_request_with_cursor(TwitterRequestor * r, const char *url, TwitterRequestParams * params, gchar * cursor, TwitterSendRequestMultiPageAllSuccessFunc success_callback, TwitterSendRequestMultiPageAllErrorFunc error_callback, gpointer data);
 
 void            twitter_send_format_request_with_cursor(TwitterRequestor * r, const char *url, TwitterRequestParams * params, long long cursor, TwitterSendRequestMultiPageAllSuccessFunc success_callback, TwitterSendRequestMultiPageAllErrorFunc error_callback, gpointer data);
 

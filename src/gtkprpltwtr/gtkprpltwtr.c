@@ -293,7 +293,6 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
         char            others[140];
         int             i,
                         j;
-        long long       id;
         PurpleConversation *conv;
         id_str = g_hash_table_lookup(params, "id");
         user = g_hash_table_lookup(params, "user");
@@ -302,13 +301,10 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
         if (id_str == NULL || user == NULL || id_str[0] == '\0' || user[0] == '\0' || text == NULL || text[0] == '\0') {
             purple_debug_error(PLUGIN_ID, "malformed uri. Invalid id/user for reply\n");
             return FALSE;
-        }
-        id = strtoll(id_str, NULL, 10);
-        if (id == 0) {
-            purple_debug_error(PLUGIN_ID, "malformed uri. Invalid id for reply\n");
-            return FALSE;
-        }
-        conv = twitter_endpoint_reply_conversation_new(twitter_endpoint_im_find(account, TWITTER_IM_TYPE_AT_MSG), user, id, TRUE);
+		}
+
+		// DREM Remove the const gchar *
+        conv = twitter_endpoint_reply_conversation_new(twitter_endpoint_im_find(account, TWITTER_IM_TYPE_AT_MSG), user, (gchar *)id_str, TRUE);
         if (!conv) {
             return FALSE;
         }
@@ -345,7 +341,6 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
     } else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_REPLY)) {
         const char     *id_str,
                        *user;
-        long long       id;
         PurpleConversation *conv;
         id_str = g_hash_table_lookup(params, "id");
         user = g_hash_table_lookup(params, "user");
@@ -353,12 +348,9 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
             purple_debug_error(PLUGIN_ID, "malformed uri. Invalid id/user for reply\n");
             return FALSE;
         }
-        id = strtoll(id_str, NULL, 10);
-        if (id == 0) {
-            purple_debug_error(PLUGIN_ID, "malformed uri. Invalid id for reply\n");
-            return FALSE;
-        }
-        conv = twitter_endpoint_reply_conversation_new(twitter_endpoint_im_find(account, TWITTER_IM_TYPE_AT_MSG), user, id, TRUE);
+
+		// DREM Discard the const gchar *
+        conv = twitter_endpoint_reply_conversation_new(twitter_endpoint_im_find(account, TWITTER_IM_TYPE_AT_MSG), user, (gchar *)id_str, TRUE);
         if (!conv) {
             return FALSE;
         }
@@ -408,7 +400,6 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
         TwitterConversationId *conv_id;
 
         const char     *id_str;
-        long long       id;
 
         gchar          *conv_type_str;
         PurpleConversationType conv_type;
@@ -423,11 +414,6 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
             purple_debug_error(PLUGIN_ID, "malformed uri. Invalid id for rt\n");
             return FALSE;
         }
-        id = strtoll(id_str, NULL, 10);
-        if (id == 0) {
-            purple_debug_error(PLUGIN_ID, "malformed uri. Invalid id for rt\n");
-            return FALSE;
-        }
 
 		if (purple_account_get_requestor(account)) {
         conv_type = atoi(conv_type_str);
@@ -435,13 +421,13 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
         conv_id = g_new0(TwitterConversationId, 1);
         conv_id->conv_name = g_strdup(purple_url_decode(conv_name_encoded));
         conv_id->type = conv_type;
-        twitter_api_send_rt(purple_account_get_requestor(account), id, twitter_send_rt_success_cb, twitter_send_rt_error_cb, conv_id);
+		// DREM Discard the const gchar *
+        twitter_api_send_rt(purple_account_get_requestor(account), (gchar *)id_str, twitter_send_rt_success_cb, twitter_send_rt_error_cb, conv_id);
 		}
     } else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_GET_ORIGINAL)) {
         TwitterConversationId *conv_id;
 
-        const char     *in_reply_to_status_id_str;
-        long long       in_reply_to_status_id;
+        const char     *in_reply_to_status_id_str = NULL; // DREM Probably wrong
 
         gchar          *conv_type_str;
         PurpleConversationType conv_type;
@@ -456,11 +442,6 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
             purple_debug_error(PLUGIN_ID, "malformed uri. Invalid in_reply_to_status_id_str for GET_ORIGINAL\n");
             return FALSE;
         }
-        in_reply_to_status_id = strtoll(in_reply_to_status_id_str, NULL, 10);
-        if (in_reply_to_status_id == 0) {
-            purple_debug_error(PLUGIN_ID, "malformed uri. Invalid in_reply_to_status_id for GET_ORIGINAL \n");
-            return FALSE;
-        }
 
 		if (purple_account_get_requestor(account)) {
         conv_type = atoi(conv_type_str);
@@ -468,12 +449,12 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
         conv_id = g_new0(TwitterConversationId, 1);
         conv_id->conv_name = g_strdup(purple_url_decode(conv_name_encoded));
         conv_id->type = conv_type;
-        twitter_api_get_status(purple_account_get_requestor(account), in_reply_to_status_id, twitter_get_status_success_cb, twitter_get_status_error_cb, conv_id);
+		// DREM Discard the const gchar *
+        twitter_api_get_status(purple_account_get_requestor(account), (gchar *)in_reply_to_status_id_str, twitter_get_status_success_cb, twitter_get_status_error_cb, conv_id);
 		}
     } else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_LINK)) {
         const char     *id_str,
                        *user;
-        long long       id;
         gchar          *link;
         PurpleConnection *gc = purple_account_get_connection(account);
         TwitterConnectionData *twitter;
@@ -488,12 +469,9 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
             purple_debug_error(PLUGIN_ID, "malformed uri. Invalid id/user for link\n");
             return FALSE;
         }
-        id = strtoll(id_str, NULL, 10);
-        if (id == 0) {
-            purple_debug_error(PLUGIN_ID, "malformed uri. Invalid id for link\n");
-            return FALSE;
-        }
-        link = twitter_mb_prefs_get_status_url(twitter->mb_prefs, user, id);
+  
+		// DREM Discard the const gchar *
+		link = twitter_mb_prefs_get_status_url(twitter->mb_prefs, user, (gchar *)id_str);
         if (link) {
             purple_notify_uri(NULL, link);
             g_free(link);
@@ -502,7 +480,6 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
         TwitterConversationId *conv_id;
 
         const char     *id_str;
-        long long       id;
 
         gchar          *conv_type_str;
         PurpleConversationType conv_type;
@@ -517,11 +494,6 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
             purple_debug_error(PLUGIN_ID, "malformed uri. Invalid id for rt\n");
             return FALSE;
         }
-        id = strtoll(id_str, NULL, 10);
-        if (id == 0) {
-            purple_debug_error(PLUGIN_ID, "malformed uri. Invalid id for rt\n");
-            return FALSE;
-        }
 
 		if (purple_account_get_requestor(account)) {
         conv_type = atoi(conv_type_str);
@@ -529,7 +501,8 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
         conv_id = g_new0(TwitterConversationId, 1);
         conv_id->conv_name = g_strdup(purple_url_decode(conv_name_encoded));
         conv_id->type = conv_type;
-        twitter_api_delete_status(purple_account_get_requestor(account), id, twitter_delete_tweet_success_cb, twitter_delete_tweet_error_cb, conv_id);
+		// DREM Discard const gchar *
+        twitter_api_delete_status(purple_account_get_requestor(account), (gchar *)id_str, twitter_delete_tweet_success_cb, twitter_delete_tweet_error_cb, conv_id);
 		}
     } else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_SEARCH)) {
         //join chat with default interval, open in conv window
@@ -546,7 +519,6 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
     } else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_SET_REPLY)) {
         const char     *id_str,
                        *user;
-        long long       id;
         PurpleConversation *conv;
         id_str = g_hash_table_lookup(params, "id");
         user = g_hash_table_lookup(params, "user");
@@ -554,17 +526,14 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
             purple_debug_error(PLUGIN_ID, "malformed uri. Invalid id/user for reply\n");
             return FALSE;
         }
-        id = strtoll(id_str, NULL, 10);
-        if (id == 0) {
-            purple_debug_error(PLUGIN_ID, "malformed uri. Invalid id for reply\n");
-            return FALSE;
-        }
-        conv = twitter_endpoint_reply_conversation_new(twitter_endpoint_im_find(account, TWITTER_IM_TYPE_AT_MSG), user, id, TRUE);
+
+		// DREM Discard the const gchar *
+        conv = twitter_endpoint_reply_conversation_new(twitter_endpoint_im_find(account, TWITTER_IM_TYPE_AT_MSG), user, (gchar *)id_str, TRUE);
         if (!conv) {
             return FALSE;
         }
         purple_conversation_set_data(conv, "twitter_conv_last_reply_id_manual", (gpointer) 0x10101010);
-        purple_debug_info(PLUGIN_ID, "Setting reply to %lld for conv %p\n", id, conv);
+        purple_debug_info(PLUGIN_ID, "Setting reply to %s for conv %p\n", id_str, conv);
         gtkprpltwtr_mark_reply(conv, id_str);
     } else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_ADD_FAVORITE)) {
         TwitterConversationId *conv_id;
@@ -572,7 +541,6 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
         gchar          *conv_type_str;
         gchar          *conv_name_encoded;
         const char     *id_str;
-        long long       id;
         PurpleConnection *gc = purple_account_get_connection(account);
 
         if (!gc) {
@@ -590,22 +558,18 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
             purple_debug_error(PLUGIN_ID, "malformed uri. Invalid id for favoriting\n");
             return FALSE;
         }
-        id = strtoll(id_str, NULL, 10);
-        if (id == 0) {
-            purple_debug_error(PLUGIN_ID, "malformed uri. Invalid id for favoriting\n");
-            return FALSE;
-        }
+
         conv_id = g_new0(TwitterConversationId, 1);
         conv_id->conv_name = g_strdup(purple_url_decode(conv_name_encoded));
         conv_id->type = conv_type;
-        twitter_api_add_favorite(purple_account_get_requestor(account), id, twitter_add_favorite_success_cb, twitter_add_favorite_error_cb, conv_id);
+		// DREM Discard const gchar *
+        twitter_api_add_favorite(purple_account_get_requestor(account), (gchar *)id_str, twitter_add_favorite_success_cb, twitter_add_favorite_error_cb, conv_id);
     } else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_DELETE_FAVORITE)) {
         TwitterConversationId *conv_id;
         PurpleConversationType conv_type;
         gchar          *conv_type_str;
         gchar          *conv_name_encoded;
         const char     *id_str;
-        long long       id;
         PurpleConnection *gc = purple_account_get_connection(account);
 
         if (!gc) {
@@ -623,15 +587,12 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
             purple_debug_error(PLUGIN_ID, "malformed uri. Invalid id for favoriting\n");
             return FALSE;
         }
-        id = strtoll(id_str, NULL, 10);
-        if (id == 0) {
-            purple_debug_error(PLUGIN_ID, "malformed uri. Invalid id for favoriting\n");
-            return FALSE;
-        }
+
         conv_id = g_new0(TwitterConversationId, 1);
         conv_id->conv_name = g_strdup(purple_url_decode(conv_name_encoded));
         conv_id->type = conv_type;
-        twitter_api_delete_favorite(purple_account_get_requestor(account), id, twitter_delete_favorite_success_cb, twitter_delete_favorite_error_cb, conv_id);
+		// DREM Discard const gchar *
+        twitter_api_delete_favorite(purple_account_get_requestor(account), (gchar *)id_str, twitter_delete_favorite_success_cb, twitter_delete_favorite_error_cb, conv_id);
     } else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_REPORT_SPAM)) {
         TwitterConversationId *conv_id;
         gchar          *user;
@@ -751,7 +712,6 @@ static void twitter_url_menu_actions(GtkWidget * menu, const char *url)
                    *item;
     gsize           account_len;
     gsize           user_len;
-    gsize           in_reply_to_status_id_len;
     gsize           conv_type_len;
     gsize           favorited_len;
     gsize           protocol_id_len;
@@ -761,11 +721,10 @@ static void twitter_url_menu_actions(GtkWidget * menu, const char *url)
 
     const gchar    *account_name_tmp = url_get_param_value(url, "account", &account_len);
     const gchar    *user_name_tmp = url_get_param_value(url, "user", &user_len);
-    const gchar    *in_reply_to_status_id_tmp = url_get_param_value(url, "in_reply_to_status_id", &in_reply_to_status_id_len);
     const gchar    *conv_type_tmp = url_get_param_value(url, "conv_type", &conv_type_len);
     const gchar    *favorited_tmp = url_get_param_value(url, "favorited", &favorited_len);
     const gchar    *protocol_id = url_get_param_value(url, "protocol_id", &protocol_id_len);
-    long long       in_reply_to_status_id;
+    gchar *       in_reply_to_status_id;
     gchar          *account_name,
                    *user_name;
     if (!account_name_tmp || !user_name_tmp)
@@ -773,7 +732,6 @@ static void twitter_url_menu_actions(GtkWidget * menu, const char *url)
     account_name_tmp++;
     account_len--;
 
-    in_reply_to_status_id = strtoll(in_reply_to_status_id_tmp, NULL, 10);
     conv_type = (PurpleConversationType) strtol(conv_type_tmp, NULL, 10);
 
     account_name = g_strndup(account_name_tmp, account_len);
@@ -826,7 +784,7 @@ static void twitter_url_menu_actions(GtkWidget * menu, const char *url)
         g_strfreev(userparts);
     }
 
-    if (in_reply_to_status_id) {
+    if (0 /* DREM */ && in_reply_to_status_id) {
         img = gtk_image_new_from_stock(GTK_STOCK_HOME, GTK_ICON_SIZE_MENU);
         item = gtk_image_menu_item_new_with_mnemonic((_("In reply to...")));
         gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
@@ -1022,7 +980,7 @@ static char    *twitter_linkify(PurpleAccount * account, const char *message)
     return g_string_free(ret, FALSE);
 }
 
-static gchar   *gtkprpltwtr_format_tweet_cb(PurpleAccount * account, const char *src_user, const char *message, long long tweet_id, PurpleConversationType conv_type, const gchar * conv_name, gboolean is_tweet, long long in_reply_to_status_id, gboolean favorited)
+static gchar   *gtkprpltwtr_format_tweet_cb(PurpleAccount * account, const char *src_user, const char *message, gchar * tweet_id, PurpleConversationType conv_type, const gchar * conv_name, gboolean is_tweet, gchar * in_reply_to_status_id, gboolean favorited)
 {
     gchar          *linkified_message;
     GString        *tweet;
@@ -1036,18 +994,18 @@ static gchar   *gtkprpltwtr_format_tweet_cb(PurpleAccount * account, const char 
     if (is_tweet && tweet_id && conv_type != PURPLE_CONV_TYPE_UNKNOWN && conv_name) {
         //TODO: make this an image
         /* purple_url_encode uses a static array (!) */
-        g_string_append_printf(tweet, " <a href=\"" TWITTER_URI ":///" TWITTER_URI_ACTION_ACTIONS "?account=a%s&user=%s&id=%lld", purple_account_get_username(account), purple_url_encode(src_user), tweet_id);
+        g_string_append_printf(tweet, " <a href=\"" TWITTER_URI ":///" TWITTER_URI_ACTION_ACTIONS "?account=a%s&user=%s&id=%s", purple_account_get_username(account), purple_url_encode(src_user), tweet_id);
         g_string_append_printf(tweet, "&text=%s", purple_url_encode(message));
         if (favorited)
             g_string_append_printf(tweet, "&favorited=TRUE");
-        g_string_append_printf(tweet, "&conv_type=%d&conv_name=%s&in_reply_to_status_id=%lld&protocol_id=%s\">*</a>", conv_type, purple_url_encode(conv_name), in_reply_to_status_id, purple_account_get_protocol_id(account));
+        g_string_append_printf(tweet, "&conv_type=%d&conv_name=%s&in_reply_to_status_id=%s&protocol_id=%s\">*</a>", conv_type, purple_url_encode(conv_name), in_reply_to_status_id, purple_account_get_protocol_id(account));
     }
 
     g_free(linkified_message);
     return g_string_free(tweet, FALSE);
 }
 
-static void gtkprpltwtr_received_im_cb(PurpleAccount * account, long long tweet_id, const gchar * buddy_name)
+static void gtkprpltwtr_received_im_cb(PurpleAccount * account, gchar * tweet_id, const gchar * buddy_name)
 {
     gchar          *conv_name = twitter_endpoint_im_buddy_name_to_conv_name(twitter_endpoint_im_find(account, TWITTER_IM_TYPE_AT_MSG), buddy_name);
     PurpleConversation *conv = purple_find_conversation_with_account(PURPLE_CONV_TYPE_IM, conv_name, account);
@@ -1060,7 +1018,7 @@ static void gtkprpltwtr_received_im_cb(PurpleAccount * account, long long tweet_
         text_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(GTK_IMHTML(PIDGIN_CONVERSATION(conv)->imhtml)));
         gtk_text_buffer_get_end_iter(text_buffer, &insertion_point);
         gtk_text_iter_forward_to_line_end(&insertion_point);
-        id_str = g_strdup_printf("%lld", tweet_id);
+        id_str = g_strdup_printf("%s", tweet_id);
         gtk_text_buffer_create_mark(text_buffer, id_str, &insertion_point, TRUE);
         g_free(id_str);
     }

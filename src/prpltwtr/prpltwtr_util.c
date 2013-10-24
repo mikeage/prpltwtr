@@ -94,17 +94,17 @@ long long purple_account_get_long_long(PurpleAccount * account, const gchar * ke
         return default_value;
 }
 
-void purple_account_set_long_long(PurpleAccount * account, const gchar * key, long long value)
+void purple_account_set_long_long(PurpleAccount * account, const gchar * key, gchar * value)
 {
     gchar          *tmp_str;
 
-    tmp_str = g_strdup_printf("%lld", value);
+    tmp_str = g_strdup_printf("%s", value);
     purple_account_set_string(account, key, tmp_str);
     g_free(tmp_str);
 }
 
 //TODO: move those
-char           *twitter_format_tweet(PurpleAccount * account, const char *src_user, const char *message, long long tweet_id, PurpleConversationType conv_type, const gchar * conv_name, gboolean is_tweet, long long in_reply_to_status_id, gboolean favorited)
+char           *twitter_format_tweet(PurpleAccount * account, const char *src_user, const char *message, gchar * tweet_id, PurpleConversationType conv_type, const gchar * conv_name, gboolean is_tweet, gchar * in_reply_to_status_id, gboolean favorited)
 {
     char           *linkified_message = NULL;
     GString        *tweet;

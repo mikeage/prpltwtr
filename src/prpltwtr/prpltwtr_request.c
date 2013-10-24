@@ -88,7 +88,7 @@ typedef struct {
 
 typedef struct {
     GList          *nodes;
-    long long       next_cursor;
+    gchar *       next_cursor;
     gchar          *url;
     TwitterRequestParams *params;
 
@@ -849,19 +849,19 @@ static void twitter_send_format_request_with_cursor_cb(TwitterRequestor * r, gpo
 
     next_cursor_str = r->format->get_str(node, "next_cursor");
     if (next_cursor_str) {
-        request_data->next_cursor = strtoll(next_cursor_str, NULL, 10);
+        request_data->next_cursor = next_cursor_str;
         g_free(next_cursor_str);
     } else {
         request_data->next_cursor = 0;
     }
 
-    purple_debug_info(purple_account_get_protocol_id(r->account), "%s next_cursor: %lld\n", G_STRFUNC, request_data->next_cursor);
+    purple_debug_info(purple_account_get_protocol_id(r->account), "%s next_cursor: %s\n", G_STRFUNC, request_data->next_cursor);
 
 	request_data->nodes = g_list_prepend(request_data->nodes, r->format->copy_node(node));
 
     if (request_data->next_cursor) {
         int             len = request_data->params->len;
-        twitter_request_params_add(request_data->params, twitter_request_param_new_ll("cursor", request_data->next_cursor));
+        twitter_request_params_add(request_data->params, twitter_request_param_new("cursor", request_data->next_cursor));
 
         twitter_send_format_request(r, FALSE, request_data->url, request_data->params, twitter_send_format_request_with_cursor_cb, twitter_send_format_request_with_cursor_error_cb, request_data);
 

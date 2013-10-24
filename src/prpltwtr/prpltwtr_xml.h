@@ -25,7 +25,7 @@
 
 typedef struct {
     PurpleAccount  *account;
-    long long       id;
+    gchar *       id;
     gchar          *name;
     gchar          *screen_name;
     gchar          *profile_image_url;
@@ -37,8 +37,8 @@ typedef struct {
 
 typedef struct {
     gchar          *text;
-    long long       id;
-    long long       in_reply_to_status_id;
+    gchar *       id;
+    gchar *       in_reply_to_status_id;
     gchar          *in_reply_to_screen_name;
     time_t          created_at;
     gboolean        favorited;
@@ -54,7 +54,7 @@ typedef struct {
 typedef struct {
     char           *refresh_url;
     GList          *tweets;
-    gint64          max_id;
+    gchar          *max_id;
 } TwitterSearchResults;
 
 gchar          *xmlnode_get_child_data(const xmlnode * node, const char *name);

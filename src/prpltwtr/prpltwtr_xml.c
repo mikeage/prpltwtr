@@ -85,8 +85,8 @@ static time_t twitter_status_parse_timestamp(const char *timestamp)
 
 static gint _twitter_search_results_sort(TwitterUserTweet * _a, TwitterUserTweet * _b)
 {
-	long long       a = _a->status->id;
-	long long       b = _b->status->id;
+	gchar *       a = _a->status->id;
+	gchar *       b = _b->status->id;
 	if (a < b)
 		return -1;
 	else if (a > b)
@@ -118,7 +118,7 @@ TwitterUserTweet *twitter_search_entry_node_parse(TwitterRequestor * r, gpointer
 
 		ptr = g_strrstr(id_str, ":");
 		if (ptr != NULL) {
-			tweet->id = strtoll(ptr + 1, NULL, 10);
+			tweet->id = ptr + 1;
 		}
 		ptr = strstr(screen_name_str, " ");
 		if (ptr)
@@ -139,7 +139,7 @@ TwitterUserTweet *twitter_search_entry_node_parse(TwitterRequestor * r, gpointer
 	return NULL;
 }
 
-static TwitterSearchResults *twitter_search_results_new(GList * tweets, gchar * refresh_url, gint64 max_id)
+static TwitterSearchResults *twitter_search_results_new(GList * tweets, gchar * refresh_url, gchar * max_id)
 {
 	TwitterSearchResults *results = g_new(TwitterSearchResults, 1);
 	results->refresh_url = refresh_url;
@@ -170,7 +170,7 @@ TwitterSearchResults *twitter_search_results_node_parse(TwitterRequestor * r, gp
 {
 	GList          *search_results = NULL;
 	const gchar    *refresh_url = NULL;
-	long long       max_id = 0;	// id of last search result
+	gchar *       max_id = 0;	// id of last search result
 	gpointer       *link_node;
 	gpointer        iter;
 	gpointer        entry_node;
@@ -203,7 +203,7 @@ TwitterSearchResults *twitter_search_results_node_parse(TwitterRequestor * r, gp
 	//TODO: test and remove
 	search_results = g_list_sort(search_results, (GCompareFunc) _twitter_search_results_sort);
 
-	purple_debug_info(GENERIC_PROTOCOL_ID, "refresh_url: %s, max_id: %lld\n", refresh_url, max_id);
+	purple_debug_info(GENERIC_PROTOCOL_ID, "refresh_url: %s, max_id: %s\n", refresh_url, max_id);
 
 	return twitter_search_results_new(search_results, g_strdup(refresh_url), max_id);
 }
@@ -230,13 +230,10 @@ TwitterUserData *twitter_user_node_parse(TwitterRequestor * r, gpointer user_nod
 	user->profile_image_url = format->get_str(user_node, "profile_image_url");
 
 	id_str = format->get_str(user_node, "id_str"); // Need a generic way of handling this.
-	
-	if (id_str) {
-		user->id = strtoll(id_str, NULL, 10);
-		g_free(id_str);
-	}
 
-	purple_debug_info("prpltwtr/user_node_parse", "Loading user: %s (%s, %lld)\n", user->screen_name, user->name, user->id);
+	user->id = id_str;
+	
+	purple_debug_info("prpltwtr/user_node_parse", "Loading user: %s (%s, %s)\n", user->screen_name, user->name, user->id);
 
 	user->statuses_count = format->get_str(user_node, "statuses_count");
 	user->friends_count = format->get_str(user_node, "friends_count");
@@ -277,14 +274,12 @@ TwitterTweet   *twitter_status_node_parse(TwitterRequestor * r, gpointer status_
 		g_free(data);
 	}
 
-	if ((data = format->get_str(status_node, "id"))) {
-		status->id = strtoll(data, NULL, 10);
-		g_free(data);
+	if ((data = format->get_str(status_node, "id_str"))) {
+		status->id = data;
 	}
 
-	if ((data = format->get_str(status_node, "in_reply_to_status_id"))) {
-		status->in_reply_to_status_id = strtoll(data, NULL, 10);
-		g_free(data);
+	if ((data = format->get_str(status_node, "in_reply_to_status_id_str"))) {
+		status->in_reply_to_status_id = data;
 	}
 
 	if ((data = format->get_str(status_node, "favorited"))) {
