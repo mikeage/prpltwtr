@@ -97,11 +97,7 @@ typedef struct {
     gpointer        user_data;
 } TwitterRequestWithCursorData;
 
-void            twitter_send_xml_request_multipage_do(TwitterRequestor * r, TwitterMultiPageRequestData * request_data);
-
 void            twitter_send_format_request_multipage_do(TwitterRequestor * r, TwitterFormatMultiPageRequestData * request_data);
-
-static void     twitter_send_xml_request_with_cursor_cb(TwitterRequestor * r, xmlnode * node, gpointer user_data);
 
 static void     twitter_send_format_request_with_cursor_cb(TwitterRequestor * r, gpointer node, gpointer user_data);
 
@@ -687,72 +683,6 @@ int xmlnode_child_count(xmlnode * parent)
     return count;
 }
 
-static void twitter_send_xml_request_multipage_cb(TwitterRequestor * r, xmlnode * node, gpointer user_data)
-{
-    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
-
-    TwitterMultiPageRequestData *request_data = user_data;
-    int             count = 0;
-    gboolean        get_next_page;
-    gboolean        last_page = FALSE;
-
-    count = xmlnode_child_count(node);
-
-    /* The twitter API will measure 'count' responses before it deletes tweets that are no longer available. As such, the requested number might not be returned. This means that the only way to retreive multipage responses is by looping until no tweets are received (or, of course, we could parse the response and compare since_id and max_id, but that'd be annoying at this stage). A simple test would be to abort if count == 0, but that would mean that virutally all requests would require 2 API calls (page 1, count = some tiny number, page 2, count = 0). As a heuristic, we'll take less than 20 responses to mean nothing's remaining (we're requesting 150 at a time) */
-//    if (count < request_data->expected_count)
-    if (count <= 20) {
-        last_page = TRUE;
-    }
-
-    purple_debug_info(purple_account_get_protocol_id(r->account), "%s: last_page: %s, count: %d, expected_count: %d\n", G_STRFUNC, last_page ? "yes" : "no", count, request_data->expected_count);
-
-    if (!request_data->success_callback) {
-        get_next_page = TRUE;
-
-        purple_debug_info(purple_account_get_protocol_id(r->account), "%s no request_data->success_callback, get_next_page: yes\n", G_STRFUNC);
-    } else {
-        get_next_page = request_data->success_callback(r, node, last_page, request_data, request_data->user_data);
-
-        purple_debug_info(purple_account_get_protocol_id(r->account), "%s get_next_page: %s\n", G_STRFUNC, get_next_page ? "yes" : "no");
-    }
-
-    if (last_page || !get_next_page) {
-        g_free(request_data->url);
-        twitter_request_params_free(request_data->params);
-        g_free(request_data);
-    } else {
-        request_data->page++;
-        twitter_send_xml_request_multipage_do(r, request_data);
-    }
-}
-
-static void twitter_send_xml_request_multipage_error_cb(TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data)
-{
-    TwitterMultiPageRequestData *request_data = user_data;
-    gboolean        try_again;
-
-    if (!request_data->error_callback)
-        try_again = FALSE;
-    else
-        try_again = request_data->error_callback(r, error_data, request_data->user_data);
-
-    if (try_again)
-        twitter_send_xml_request_multipage_do(r, request_data);
-}
-
-void twitter_send_xml_request_multipage_do(TwitterRequestor * r, TwitterMultiPageRequestData * request_data)
-{
-    int             len = request_data->params->len;
-    twitter_request_params_add(request_data->params, twitter_request_param_new_int("page", request_data->page));
-    twitter_request_params_add(request_data->params, twitter_request_param_new_int("count", request_data->expected_count));
-    twitter_request_params_add(request_data->params, twitter_request_param_new_int("per_page", request_data->expected_count));
-
-    purple_debug_info(purple_account_get_protocol_id(r->account), "%s: page: %d\n", G_STRFUNC, request_data->page);
-
-    twitter_send_xml_request(r, FALSE, request_data->url, request_data->params, twitter_send_xml_request_multipage_cb, twitter_send_xml_request_multipage_error_cb, request_data);
-    twitter_request_params_set_size(request_data->params, len);
-}
-
 void twitter_send_format_request_multipage_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
     purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
@@ -817,20 +747,6 @@ void twitter_send_format_request_multipage_do(TwitterRequestor * r, TwitterForma
     twitter_request_params_set_size(request_data->params, len);
 }
 
-static void twitter_send_xml_request_multipage(TwitterRequestor * r, const char *url, TwitterRequestParams * params, TwitterSendRequestMultiPageSuccessFunc success_callback, TwitterSendRequestMultiPageErrorFunc error_callback, int expected_count, gpointer data)
-{
-    TwitterMultiPageRequestData *request_data = g_new0(TwitterMultiPageRequestData, 1);
-    request_data->user_data = data;
-    request_data->url = g_strdup(url);
-    request_data->params = twitter_request_params_clone(params);
-    request_data->success_callback = success_callback;
-    request_data->error_callback = error_callback;
-    request_data->page = 1;
-    request_data->expected_count = expected_count;
-
-    twitter_send_xml_request_multipage_do(r, request_data);
-}
-
 static void twitter_send_format_request_multipage(TwitterRequestor * r, const char *url, TwitterRequestParams * params, TwitterSendFormatRequestMultiPageSuccessFunc success_callback, TwitterSendRequestMultiPageErrorFunc error_callback, int expected_count, gpointer data)
 {
     TwitterFormatMultiPageRequestData *request_data = g_new0(TwitterFormatMultiPageRequestData, 1);
@@ -853,50 +769,6 @@ static void twitter_multipage_all_request_data_free(TwitterRequestor * r, Twitte
     }
     g_list_free(request_data_all->nodes);
     g_free(request_data_all);
-}
-
-static gboolean twitter_send_xml_request_multipage_all_success_cb(TwitterRequestor * r, xmlnode * node, gboolean last_page, TwitterMultiPageRequestData * request_multi, gpointer user_data)
-{
-    TwitterMultiPageAllRequestData *request_data_all = user_data;
-
-    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
-
-    request_data_all->nodes = g_list_prepend(request_data_all->nodes, xmlnode_copy(node));  //TODO: update
-    request_data_all->current_count += xmlnode_child_count(node);
-
-    purple_debug_info(purple_account_get_protocol_id(r->account), "%s last_page: %d current_count: %d max_count: %d count: %d\n", G_STRFUNC, last_page ? 1 : 0, request_data_all->current_count, request_data_all->max_count, request_multi->expected_count);
-    if (last_page || (request_data_all->max_count > 0 && request_data_all->current_count >= request_data_all->max_count)) {
-        request_data_all->success_callback(r, request_data_all->nodes, request_data_all->user_data);
-        twitter_multipage_all_request_data_free(r, request_data_all);
-        return FALSE;
-    } else if (request_data_all->max_count > 0 && (request_data_all->current_count + request_multi->expected_count > request_data_all->max_count)) {
-        request_multi->expected_count = request_data_all->max_count - request_data_all->current_count;
-    }
-    return TRUE;
-}
-
-static gboolean twitter_send_xml_request_multipage_all_error_cb(TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data)
-{
-    TwitterMultiPageAllRequestData *request_data_all = user_data;
-    if (request_data_all->error_callback && request_data_all->error_callback(r, error_data, request_data_all->user_data))
-        return TRUE;
-    twitter_multipage_all_request_data_free(r, request_data_all);
-    return FALSE;
-}
-
-void twitter_send_xml_request_multipage_all(TwitterRequestor * r, const char *url, TwitterRequestParams * params, TwitterSendRequestMultiPageAllSuccessFunc success_callback, TwitterSendRequestMultiPageAllErrorFunc error_callback, int expected_count, gint max_count, gpointer data)
-{
-    TwitterMultiPageAllRequestData *request_data_all = g_new0(TwitterMultiPageAllRequestData, 1);
-    request_data_all->success_callback = success_callback;
-    request_data_all->error_callback = error_callback;
-    request_data_all->nodes = NULL;
-    request_data_all->user_data = data;
-    request_data_all->max_count = max_count;
-
-    if (max_count > 0 && expected_count > max_count)
-        expected_count = max_count;
-
-    twitter_send_xml_request_multipage(r, url, params, twitter_send_xml_request_multipage_all_success_cb, twitter_send_xml_request_multipage_all_error_cb, expected_count, request_data_all);
 }
 
 static gboolean twitter_send_format_request_multipage_all_success_cb(TwitterRequestor * r, gpointer node, gboolean last_page, TwitterFormatMultiPageRequestData * request_multi, gpointer user_data)
@@ -968,39 +840,7 @@ static void twitter_request_with_cursor_data_free(TwitterRequestor * r, TwitterR
     g_slice_free(TwitterRequestWithCursorData, request_data);
 }
 
-static void     twitter_send_xml_request_with_cursor_error_cb(TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data);
-
 static void     twitter_send_format_request_with_cursor_error_cb(TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data);
-
-static void twitter_send_xml_request_with_cursor_cb(TwitterRequestor * r, xmlnode * node, gpointer user_data)
-{
-    TwitterRequestWithCursorData *request_data = user_data;
-    gchar          *next_cursor_str;
-
-    next_cursor_str = xmlnode_get_child_data(node, "next_cursor");
-    if (next_cursor_str) {
-        request_data->next_cursor = strtoll(next_cursor_str, NULL, 10);
-        g_free(next_cursor_str);
-    } else {
-        request_data->next_cursor = 0;
-    }
-
-    purple_debug_info(purple_account_get_protocol_id(r->account), "%s next_cursor: %lld\n", G_STRFUNC, request_data->next_cursor);
-
-	request_data->nodes = g_list_prepend(request_data->nodes, xmlnode_copy(node));
-
-    if (request_data->next_cursor) {
-        int             len = request_data->params->len;
-        twitter_request_params_add(request_data->params, twitter_request_param_new_ll("cursor", request_data->next_cursor));
-
-        twitter_send_xml_request(r, FALSE, request_data->url, request_data->params, twitter_send_xml_request_with_cursor_cb, twitter_send_xml_request_with_cursor_error_cb, request_data);
-
-        twitter_request_params_set_size(request_data->params, len);
-    } else {
-        request_data->success_callback(r, request_data->nodes, request_data->user_data);
-        twitter_request_with_cursor_data_free(r, request_data);
-    }
-}
 
 static void twitter_send_format_request_with_cursor_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
@@ -1032,16 +872,6 @@ static void twitter_send_format_request_with_cursor_cb(TwitterRequestor * r, gpo
     }
 }
 
-static void twitter_send_xml_request_with_cursor_error_cb(TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data)
-{
-    TwitterRequestWithCursorData *request_data = user_data;
-    if (request_data->error_callback && request_data->error_callback(r, error_data, request_data->user_data)) {
-        twitter_send_xml_request(r, FALSE, request_data->url, request_data->params, twitter_send_xml_request_with_cursor_cb, twitter_send_xml_request_with_cursor_error_cb, request_data);
-        return;
-    }
-    twitter_request_with_cursor_data_free(r, request_data);
-}
-
 static void twitter_send_format_request_with_cursor_error_cb(TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data)
 {
     TwitterRequestWithCursorData *request_data = user_data;
@@ -1050,27 +880,6 @@ static void twitter_send_format_request_with_cursor_error_cb(TwitterRequestor * 
         return;
     }
     twitter_request_with_cursor_data_free(r, request_data);
-}
-
-void twitter_send_xml_request_with_cursor(TwitterRequestor * r, const char *url, TwitterRequestParams * params, long long cursor, TwitterSendRequestMultiPageAllSuccessFunc success_callback, TwitterSendRequestMultiPageAllErrorFunc error_callback, gpointer data)
-{
-    int             len;
-
-    TwitterRequestWithCursorData *request_data = g_slice_new0(TwitterRequestWithCursorData);
-    request_data->url = g_strdup(url);
-    request_data->params = twitter_request_params_clone(params);
-    if (!request_data->params)
-        request_data->params = twitter_request_params_new();
-    request_data->success_callback = success_callback;
-    request_data->error_callback = error_callback;
-    request_data->user_data = data;
-
-    len = request_data->params->len;
-    twitter_request_params_add(request_data->params, twitter_request_param_new_ll("cursor", cursor));
-
-    twitter_send_xml_request(r, FALSE, url, request_data->params, twitter_send_xml_request_with_cursor_cb, twitter_send_xml_request_with_cursor_error_cb, request_data);
-
-    twitter_request_params_set_size(request_data->params, len);
 }
 
 void twitter_send_format_request_with_cursor(TwitterRequestor * r, const char *url, TwitterRequestParams * params, long long cursor, TwitterSendRequestMultiPageAllSuccessFunc success_callback, TwitterSendRequestMultiPageAllErrorFunc error_callback, gpointer data)
