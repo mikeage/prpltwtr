@@ -42,24 +42,10 @@ void prpltwtr_format_json_free_node(gpointer node)
 	json_node_free(node);
 }
 
-static int offset = 0;
-
 GList *prpltwtr_format_json_copy_into(gpointer node, GList *list, gint *count_ref)
 {
 	purple_debug_info("prpltwtr", "BEGIN: %s: is array %d\n", G_STRFUNC, JSON_NODE_TYPE(node) == JSON_NODE_ARRAY);
 
-	// When this block is uncommented, then it doesn't crash. 
-	JsonGenerator * generator = json_generator_new();
-	json_generator_set_root(generator, node);
-	json_generator_set_pretty(generator, TRUE);
-	json_generator_set_indent(generator, TRUE);
-	gchar *filename = g_strdup_printf("/tmp/prpltwtr-%07d.json", offset++);
-	GError *err = NULL;
-	json_generator_to_file(generator, filename, &err);
-	purple_debug_info("prpltwtr", "%s: Wrote %s\n", G_STRFUNC, filename);
-	g_free(filename);
-	// Uncomment below to turn off the magical crashes.
-	
 	if (JSON_NODE_TYPE(node) != JSON_NODE_ARRAY)
 	{
 		purple_debug_info("prpltwtr", "END: %s: incorrect data type\n", G_STRFUNC);
@@ -75,7 +61,8 @@ GList *prpltwtr_format_json_copy_into(gpointer node, GList *list, gint *count_re
 	for (i = 0; i < count; i++)
 	{
 		JsonNode *child = json_array_get_element(array, i);
-		list = g_list_prepend(list, child);
+		JsonNode *copy = json_node_copy(child);
+		list = g_list_prepend(list, copy);
 	}
 
 	purple_debug_info("prpltwtr", "END: %s\n", G_STRFUNC);
