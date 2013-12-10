@@ -4,5 +4,6 @@
 /// Configures the requestor to handle the Twitter API including the paths uses and
 /// JSON formatting for requests.
 void prpltwtr_plugin_twitter_setup(TwitterRequestor * requestor);
+void prpltwtr_twitter_login(PurpleAccount * account);
 
 #endif

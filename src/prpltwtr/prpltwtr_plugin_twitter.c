@@ -50,7 +50,7 @@ static PurplePluginProtocolInfo prpl_info = {
     twitter_blist_node_menu,                     /* blist_node_menu */
     twitter_chat_info,                           /* chat_info */
     twitter_chat_info_defaults,                  /* chat_info_defaults */
-    prpltwtr_login,                              /* login */
+    prpltwtr_twitter_login,                              /* login */
     twitter_close,                               /* close */
     twitter_send_im,                             //twitter_send_dm, /* send_im */
     twitter_set_info,                            /* set_info */
@@ -145,7 +145,91 @@ static PurplePluginInfo info = {
 
 PURPLE_INIT_PLUGIN(null, prpltwtr_plugin_init, info);
 
-void prpltwtr_plugin_twitter_setup(TwitterRequestor * requestor)
+static gboolean TWITTER_SIGNALS_CONNECTED = FALSE;
+
+void prpltwtr_twitter_login(PurpleAccount * account)
+{
+    char          **userparts;
+    PurpleConnection *gc = purple_account_get_connection(account);
+    TwitterConnectionData *twitter = g_new0(TwitterConnectionData, 1);
+    gc->proto_data = twitter;
+
+    /* Since protocol plugins are loaded before conversations_init is called
+     * we cannot connect these signals in plugin->load.
+     * So we have this here, with a global var that tells us to only run this
+     * once, regardless of number of accounts connecting 
+     * There HAS to be a better way to do this. Need to do some research
+     * this is an awful hack (tm)
+     */
+    if (!TWITTER_SIGNALS_CONNECTED) {
+        TWITTER_SIGNALS_CONNECTED = TRUE;
+
+#ifdef _HAZE_
+        if (!strcmp(purple_account_get_protocol_id(account), TWITTER_PROTOCOL_ID)) {
+            purple_debug_info(purple_account_get_protocol_id(account), "Connecting conv signals for first time\n");
+            purple_signal_connect(purple_conversations_get_handle(), "conversation-created", twitter, PURPLE_CALLBACK(conversation_created_cb), NULL);
+            purple_signal_connect(purple_conversations_get_handle(), "deleting-conversation", twitter, PURPLE_CALLBACK(deleting_conversation_cb), NULL);
+        }
+#endif
+
+        purple_prefs_add_none("/prpltwtr");
+        purple_prefs_add_bool("/prpltwtr/first-load-complete", FALSE);
+        if (!purple_prefs_get_bool("/prpltwtr/first-load-complete")) {
+            PurplePlugin   *plugin = purple_plugins_find_with_id("gtkprpltwtr");
+            if (plugin) {
+                purple_debug_info(purple_account_get_protocol_id(account), "Loading gtk plugin\n");
+                purple_plugin_load(plugin);
+            }
+            purple_prefs_set_bool("/prpltwtr/first-load-complete", TRUE);
+        }
+
+    }
+
+    purple_debug_info(purple_account_get_protocol_id(account), "logging in %s\n", account->username);
+
+    userparts = g_strsplit(account->username, "@", 2);
+    purple_connection_set_display_name(gc, userparts[0]);
+    g_strfreev(userparts);
+
+    twitter->requestor = g_new0(TwitterRequestor, 1);
+	twitter->requestor->format = g_new0(TwitterFormat, 1);
+	twitter->requestor->urls = g_new0(TwitterUrls, 1);
+    twitter->requestor->account = account;
+    twitter->requestor->post_failed = prpltwtr_requestor_post_failed;
+    twitter->requestor->do_send = twitter_requestor_send;
+
+    if (!twitter_option_use_oauth(account)) {
+        twitter->requestor->pre_send = prpltwtr_auth_pre_send_auth_basic;
+        twitter->requestor->post_send = prpltwtr_auth_post_send_auth_basic;
+    } else {
+        twitter->requestor->pre_send = prpltwtr_auth_pre_send_oauth;
+        twitter->requestor->post_send = prpltwtr_auth_post_send_oauth;
+    }
+
+	// Set up the URLs and formats for this requestor.
+	prpltwtr_plugin_setup(twitter->requestor);
+
+    /* key: gchar *, value: TwitterEndpointChat */
+    twitter->chat_contexts = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, (GDestroyNotify) twitter_endpoint_chat_free);
+
+    /* key: gchar *, value: gchar * (of a gchar *) */
+    twitter->user_reply_id_table = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
+
+    purple_signal_emit(purple_accounts_get_handle(), "prpltwtr-connecting", account);
+
+    /* purple wants a minimum of 2 steps */
+    purple_connection_update_progress(gc, ("Connecting"), 0,    /* which connection step this is */
+                                      2);        /* total number of steps */
+
+    if (twitter_option_use_oauth(account)) {
+        prpltwtr_auth_oauth_login(account, twitter);
+    } else {
+        //No oauth, just do the verification step, skipping previous oauth steps
+        prpltwtr_verify_connection(account);
+    }
+}
+
+void prpltwtr_plugin_setup(TwitterRequestor * requestor)
 {
 	PurpleAccount *account = requestor->account;
 	TwitterFormat *format = requestor->format;

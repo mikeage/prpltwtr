@@ -39,8 +39,6 @@ PRPLTWTR_SOURCES = \
 	prpltwtr_mbprefs.h \
 	prpltwtr_prefs.c \
 	prpltwtr_prefs.h \
-	prpltwtr_plugin.h \
-	prpltwtr_plugin.c \
 	prpltwtr_request.c \
 	prpltwtr_request.h \
 	prpltwtr_search.c \

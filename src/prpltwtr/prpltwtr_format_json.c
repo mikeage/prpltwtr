@@ -25,6 +25,7 @@
 #include <json-glib/json-glib.h>
 #include <debug.h>
 
+#include "defaults.h"
 #include "prpltwtr_format.h"
 #include "prpltwtr_format_json.h"
 

@@ -127,6 +127,7 @@ typedef void    (*TwitterSendRequestMultiPageAllSuccessFunc) (TwitterRequestor *
 typedef void    (*TwitterSendFormatRequestMultiPageAllSuccessFunc) (TwitterRequestor * r, GList * nodes, gpointer user_data);
 typedef         gboolean(*TwitterSendRequestMultiPageAllErrorFunc) (TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data);
 
+void prpltwtr_requestor_post_failed(TwitterRequestor * r, const TwitterRequestErrorData ** error_data);
 gpointer        twitter_requestor_send(TwitterRequestor * r, gboolean post, const char *url, TwitterRequestParams * params, char **header_fields, TwitterSendRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback, gpointer data);
 
 void            twitter_send_request(TwitterRequestor * r, gboolean post, const char *url, TwitterRequestParams * params, TwitterSendRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback, gpointer data);

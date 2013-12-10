@@ -406,6 +406,19 @@ static gpointer twitter_send_request_querystring(TwitterRequestor * r, gboolean 
     return request_data;
 }
 
+void prpltwtr_requestor_post_failed(TwitterRequestor * r, const TwitterRequestErrorData ** error_data)
+{
+    purple_debug_error(purple_account_get_protocol_id(r->account), "post_failed called for account %s, error %d, message %s\n", r->account->username, (*error_data)->type, (*error_data)->message ? (*error_data)->message : "");
+    switch ((*error_data)->type) {
+    case TWITTER_REQUEST_ERROR_UNAUTHORIZED:
+        prpltwtr_auth_invalidate_token(r->account);
+        prpltwtr_disconnect(r->account, _("Unauthorized"));
+        break;
+    default:
+        break;
+    }
+}
+
 gpointer twitter_requestor_send(TwitterRequestor * r, gboolean post, const char *url, TwitterRequestParams * params, char **header_fields, TwitterSendRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback, gpointer data)
 {
     gpointer        request;
