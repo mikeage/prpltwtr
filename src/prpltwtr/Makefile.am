@@ -46,7 +46,9 @@ PRPLTWTR_SOURCES = \
 	prpltwtr_util.c \
 	prpltwtr_util.h \
 	prpltwtr_xml.c \
-	prpltwtr_xml.h 
+	prpltwtr_xml.h \
+	xmlnode_ext.c \
+	xmlnode_ext.h 
 
 AM_CFLAGS = \
 	$(st)

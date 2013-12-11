@@ -42,6 +42,7 @@
 #include "prpltwtr_util.h"
 #include "prpltwtr_conn.h"
 #include "prpltwtr_auth.h"
+#include "xmlnode_ext.h"
 
 #define USER_AGENT "Mozilla/4.0 (compatible; MSIE 5.5)"
 

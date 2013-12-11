@@ -12,6 +12,7 @@
 #include <debug.h>
 #include <util.h>
 #include "prpltwtr_request.h"
+#include "xmlnode_ext.h"
 
 //#include "twitter_util.h" //TODO fix me
 /* 
@@ -57,7 +58,6 @@ typedef struct {
     gchar          *max_id;
 } TwitterSearchResults;
 
-gchar          *xmlnode_get_child_data(const xmlnode * node, const char *name);
 TwitterUserData *twitter_user_node_parse(TwitterRequestor * r, gpointer user_node);
 TwitterTweet   *twitter_status_node_parse(TwitterRequestor * r, gpointer status_node);
 GList          *twitter_users_node_parse(TwitterRequestor * r, gpointer users_node);
