@@ -36,7 +36,7 @@ void prpltwtr_plugin_setup(TwitterRequestor * requestor)
     if (!strcmp(plugin->info->id, TWITTER_PROTOCOL_ID)) {
          prpltwtr_plugin_twitter_setup(requestor);
      } else {
-         // DREM prpltwtr_plugin_statusnet_setup(requestor);
+         // TODO prpltwtr_plugin_statusnet_setup(requestor);
      }
 }
 

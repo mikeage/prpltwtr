@@ -394,13 +394,13 @@ GList          *twitter_dms_node_parse(TwitterRequestor * r, gpointer dms_node)
 	for (iter = r->format->iter_start(dms_node, "direct_message"); !r->format->iter_done(iter); iter = r->format->iter_next(iter)) {
 		dm_node = r->format->get_iter_node(iter);
 		gpointer child_node = r->format->get_node(dm_node, "sender");
-		purple_debug_info("prpltwtr/DREM", "before user\n");
+		purple_debug_info("prpltwtr/TODO", "before user\n");
 		TwitterUserData *user = twitter_user_node_parse(r, child_node);
-		purple_debug_info("prpltwtr/DREM", "before tweet %s\n", user->screen_name);
+		purple_debug_info("prpltwtr/TODO", "before tweet %s\n", user->screen_name);
 		TwitterTweet   *tweet = twitter_dm_node_parse(r, dm_node);
-		purple_debug_info("prpltwtr/DREM", "before data %s\n", tweet->text);
+		purple_debug_info("prpltwtr/TODO", "before data %s\n", tweet->text);
 		TwitterUserTweet *data = twitter_user_tweet_new(user->screen_name, user->profile_image_url, user, tweet);
-		purple_debug_info("prpltwtr/DREM", "before good\n");
+		purple_debug_info("prpltwtr/TODO", "before good\n");
 
 		dms = g_list_prepend(dms, data);
 
@@ -422,7 +422,7 @@ GList          *twitter_dms_nodes_parse(TwitterRequestor * r, GList * nodes)
 GList          *twitter_users_node_parse(TwitterRequestor * r, gpointer users_node)
 {
 	GList          *users = NULL;
-	/* DREM
+	/* TODO
 	gpointer        user_node;
 	for (user_node = users_node->child; user_node; user_node = user_node->next) {
 		if (user_node->name && !strcmp(user_node->name, "user")) {
@@ -441,7 +441,7 @@ GList          *twitter_users_node_parse(TwitterRequestor * r, gpointer users_no
 GList          *twitter_users_ids_nodes_parse(TwitterRequestor * r, GList * nodes)
 {
 	GList          *l_users = NULL;
-	/* DREM
+	/* TODO
 	xmlnode        *ids;
 	xmlnode        *id;
 	if (nodes && nodes->data) {
@@ -497,7 +497,7 @@ GList          *twitter_statuses_node_parse(TwitterRequestor * r, gpointer statu
 	}
 	else if (JSON_NODE_TYPE(statuses_node) == JSON_NODE_OBJECT)
 	{
-		// DREM Utter violation of the format.
+		// TODO Utter violation of the format.
 		TwitterUserData *user = twitter_user_node_parse(r, r->format->get_node(statuses_node, "user"));
 		TwitterTweet   *tweet = twitter_dm_node_parse(r, statuses_node);
 		TwitterUserTweet *data = twitter_user_tweet_new(user->screen_name, user->profile_image_url, user, tweet);
@@ -525,7 +525,7 @@ GList          *twitter_statuses_nodes_parse(TwitterRequestor * r, GList * nodes
 		}
 		else
 		{
-			// DREM
+			// TODO
 			purple_debug_info("prpltwtr", "%s: Got a NULL user from node\n", G_STRFUNC);
 		}
 	}

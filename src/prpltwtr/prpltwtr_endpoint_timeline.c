@@ -3,7 +3,7 @@
 //TODO: Should these be here?
 const gchar * twitter_account_get_last_home_timeline_id(PurpleAccount * account)
 {
-	// DREM Discard the const gchar *
+	// TODO Discard the const gchar *
     gchar * results = (gchar *)purple_account_get_string(account, "twitter_last_home_timeline_id", NULL);
 	purple_debug_info("prpltwtr", "%s: Get last ID: %s\n", G_STRFUNC, results);
 	return results;
@@ -200,11 +200,11 @@ static gboolean twitter_timeline_timeout(TwitterEndpointChat * endpoint_chat)
 	
     if (since_id == NULL || g_strcmp0("0", since_id) == 0) {
         purple_debug_info(purple_account_get_protocol_id(account), "%s: Retrieving %s statuses for first time\n", G_STRFUNC, gc->account->username);
-		// DREM Discards const gchar *
+		// TODO Discards const gchar *
         twitter_api_get_home_timeline(purple_account_get_requestor(account), (gchar *)since_id, TWITTER_HOME_TIMELINE_INITIAL_COUNT, 1, twitter_get_home_timeline_cb, twitter_get_home_timeline_error_cb, chat_id);
     } else {
         purple_debug_info(purple_account_get_protocol_id(account), "%s: Retrieving %s statuses since %s\n", G_STRFUNC, gc->account->username, since_id);
-		// DREM Discard const gchar *
+		// TODO Discard const gchar *
         twitter_api_get_home_timeline_all(purple_account_get_requestor(account), (gchar *)since_id, twitter_get_home_timeline_all_cb, twitter_get_home_timeline_all_error_cb, twitter_option_home_timeline_max_tweets(account), chat_id);
     }
     return TRUE;

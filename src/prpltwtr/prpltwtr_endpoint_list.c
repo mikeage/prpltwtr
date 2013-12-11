@@ -161,7 +161,7 @@ static gboolean twitter_list_timeout(TwitterEndpointChat * endpoint_chat)
     TwitterEndpointChatId *chat_id = NULL;
     gchar          *key = g_strdup_printf("list_%s", ctx->list_name);
 
-	// DREM Discard const gchar *
+	// TODO Discard const gchar *
     ctx->last_tweet_id = (gchar *)purple_account_get_string(endpoint_chat->account, key, NULL);
     g_free(key);
 

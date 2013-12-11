@@ -779,9 +779,9 @@ static gboolean twitter_send_format_request_multipage_all_success_cb(TwitterRequ
 
 	gint node_count;
 
-	// DREM If we clean this out, it will blow away.
-	// DREM request_data_all->nodes = NULL;
-	// DREM request_data_all->current_count = 0;
+	// TODO If we clean this out, it will blow away.
+	// TODO request_data_all->nodes = NULL;
+	// TODO request_data_all->current_count = 0;
 	
 	request_data_all->nodes = r->format->copy_into(node, request_data_all->nodes, &node_count);
     request_data_all->current_count += node_count;

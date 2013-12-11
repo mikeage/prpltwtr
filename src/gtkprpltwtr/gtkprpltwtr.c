@@ -303,7 +303,7 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
             return FALSE;
 		}
 
-		// DREM Remove the const gchar *
+		// TODO Remove the const gchar *
         conv = twitter_endpoint_reply_conversation_new(twitter_endpoint_im_find(account, TWITTER_IM_TYPE_AT_MSG), user, (gchar *)id_str, TRUE);
         if (!conv) {
             return FALSE;
@@ -349,7 +349,7 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
             return FALSE;
         }
 
-		// DREM Discard the const gchar *
+		// TODO Discard the const gchar *
         conv = twitter_endpoint_reply_conversation_new(twitter_endpoint_im_find(account, TWITTER_IM_TYPE_AT_MSG), user, (gchar *)id_str, TRUE);
         if (!conv) {
             return FALSE;
@@ -421,13 +421,13 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
         conv_id = g_new0(TwitterConversationId, 1);
         conv_id->conv_name = g_strdup(purple_url_decode(conv_name_encoded));
         conv_id->type = conv_type;
-		// DREM Discard the const gchar *
+		// TODO Discard the const gchar *
         twitter_api_send_rt(purple_account_get_requestor(account), (gchar *)id_str, twitter_send_rt_success_cb, twitter_send_rt_error_cb, conv_id);
 		}
     } else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_GET_ORIGINAL)) {
         TwitterConversationId *conv_id;
 
-        const char     *in_reply_to_status_id_str = NULL; // DREM Probably wrong
+        const char     *in_reply_to_status_id_str = NULL; // TODO Probably wrong
 
         gchar          *conv_type_str;
         PurpleConversationType conv_type;
@@ -449,7 +449,7 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
         conv_id = g_new0(TwitterConversationId, 1);
         conv_id->conv_name = g_strdup(purple_url_decode(conv_name_encoded));
         conv_id->type = conv_type;
-		// DREM Discard the const gchar *
+		// TODO Discard the const gchar *
         twitter_api_get_status(purple_account_get_requestor(account), (gchar *)in_reply_to_status_id_str, twitter_get_status_success_cb, twitter_get_status_error_cb, conv_id);
 		}
     } else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_LINK)) {
@@ -470,7 +470,7 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
             return FALSE;
         }
   
-		// DREM Discard the const gchar *
+		// TODO Discard the const gchar *
 		link = twitter_mb_prefs_get_status_url(twitter->mb_prefs, user, (gchar *)id_str);
         if (link) {
             purple_notify_uri(NULL, link);
@@ -501,7 +501,7 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
         conv_id = g_new0(TwitterConversationId, 1);
         conv_id->conv_name = g_strdup(purple_url_decode(conv_name_encoded));
         conv_id->type = conv_type;
-		// DREM Discard const gchar *
+		// TODO Discard const gchar *
         twitter_api_delete_status(purple_account_get_requestor(account), (gchar *)id_str, twitter_delete_tweet_success_cb, twitter_delete_tweet_error_cb, conv_id);
 		}
     } else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_SEARCH)) {
@@ -527,7 +527,7 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
             return FALSE;
         }
 
-		// DREM Discard the const gchar *
+		// TODO Discard the const gchar *
         conv = twitter_endpoint_reply_conversation_new(twitter_endpoint_im_find(account, TWITTER_IM_TYPE_AT_MSG), user, (gchar *)id_str, TRUE);
         if (!conv) {
             return FALSE;
@@ -562,7 +562,7 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
         conv_id = g_new0(TwitterConversationId, 1);
         conv_id->conv_name = g_strdup(purple_url_decode(conv_name_encoded));
         conv_id->type = conv_type;
-		// DREM Discard const gchar *
+		// TODO Discard const gchar *
         twitter_api_add_favorite(purple_account_get_requestor(account), (gchar *)id_str, twitter_add_favorite_success_cb, twitter_add_favorite_error_cb, conv_id);
     } else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_DELETE_FAVORITE)) {
         TwitterConversationId *conv_id;
@@ -591,7 +591,7 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
         conv_id = g_new0(TwitterConversationId, 1);
         conv_id->conv_name = g_strdup(purple_url_decode(conv_name_encoded));
         conv_id->type = conv_type;
-		// DREM Discard const gchar *
+		// TODO Discard const gchar *
         twitter_api_delete_favorite(purple_account_get_requestor(account), (gchar *)id_str, twitter_delete_favorite_success_cb, twitter_delete_favorite_error_cb, conv_id);
     } else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_REPORT_SPAM)) {
         TwitterConversationId *conv_id;
@@ -784,7 +784,7 @@ static void twitter_url_menu_actions(GtkWidget * menu, const char *url)
         g_strfreev(userparts);
     }
 
-    if (0 /* DREM */ && in_reply_to_status_id) {
+    if (0 /* TODO */ && in_reply_to_status_id) {
         img = gtk_image_new_from_stock(GTK_STOCK_HOME, GTK_ICON_SIZE_MENU);
         item = gtk_image_menu_item_new_with_mnemonic((_("In reply to...")));
         gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);

@@ -109,7 +109,7 @@ static void twitter_endpoint_im_success_cb(TwitterRequestor * r, GList * nodes, 
 static gboolean twitter_im_timer_timeout(gpointer _ctx)
 {
     TwitterEndpointIm *ctx = (TwitterEndpointIm *) _ctx;
-	// DREM Discard const gchar *
+	// TODO Discard const gchar *
     ctx->settings->get_im_func(purple_account_get_requestor(ctx->account), (gchar *)twitter_endpoint_im_get_since_id(ctx), twitter_endpoint_im_success_cb, twitter_endpoint_im_error_cb, ctx->ran_once ? -1 : ctx->initial_max_retrieve, ctx);
     ctx->timer = 0;
     return FALSE;
