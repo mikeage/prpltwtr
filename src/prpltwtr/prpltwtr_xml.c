@@ -510,15 +510,8 @@ GList          *twitter_statuses_nodes_parse(TwitterRequestor * r, GList * nodes
     GList          *l_users_data = NULL;
     GList          *l;
     for (l = nodes; l; l = l->next) {
-        gpointer        node = l->data;
-        gpointer        user = twitter_statuses_node_parse(r, node);
-
-        if (user != NULL) {
-            l_users_data = g_list_concat(l_users_data, user);
-        } else {
-            // TODO
-            purple_debug_info(GENERIC_PROTOCOL_ID, "%s: Got a NULL user from node\n", G_STRFUNC);
-        }
+        gpointer       *node = l->data;
+        l_users_data = g_list_concat(l_users_data, twitter_statuses_node_parse(r, node));
     }
     return l_users_data;
 }

@@ -118,10 +118,14 @@ static void twitter_get_replies_all_cb(TwitterRequestor * r, GList * nodes, gpoi
 
 static void twitter_get_replies_get_last_since_id_success_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
+    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
+
     TwitterLastSinceIdRequest *last = user_data;
     gchar          *id = 0;
-    gpointer        status_node = r->format->get_node(node, "status");
-    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
+    /* In XML, this was inside a "status" node. TODO */
+    /* gpointer       *status_node = r->format->get_node(node, "status"); *//* XML only */
+    gpointer       *status_node = node;
+    purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
     if (status_node != NULL) {
         TwitterTweet   *status_data = twitter_status_node_parse(r, status_node);
         if (status_data != NULL) {
