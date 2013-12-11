@@ -243,57 +243,57 @@ TwitterUserData *twitter_user_node_parse(TwitterRequestor * r, gpointer user_nod
 
 TwitterTweet   *twitter_status_node_parse(TwitterRequestor * r, gpointer status_node)
 {
-	TwitterTweet   *status;
-	TwitterFormat  *format = r->format;
-	gchar          *data;
-	xmlnode        *retweeted_status = NULL;
+    TwitterTweet   *status;
+    TwitterFormat  *format = r->format;
+    gchar          *data;
+    gpointer       *retweeted_status_node = NULL;
 
-	if (status_node == NULL)
-		return NULL;
+    if (status_node == NULL)
+        return NULL;
 
-	status = g_new0(TwitterTweet, 1);
-	status->text = format->get_str(status_node, "text");
+    status = g_new0(TwitterTweet, 1);
+    status->text = format->get_str(status_node, "text");
 
-	purple_debug_info("prprltwtr/status_node_parse", "Status: %s\n", status->text);
+    purple_debug_info("prprltwtr/status_node_parse", "Status: %s\n", status->text);
 
-	if ((data = format->get_str(status_node, "created_at"))) {
-		time_t          created_at = twitter_status_parse_timestamp(data);
-		status->created_at = created_at ? created_at : time(NULL);
-		g_free(data);
-	}
+    if ((data = format->get_str(status_node, "created_at"))) {
+        time_t          created_at = twitter_status_parse_timestamp(data);
+        status->created_at = created_at ? created_at : time(NULL);
+        g_free(data);
+    }
 
-	if ((data = format->get_str(status_node, "id_str"))) {
-		status->id = data;
-	}
+    if ((data = format->get_str(status_node, "id_str"))) {
+        status->id = data;
+    }
 
-	if ((data = format->get_str(status_node, "in_reply_to_status_id_str"))) {
-		status->in_reply_to_status_id = data;
-	}
+    if ((data = format->get_str(status_node, "in_reply_to_status_id_str"))) {
+        status->in_reply_to_status_id = data;
+    }
 
-	if ((data = format->get_str(status_node, "favorited"))) {
-		status->favorited = !strcmp(data, "true") ? TRUE : FALSE;
-		g_free(data);
-	} else {
-		status->favorited = FALSE;
-	}
-	status->in_reply_to_screen_name = format->get_str(status_node, "in_reply_to_screen_name");
+    if ((data = format->get_str(status_node, "favorited"))) {
+        status->favorited = !strcmp(data, "true") ? TRUE : FALSE;
+        g_free(data);
+    } else {
+        status->favorited = FALSE;
+    }
+    status->in_reply_to_screen_name = format->get_str(status_node, "in_reply_to_screen_name");
 
-	if ((retweeted_status = format->get_node(status_node, "retweeted_status"))) {
-		gchar          *rt_text;
-		xmlnode        *rt_user;
-		gchar          *rt_user_name;
-		rt_text = format->get_str(retweeted_status, "text");
-		if ((rt_user = format->get_node(retweeted_status, "user"))) {
-			rt_user_name = format->get_str(rt_user, "screen_name");
-			// We don't need the original text, since it's cut off
-			g_free(status->text);
-			status->text = g_strconcat("RT @", rt_user_name, ": ", rt_text, NULL);
-			g_free(rt_user_name);
-		}
-		g_free(rt_text);
-	}
+    if ((retweeted_status_node = format->get_node(status_node, "retweeted_status"))) {
+        gchar          *rt_text;
+        gpointer       *rt_user_node;
+        gchar          *rt_screen_name;
+        rt_text = format->get_str(retweeted_status_node, "text");
+        if ((rt_user_node = format->get_node(retweeted_status_node, "user"))) {
+            rt_screen_name = format->get_str(rt_user_node, "screen_name");
+            // We don't need the original text, since it's cut off
+            g_free(status->text);
+            status->text = g_strconcat("RT @", rt_screen_name, ": ", rt_text, NULL);
+            g_free(rt_screen_name);
+        }
+        g_free(rt_text);
+    }
 
-	return status;
+    return status;
 }
 
 TwitterUserTweet *twitter_update_status_node_parse(TwitterRequestor * r, gpointer update_status_node)
@@ -324,11 +324,6 @@ TwitterUserTweet *twitter_verify_credentials_parse(TwitterRequestor * r, gpointe
 	data = twitter_user_tweet_new(user->screen_name, user->profile_image_url, user, tweet);
 
 	return data;
-}
-
-TwitterTweet   *twitter_dm_node_parse(TwitterRequestor * r, gpointer dm_node)
-{
-	return twitter_status_node_parse(r, dm_node);
 }
 
 TwitterUserTweet *twitter_user_tweet_new(const char *screen_name, const gchar * icon_url, TwitterUserData * user, TwitterTweet * tweet)
@@ -376,24 +371,37 @@ void twitter_user_tweet_free(TwitterUserTweet * ut)
 
 GList          *twitter_dms_node_parse(TwitterRequestor * r, gpointer dms_node)
 {
-	GList          *dms = NULL;
-	xmlnode        *dm_node;
-	gpointer        iter;
-	for (iter = r->format->iter_start(dms_node, "direct_message"); !r->format->iter_done(iter); iter = r->format->iter_next(iter)) {
-		dm_node = r->format->get_iter_node(iter);
-		gpointer child_node = r->format->get_node(dm_node, "sender");
-		purple_debug_info("prpltwtr/TODO", "before user\n");
-		TwitterUserData *user = twitter_user_node_parse(r, child_node);
-		purple_debug_info("prpltwtr/TODO", "before tweet %s\n", user->screen_name);
-		TwitterTweet   *tweet = twitter_dm_node_parse(r, dm_node);
-		purple_debug_info("prpltwtr/TODO", "before data %s\n", tweet->text);
-		TwitterUserTweet *data = twitter_user_tweet_new(user->screen_name, user->profile_image_url, user, tweet);
-		purple_debug_info("prpltwtr/TODO", "before good\n");
+    purple_debug_info(GENERIC_PROTOCOL_ID, "%s: END\n", G_STRFUNC);
 
-		dms = g_list_prepend(dms, data);
+    GList          *dms = NULL;
+    gpointer       *dm_node;
+    gpointer        iter;
 
-	}
-	return dms;
+    if (JSON_NODE_TYPE(dms_node) == JSON_NODE_ARRAY) {
+        for (iter = r->format->iter_start(dms_node, NULL); !r->format->iter_done(iter); iter = r->format->iter_next(iter)) {
+            dm_node = r->format->get_iter_node(iter);
+
+            if (dm_node != NULL) {
+                if (r->format->is_name(dm_node, "status")) {
+                    TwitterUserData *user = twitter_user_node_parse(r, r->format->get_node(dm_node, "sender"));
+                    TwitterTweet   *tweet = twitter_status_node_parse(r, dm_node);
+                    TwitterUserTweet *data = twitter_user_tweet_new(user->screen_name, user->profile_image_url, user, tweet);
+
+                    dms = g_list_prepend(dms, data);
+                }
+            }
+        }
+    } else if (JSON_NODE_TYPE(dms_node) == JSON_NODE_OBJECT) {
+        // TODO Utter violation of the format.
+        TwitterUserData *user = twitter_user_node_parse(r, r->format->get_node(dms_node, "sender"));
+        TwitterTweet   *tweet = twitter_status_node_parse(r, dms_node);
+        TwitterUserTweet *data = twitter_user_tweet_new(user->screen_name, user->profile_image_url, user, tweet);
+
+        purple_debug_info(GENERIC_PROTOCOL_ID, "%s: object: %s\n", G_STRFUNC, tweet->text);
+        dms = g_list_prepend(dms, data);
+    }
+
+    return dms;
 }
 
 GList          *twitter_dms_nodes_parse(TwitterRequestor * r, GList * nodes)
@@ -462,41 +470,39 @@ GList          *twitter_users_nodes_parse(TwitterRequestor * r, GList * nodes)
 
 GList          *twitter_statuses_node_parse(TwitterRequestor * r, gpointer statuses_node)
 {
-	GList          *statuses = NULL;
-	gpointer        status_node;
-	gpointer        iter;
+    GList          *statuses = NULL;
+    gpointer        status_node;
+    gpointer        iter;
 
-	purple_debug_info(GENERIC_PROTOCOL_ID, "%s: BEGIN array %d object %d value %d\n", G_STRFUNC, JSON_NODE_TYPE(statuses_node) == JSON_NODE_ARRAY, JSON_NODE_TYPE(statuses_node) == JSON_NODE_OBJECT, JSON_NODE_TYPE(statuses_node) == JSON_NODE_VALUE);
+    purple_debug_info(GENERIC_PROTOCOL_ID, "%s: BEGIN array %d object %d value %d\n", G_STRFUNC, JSON_NODE_TYPE(statuses_node) == JSON_NODE_ARRAY, JSON_NODE_TYPE(statuses_node) == JSON_NODE_OBJECT, JSON_NODE_TYPE(statuses_node) == JSON_NODE_VALUE);
 
-	if (JSON_NODE_TYPE(statuses_node) == JSON_NODE_ARRAY) {
-		for (iter = r->format->iter_start(statuses_node, NULL); !r->format->iter_done(iter); iter = r->format->iter_next(iter)) {
-			status_node = r->format->get_iter_node(iter);
-			
-			if (status_node != NULL) {
-				if (r->format->is_name(status_node, "status")) {
-					TwitterUserData *user = twitter_user_node_parse(r, r->format->get_node(status_node, "user"));
-					TwitterTweet   *tweet = twitter_dm_node_parse(r, status_node);
-					TwitterUserTweet *data = twitter_user_tweet_new(user->screen_name, user->profile_image_url, user, tweet);
-					
-					statuses = g_list_prepend(statuses, data);
-				}
-			}
-		}
-	}
-	else if (JSON_NODE_TYPE(statuses_node) == JSON_NODE_OBJECT)
-	{
-		// TODO Utter violation of the format.
-		TwitterUserData *user = twitter_user_node_parse(r, r->format->get_node(statuses_node, "user"));
-		TwitterTweet   *tweet = twitter_dm_node_parse(r, statuses_node);
-		TwitterUserTweet *data = twitter_user_tweet_new(user->screen_name, user->profile_image_url, user, tweet);
+    if (JSON_NODE_TYPE(statuses_node) == JSON_NODE_ARRAY) {
+        for (iter = r->format->iter_start(statuses_node, NULL); !r->format->iter_done(iter); iter = r->format->iter_next(iter)) {
+            status_node = r->format->get_iter_node(iter);
 
-		purple_debug_info(GENERIC_PROTOCOL_ID, "%s: object: %s\n", G_STRFUNC, tweet->text);
-		statuses = g_list_prepend(statuses, data);
-	}
-	
-	purple_debug_info(GENERIC_PROTOCOL_ID, "%s: END\n", G_STRFUNC);
+            if (status_node != NULL) {
+                if (r->format->is_name(status_node, "status")) {
+                    TwitterUserData *user = twitter_user_node_parse(r, r->format->get_node(status_node, "user"));
+                    TwitterTweet   *tweet = twitter_status_node_parse(r, status_node);
+                    TwitterUserTweet *data = twitter_user_tweet_new(user->screen_name, user->profile_image_url, user, tweet);
 
-	return statuses;
+                    statuses = g_list_prepend(statuses, data);
+                }
+            }
+        }
+    } else if (JSON_NODE_TYPE(statuses_node) == JSON_NODE_OBJECT) {
+        // TODO Utter violation of the format.
+        TwitterUserData *user = twitter_user_node_parse(r, r->format->get_node(statuses_node, "user"));
+        TwitterTweet   *tweet = twitter_status_node_parse(r, statuses_node);
+        TwitterUserTweet *data = twitter_user_tweet_new(user->screen_name, user->profile_image_url, user, tweet);
+
+        purple_debug_info(GENERIC_PROTOCOL_ID, "%s: object: %s\n", G_STRFUNC, tweet->text);
+        statuses = g_list_prepend(statuses, data);
+    }
+
+    purple_debug_info(GENERIC_PROTOCOL_ID, "%s: END\n", G_STRFUNC);
+
+    return statuses;
 }
 
 GList          *twitter_statuses_nodes_parse(TwitterRequestor * r, GList * nodes)

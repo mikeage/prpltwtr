@@ -65,7 +65,6 @@ GList          *twitter_users_nodes_parse(TwitterRequestor * r, GList * nodes);
 GList          *twitter_users_ids_nodes_parse(TwitterRequestor * r, GList * nodes);
 GList          *twitter_statuses_node_parse(TwitterRequestor * r, gpointer statuses_node);
 GList          *twitter_statuses_nodes_parse(TwitterRequestor * r, GList * nodes);
-TwitterTweet   *twitter_dm_node_parse(TwitterRequestor * r, gpointer dm_node);
 GList          *twitter_dms_node_parse(TwitterRequestor * r, gpointer dms_node);
 GList          *twitter_dms_nodes_parse(TwitterRequestor * r, GList * nodes);
 void            twitter_user_data_free(TwitterUserData * user_data);

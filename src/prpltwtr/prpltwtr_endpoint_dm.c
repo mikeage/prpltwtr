@@ -89,11 +89,13 @@ static void twitter_get_dms_get_last_since_id_success_cb(TwitterRequestor * r, g
     purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
 
     TwitterLastSinceIdRequest *last = user_data;
-    gchar *       id = 0;
-    gpointer       *status_node = r->format->get_node(node, "direct_message");
+    gchar          *id = 0;
+    /* In XML, this was inside a "direct_message" node. TODO */
+    /* gpointer       *status_node = r->format->get_node(node, "direct_message"); *//* XML only */
+    gpointer       *status_node = node;
     purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
     if (status_node != NULL) {
-        TwitterTweet   *status_data = twitter_dm_node_parse(r, status_node);
+        TwitterTweet   *status_data = twitter_status_node_parse(r, status_node);
         if (status_data != NULL) {
             id = status_data->id;
 
@@ -122,6 +124,7 @@ static void twitter_get_dms_last_since_id(PurpleAccount * account, void (*succes
     request->error_cb = error_cb;
     request->user_data = user_data;
     /* Simply get the last reply */
+    /* TODO: this is from the original code, but why are we only getting one DM? */
     twitter_api_get_dms(purple_account_get_requestor(account), 0, 1, 1, twitter_get_dms_get_last_since_id_success_cb, twitter_get_last_since_id_error_cb, request);
 }
 
