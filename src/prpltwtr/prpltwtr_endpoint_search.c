@@ -55,7 +55,7 @@ static gchar   *twitter_search_verify_components(GHashTable * components)
     return NULL;
 }
 
-static void twitter_search_cb(PurpleAccount * account, GList * search_results, const gchar * refresh_url, long long max_id, gpointer user_data)
+static void twitter_search_cb(PurpleAccount * account, GList * search_results, const gchar * refresh_url, gchar * max_id, gpointer user_data)
 {
     TwitterEndpointChatId *id = (TwitterEndpointChatId *) user_data;
     TwitterEndpointChat *endpoint_chat;
@@ -107,8 +107,9 @@ static gboolean twitter_endpoint_search_interval_start(TwitterEndpointChat * end
     TwitterEndpointChatId *chat_id = NULL;
     gchar          *key = g_strdup_printf("search_%s", ctx->search_text);
 
-    ctx->last_tweet_id = purple_account_get_long_long(endpoint_chat->account, key, -1);
-    purple_debug_info(purple_account_get_protocol_id(endpoint_chat->account), "Resuming search for %s from %lld\n", ctx->search_text, ctx->last_tweet_id);
+	// TODO Discard const on gchar *
+    ctx->last_tweet_id = (gchar *)purple_account_get_string(endpoint_chat->account, key, NULL);
+    purple_debug_info(purple_account_get_protocol_id(endpoint_chat->account), "Resuming search for %s from %s\n", ctx->search_text, ctx->last_tweet_id);
 
     chat_id = twitter_endpoint_chat_id_new(endpoint_chat);
 
@@ -130,7 +131,7 @@ static gboolean twitter_search_timeout(TwitterEndpointChat * endpoint_chat)
     } else {
         gchar          *refresh_url;
 
-        refresh_url = g_strdup_printf("?q=%s&since_id=%lld", purple_url_encode(ctx->search_text), ctx->last_tweet_id);
+        refresh_url = g_strdup_printf("?q=%s&since_id=%s", purple_url_encode(ctx->search_text), ctx->last_tweet_id);
 
         purple_debug_info(purple_account_get_protocol_id(endpoint_chat->account), "%s, create refresh_url: %s\n", G_STRFUNC, refresh_url);
 

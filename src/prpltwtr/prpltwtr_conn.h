@@ -14,7 +14,7 @@ typedef struct {
     guint           get_friends_timer;
     guint           update_presence_timer;
 
-    long long       last_home_timeline_id;
+    gchar *       last_home_timeline_id;
 
     /* a table of TwitterEndpointChat
      * where the key will be the chat name
@@ -25,7 +25,7 @@ typedef struct {
     GHashTable     *chat_contexts;
 
     /* key: gchar *screen_name,
-     * value: gchar *reply_id (then converted to long long)
+     * value: gchar *reply_id (then converted to gchar *)
      * Store the id of last reply sent from any user to @me
      * This is used as in_reply_to_status_id
      * when @me sends a tweet to others */

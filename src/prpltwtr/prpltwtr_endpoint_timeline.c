@@ -1,25 +1,29 @@
 #include "prpltwtr_endpoint_timeline.h"
 
 //TODO: Should these be here?
-static long long twitter_account_get_last_home_timeline_id(PurpleAccount * account)
+const gchar * twitter_account_get_last_home_timeline_id(PurpleAccount * account)
 {
-    return purple_account_get_long_long(account, "twitter_last_home_timeline_id", 0);
+	// TODO Discard the const gchar *
+    gchar * results = (gchar *)purple_account_get_string(account, "twitter_last_home_timeline_id", NULL);
+	purple_debug_info(GENERIC_PROTOCOL_ID, "%s: Get last ID: %s\n", G_STRFUNC, results);
+	return results;
 }
 
-static void twitter_account_set_last_home_timeline_id(PurpleAccount * account, long long reply_id)
+void twitter_account_set_last_home_timeline_id(PurpleAccount * account, gchar * reply_id)
 {
-    purple_account_set_long_long(account, "twitter_last_home_timeline_id", reply_id);
+	purple_debug_info(GENERIC_PROTOCOL_ID, "%s: Setting last ID to %s\n", G_STRFUNC, reply_id);
+    purple_account_set_string(account, "twitter_last_home_timeline_id", reply_id);
 }
 
-static long long twitter_connection_get_last_home_timeline_id(PurpleConnection * gc)
+const gchar * twitter_connection_get_last_home_timeline_id(PurpleConnection * gc)
 {
-    long long       reply_id = 0;
+    gchar *       reply_id = "0";
     TwitterConnectionData *connection_data = gc->proto_data;
     reply_id = connection_data->last_home_timeline_id;
     return (reply_id ? reply_id : twitter_account_get_last_home_timeline_id(purple_connection_get_account(gc)));
 }
 
-static void twitter_connection_set_last_home_timeline_id(PurpleConnection * gc, long long reply_id)
+void twitter_connection_set_last_home_timeline_id(PurpleConnection * gc, gchar * reply_id)
 {
     TwitterConnectionData *connection_data = gc->proto_data;
 
@@ -59,30 +63,35 @@ static void twitter_get_home_timeline_parse_statuses(TwitterEndpointChat * endpo
     GList          *l;
     TwitterUserTweet *user_tweet;
 
-    purple_debug_info(purple_account_get_protocol_id(endpoint_chat->account), "%s\n", G_STRFUNC);
+    purple_debug_info(purple_account_get_protocol_id(endpoint_chat->account), "%s: begin\n", G_STRFUNC);
 
     g_return_if_fail(endpoint_chat != NULL);
     gc = purple_account_get_connection(endpoint_chat->account);
 
     if (!statuses) {
         /* At least update the topic with the new rate limit info */
+		purple_debug_info(purple_account_get_protocol_id(endpoint_chat->account), "%s: No statuses\n", G_STRFUNC);
         twitter_chat_update_rate_limit(endpoint_chat);
         return;
     }
+ 
+    purple_debug_info(purple_account_get_protocol_id(endpoint_chat->account), "%s: has status\n", G_STRFUNC);
 
-    l = g_list_last(statuses);
+	l = g_list_last(statuses);
     user_tweet = l->data;
     if (user_tweet && user_tweet->status)
-        /* Tweets might not be sequential anymore. Take since_id from the last one, not the greatest */
-#if 0
-        &&user_tweet->status->id > twitter_connection_get_last_home_timeline_id(gc)
-#endif                       /* 0 */
     {
+		purple_debug_info(purple_account_get_protocol_id(endpoint_chat->account), "%s: has tweet: %s\n", G_STRFUNC, user_tweet->status->text);
+
         if (user_tweet->status->id < twitter_connection_get_last_home_timeline_id(gc)) {
-            purple_debug_info(purple_account_get_protocol_id(endpoint_chat->account), "Setting last as %lld, although it's less than the previous %lld\n", user_tweet->status->id, twitter_connection_get_last_home_timeline_id(gc));
+            purple_debug_info(purple_account_get_protocol_id(endpoint_chat->account), "Setting last as %s, although it's less than the previous %s\n", user_tweet->status->id, twitter_connection_get_last_home_timeline_id(gc));
         }
+
+		purple_debug_info(purple_account_get_protocol_id(endpoint_chat->account), "%s: set last: %s\n", G_STRFUNC, user_tweet->status->id);
         twitter_connection_set_last_home_timeline_id(gc, user_tweet->status->id);
     }
+
+	purple_debug_info(purple_account_get_protocol_id(endpoint_chat->account), "%s: twitter_chat_got_user_tweets\n", G_STRFUNC);
     twitter_chat_got_user_tweets(endpoint_chat, statuses);
 }
 
@@ -91,7 +100,7 @@ static gboolean twitter_get_home_timeline_all_error_cb(TwitterRequestor * r, con
     TwitterEndpointChatId *chat_id = (TwitterEndpointChatId *) user_data;
     TwitterEndpointChat *endpoint_chat;
 
-    purple_debug_warning(purple_account_get_protocol_id(r->account), "%s(0x%X): %s\n", G_STRFUNC, (int) user_data, error_data->message);
+    purple_debug_warning(purple_account_get_protocol_id(r->account), "%s(%p): %s\n", G_STRFUNC, user_data, error_data->message);
 
     g_return_val_if_fail(chat_id != NULL, TRUE);
     endpoint_chat = twitter_endpoint_chat_find_by_id(chat_id);
@@ -111,13 +120,13 @@ static void twitter_get_home_timeline_error_cb(TwitterRequestor * r, const Twitt
     return;
 }
 
-static void twitter_get_home_timeline_cb(TwitterRequestor * r, xmlnode * node, gpointer user_data)
+static void twitter_get_home_timeline_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
     TwitterEndpointChatId *chat_id = (TwitterEndpointChatId *) user_data;
     TwitterEndpointChat *endpoint_chat;
     GList          *statuses;
 
-    purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
+    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
 
     g_return_if_fail(chat_id != NULL);
     endpoint_chat = twitter_endpoint_chat_find_by_id(chat_id);
@@ -132,7 +141,7 @@ static void twitter_get_home_timeline_cb(TwitterRequestor * r, xmlnode * node, g
     endpoint_chat->retrieval_in_progress = FALSE;
     endpoint_chat->retrieval_in_progress_timeout = 0;
 
-    statuses = twitter_statuses_node_parse(node);
+    statuses = twitter_statuses_node_parse(r, node);
     twitter_get_home_timeline_parse_statuses(endpoint_chat, statuses);
 
 }
@@ -158,7 +167,7 @@ static void twitter_get_home_timeline_all_cb(TwitterRequestor * r, GList * nodes
     endpoint_chat->retrieval_in_progress = FALSE;
     endpoint_chat->retrieval_in_progress_timeout = 0;
 
-    statuses = twitter_statuses_nodes_parse(nodes);
+    statuses = twitter_statuses_nodes_parse(r, nodes);
     twitter_get_home_timeline_parse_statuses(endpoint_chat, statuses);
 }
 
@@ -167,12 +176,12 @@ static gboolean twitter_timeline_timeout(TwitterEndpointChat * endpoint_chat)
     PurpleAccount  *account = endpoint_chat->account;
     PurpleConnection *gc = purple_account_get_connection(account);
     TwitterEndpointChatId *chat_id = NULL;
-    long long       since_id = twitter_connection_get_last_home_timeline_id(gc);
+    const gchar * since_id = twitter_connection_get_last_home_timeline_id(gc);
 
-    purple_debug_info(purple_account_get_protocol_id(account), "%s() %s\n", G_STRFUNC, account->username);
+    purple_debug_info(purple_account_get_protocol_id(account), "BEGIN: %s %s\n", G_STRFUNC, account->username);
 
     if (endpoint_chat->retrieval_in_progress && endpoint_chat->retrieval_in_progress_timeout <= 0) {
-        purple_debug_warning(purple_account_get_protocol_id(account), "There was a retreival in progress, but it appears dead. Ignoring it\n");
+        purple_debug_warning(purple_account_get_protocol_id(account), "There was a retrieval in progress, but it appears dead. Ignoring it\n");
         endpoint_chat->retrieval_in_progress = FALSE;
     }
 
@@ -187,12 +196,16 @@ static gboolean twitter_timeline_timeout(TwitterEndpointChat * endpoint_chat)
     endpoint_chat->retrieval_in_progress = TRUE;
     endpoint_chat->retrieval_in_progress_timeout = 2;
 
-    if (since_id == 0) {
-        purple_debug_info(purple_account_get_protocol_id(account), "Retrieving %s statuses for first time\n", gc->account->username);
-        twitter_api_get_home_timeline(purple_account_get_requestor(account), since_id, TWITTER_HOME_TIMELINE_INITIAL_COUNT, 1, twitter_get_home_timeline_cb, twitter_get_home_timeline_error_cb, chat_id);
+	purple_debug_info(GENERIC_PROTOCOL_ID, "%s: preparing to send to twitter_send_format_request_multipage_cb: %s\n", G_STRFUNC, since_id);
+	
+    if (since_id == NULL || g_strcmp0("0", since_id) == 0) {
+        purple_debug_info(purple_account_get_protocol_id(account), "%s: Retrieving %s statuses for first time\n", G_STRFUNC, gc->account->username);
+		// TODO Discards const gchar *
+        twitter_api_get_home_timeline(purple_account_get_requestor(account), (gchar *)since_id, TWITTER_HOME_TIMELINE_INITIAL_COUNT, 1, twitter_get_home_timeline_cb, twitter_get_home_timeline_error_cb, chat_id);
     } else {
-        purple_debug_info(purple_account_get_protocol_id(account), "Retrieving %s statuses since %lld\n", gc->account->username, since_id);
-        twitter_api_get_home_timeline_all(purple_account_get_requestor(account), since_id, twitter_get_home_timeline_all_cb, twitter_get_home_timeline_all_error_cb, twitter_option_home_timeline_max_tweets(account), chat_id);
+        purple_debug_info(purple_account_get_protocol_id(account), "%s: Retrieving %s statuses since %s\n", G_STRFUNC, gc->account->username, since_id);
+		// TODO Discard const gchar *
+        twitter_api_get_home_timeline_all(purple_account_get_requestor(account), (gchar *)since_id, twitter_get_home_timeline_all_cb, twitter_get_home_timeline_all_error_cb, twitter_option_home_timeline_max_tweets(account), chat_id);
     }
     return TRUE;
 }

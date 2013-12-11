@@ -37,12 +37,11 @@ void twitter_endpoint_chat_init(const char *protocol_id)
 
 void twitter_endpoint_chat_free(TwitterEndpointChat * ctx)
 {
-    PurpleConnection *gc;
     GList          *l;
 
     if (ctx->settings && ctx->settings->endpoint_data_free)
         ctx->settings->endpoint_data_free(ctx->endpoint_data);
-    gc = purple_account_get_connection(ctx->account);
+    purple_account_get_connection(ctx->account);
 
     if (ctx->timer_handle) {
         purple_timeout_remove(ctx->timer_handle);
@@ -228,7 +227,7 @@ gboolean twitter_blist_chat_is_auto_open(PurpleChat * chat)
     return (auto_open != NULL && auto_open[0] != '0');
 }
 
-static void twitter_chat_add_tweet(PurpleConversation * conv, const char *who, const char *message, long long id, time_t time, long long in_reply_to_status_id, gboolean favorited)
+static void twitter_chat_add_tweet(PurpleConversation * conv, const char *who, const char *message, gchar * id, time_t time, gchar * in_reply_to_status_id, gboolean favorited)
 {
     gchar          *tweet;
 #ifndef _HAZE_
@@ -296,11 +295,11 @@ void twitter_chat_got_tweet(TwitterEndpointChat * endpoint_chat, TwitterUserTwee
     twitter_chat_add_tweet(conv, tweet->screen_name, tweet->status->text, tweet->status->id, tweet->status->created_at, tweet->status->in_reply_to_status_id, tweet->status->favorited);
 }
 
-static gboolean twitter_sent_tweets_contains_id(TwitterEndpointChat * ctx, long long id)
+static gboolean twitter_sent_tweets_contains_id(TwitterEndpointChat * ctx, gchar * id)
 {
     GList          *l;
     for (l = ctx->sent_tweet_ids; l; l = l->next) {
-        long long      *el = l->data;
+        gchar *      *el = l->data;
         if (*el == id)
             return TRUE;
         else if (*el > id)
@@ -310,9 +309,9 @@ static gboolean twitter_sent_tweets_contains_id(TwitterEndpointChat * ctx, long 
 }
 
 //Removes all tweet id before id
-static void twitter_sent_tweets_ids_remove_before(TwitterEndpointChat * ctx, long long id)
+static void twitter_sent_tweets_ids_remove_before(TwitterEndpointChat * ctx, gchar * id)
 {
-    while (ctx->sent_tweet_ids && *((long long *) ctx->sent_tweet_ids->data) <= id) {
+    while (ctx->sent_tweet_ids && *((gchar * *) ctx->sent_tweet_ids->data) <= id) {
         g_free(ctx->sent_tweet_ids->data);
         ctx->sent_tweet_ids = g_list_delete_link(ctx->sent_tweet_ids, ctx->sent_tweet_ids);
     }
@@ -347,7 +346,7 @@ void twitter_chat_got_user_tweets(TwitterEndpointChat * endpoint_chat, GList * u
 {
     PurpleAccount  *account;
     GList          *l;
-    long long       max_id = 0;
+    gchar *       max_id = 0;
 
     g_return_if_fail(endpoint_chat != NULL);
 
@@ -383,7 +382,7 @@ void twitter_chat_got_user_tweets(TwitterEndpointChat * endpoint_chat, GList * u
     twitter_chat_update_rate_limit(endpoint_chat);
 }
 
-static int _tweet_id_compare(long long *a, long long *b)
+static int _tweet_id_compare(gchar * *a, gchar * *b)
 {
     if (*a < *b)
         return -1;
@@ -393,9 +392,9 @@ static int _tweet_id_compare(long long *a, long long *b)
         return 1;
 }
 
-static void twitter_add_sent_tweet_id(TwitterEndpointChat * endpoint_chat, long long tweet_id)
+static void twitter_add_sent_tweet_id(TwitterEndpointChat * endpoint_chat, gchar * tweet_id)
 {
-    long long      *p = g_new(long long, 1);
+    gchar *      *p = g_new(gchar *, 1);
     *p = tweet_id;
     endpoint_chat->sent_tweet_ids = g_list_insert_sorted(endpoint_chat->sent_tweet_ids, p, (GCompareFunc) _tweet_id_compare);
 }
@@ -494,10 +493,10 @@ TwitterEndpointChat *twitter_endpoint_chat_find(PurpleAccount * account, const c
     }
 }
 
-static void twitter_endpoint_chat_send_success_cb(PurpleAccount * account, xmlnode * node, gboolean last, gpointer _ctx_id)
+static void twitter_endpoint_chat_send_success_cb(PurpleAccount * account, gpointer node, gboolean last, gpointer _ctx_id)
 {
     TwitterEndpointChatId *id = _ctx_id;
-    TwitterUserTweet *user_tweet = twitter_update_status_node_parse(node);
+    TwitterUserTweet *user_tweet = twitter_update_status_node_parse(purple_account_get_requestor(account), node);
     TwitterTweet   *tweet = user_tweet ? user_tweet->status : NULL;
     TwitterEndpointChat *ctx = twitter_endpoint_chat_find_by_id(id);
 
@@ -559,7 +558,7 @@ int twitter_endpoint_chat_send(TwitterEndpointChat * ctx, const gchar * message)
 
     statuses = twitter_utf8_get_segments(message, MAX_TWEET_LENGTH, added_text, attach_search_text == TWITTER_ATTACH_SEARCH_TEXT_PREPEND);
     id = twitter_endpoint_chat_id_new(ctx);
-    twitter_api_set_statuses(purple_account_get_requestor(account), statuses, 0, twitter_endpoint_chat_send_success_cb, twitter_endpoint_chat_send_error_cb, id);
+    twitter_api_set_statuses(purple_account_get_requestor(account), statuses, NULL, twitter_endpoint_chat_send_success_cb, twitter_endpoint_chat_send_error_cb, id);
 
     if (added_text)
         g_free(added_text);

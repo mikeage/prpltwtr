@@ -1,3 +1,25 @@
+#ifndef _TWITTER_PLUGIN_H_
+#define _TWITTER_PLUGIN_H_
+
+typedef struct _TwitterRequestor TwitterRequestor;
+
+typedef struct {
+	const gchar *get_rate_limit_status;
+	const gchar *get_friends;
+	const gchar *get_home_timeline;
+	const gchar *get_mentions;
+	const gchar *get_dms;
+	const gchar *update_status;
+	const gchar *new_dm;
+	const gchar *get_saved_searches;
+	const gchar *get_subscribed_lists;
+	const gchar *get_personal_lists;
+	const gchar *get_search_results;
+	const gchar *verify_credentials;
+	const gchar *report_spammer;
+	const gchar *get_user_info;
+} TwitterUrls;
+
 void            twitter_destroy(PurplePlugin * plugin);
 void            twitter_tooltip_text(PurpleBuddy * buddy, PurpleNotifyUserInfo * info, gboolean full);
 GList          *twitter_actions(PurplePlugin * plugin, gpointer context);
@@ -24,3 +46,13 @@ char           *twitter_chat_get_name(GHashTable * components);
 void            twitter_convo_closed(PurpleConnection * gc, const gchar * conv_name);
 void            twitter_set_buddy_icon(PurpleConnection * gc, PurpleStoredImage * img);
 void            prpltwtr_plugin_init(PurplePlugin * plugin);
+
+/// Configures the requestor with the specific paths and formats used by this account.
+/// This will pre-calculate all the known paths used by the plugin (excluding those with
+/// additional parameters). In addition, it will set up the pointers to parse the data
+/// from the social network.
+///
+/// This will pick the appropriate network based on the account in the requestor.
+void            prpltwtr_plugin_setup(TwitterRequestor * requestor);
+
+#endif

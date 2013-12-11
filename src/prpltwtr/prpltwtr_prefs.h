@@ -81,7 +81,7 @@
 #define TWITTER_PREF_DEFAULT_DM_DEFAULT FALSE
 
 #define TWITTER_PREF_API_BASE "twitter_api_base_url"
-#define TWITTER_PREF_API_BASE_DEFAULT "api.twitter.com/1"
+#define TWITTER_PREF_API_BASE_DEFAULT "api.twitter.com/1.1"
 #define STATUSNET_PREF_API_BASE_DEFAULT "identi.ca/api"
 
 #define TWITTER_PREF_CONSUMER_KEY "consumer_key"
@@ -102,26 +102,26 @@
 #define TWITTER_ONLINE_CUTOFF_TIME_HOURS_DEFAULT 24
 
 /***** START URLS *****/
-#define TWITTER_PREF_URL_GET_RATE_LIMIT_STATUS "/account/rate_limit_status.xml"
-#define TWITTER_PREF_URL_GET_FRIENDS "/friends/ids.xml"
-#define TWITTER_PREF_URL_GET_HOME_TIMELINE "/statuses/home_timeline.xml"
+#define TWITTER_PREF_URL_GET_RATE_LIMIT_STATUS "/account/rate_limit_status"
+#define TWITTER_PREF_URL_GET_FRIENDS "/friends/ids"
+#define TWITTER_PREF_URL_GET_HOME_TIMELINE "/statuses/home_timeline"
 #define TWITTER_PREF_URL_GET_LIST "/lists/"      /* We need to prepend the username and add the ID and then statuses.xml here */
-#define TWITTER_PREF_URL_GET_MENTIONS "/statuses/mentions.xml"
-#define TWITTER_PREF_URL_GET_DMS "/direct_messages.xml"
-#define TWITTER_PREF_URL_UPDATE_STATUS "/statuses/update.xml"
-#define TWITTER_PREF_URL_NEW_DM "/direct_messages/new.xml"
-#define TWITTER_PREF_URL_GET_SAVED_SEARCHES "/saved_searches.xml"
-#define TWITTER_PREF_URL_GET_SUBSCRIBED_LISTS "/lists/subscriptions.xml"
-#define TWITTER_PREF_URL_GET_PERSONAL_LISTS "/lists.xml"
-#define TWITTER_PREF_URL_GET_SEARCH_RESULTS "/search.atom"
-#define TWITTER_PREF_URL_VERIFY_CREDENTIALS "/account/verify_credentials.xml"
+#define TWITTER_PREF_URL_GET_MENTIONS "/statuses/mentions_timeline"
+#define TWITTER_PREF_URL_GET_DMS "/direct_messages"
+#define TWITTER_PREF_URL_UPDATE_STATUS "/statuses/update"
+#define TWITTER_PREF_URL_NEW_DM "/direct_messages/new"
+#define TWITTER_PREF_URL_GET_SAVED_SEARCHES "/saved_searches/list"
+#define TWITTER_PREF_URL_GET_SUBSCRIBED_LISTS "/lists/subscriptions"
+#define TWITTER_PREF_URL_GET_PERSONAL_LISTS "/lists/list"
+#define TWITTER_PREF_URL_GET_SEARCH_RESULTS "/search"
+#define TWITTER_PREF_URL_VERIFY_CREDENTIALS "/account/verify_credentials"
 #define TWITTER_PREF_URL_RT "/statuses/retweet"  /* Yay for inconsistency */
 #define TWITTER_PREF_URL_DELETE_STATUS "/statuses/destroy"  /* Yay for inconsistency */
 #define TWITTER_PREF_URL_ADD_FAVORITE "/favorites/create"   /* Yay for inconsistency */
 #define TWITTER_PREF_URL_DELETE_FAVORITE "/favorites/destroy"   /* Yay for inconsistency */
 #define TWITTER_PREF_URL_GET_STATUS "/statuses/show"
-#define TWITTER_PREF_URL_REPORT_SPAMMER "/report_spam.xml"
-#define TWITTER_PREF_URL_GET_USER_INFO "/users/show.xml"
+#define TWITTER_PREF_URL_REPORT_SPAMMER "/report_spam"
+#define TWITTER_PREF_URL_GET_USER_INFO "/users/show"
 
 /***** END URLS *****/
 

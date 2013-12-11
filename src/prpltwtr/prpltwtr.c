@@ -25,7 +25,6 @@
 #include <glib/gstdio.h>
 
 #include "prpltwtr.h"
-
 #include "prpltwtr_mbprefs.h"
 
 #if !PURPLE_VERSION_CHECK(2, 6, 0)
@@ -110,7 +109,7 @@ static PurpleChat *twitter_blist_chat_timeline_new(PurpleAccount * account, gint
     return c;
 }
 
-static PurpleChat *twitter_blist_chat_list_new(PurpleAccount * account, const char *list_name, const char *owner, long long list_id)
+PurpleChat *twitter_blist_chat_list_new(PurpleAccount * account, const char *list_name, const char *owner, gchar * list_id)
 {
     PurpleGroup    *g;
     PurpleChat     *c = twitter_blist_chat_find_list(account, list_name);
@@ -135,7 +134,7 @@ static PurpleChat *twitter_blist_chat_list_new(PurpleAccount * account, const ch
     g_hash_table_insert(components, "chat_type", g_strdup_printf("%d", TWITTER_CHAT_LIST));
     g_hash_table_insert(components, "list_name", g_strdup(list_name));
     g_hash_table_insert(components, "owner", g_strdup(owner));
-    g_hash_table_insert(components, "list_id", g_strdup_printf("%lld", list_id));
+    g_hash_table_insert(components, "list_id", g_strdup_printf("%s", list_id));
 
     c = purple_chat_new(account, list_name, components);
     purple_blist_add_chat(c, g, NULL);
@@ -143,7 +142,7 @@ static PurpleChat *twitter_blist_chat_list_new(PurpleAccount * account, const ch
 }
 #endif
 
-static PurpleChat *twitter_blist_chat_search_new(PurpleAccount * account, const char *searchtext)
+PurpleChat *twitter_blist_chat_search_new(PurpleAccount * account, const char *searchtext)
 {
     PurpleGroup    *g;
     PurpleChat     *c = twitter_blist_chat_find_search(account, searchtext);
@@ -177,7 +176,7 @@ static void verify_connection_error_handler(PurpleAccount * account, const Twitt
         reason = PURPLE_CONNECTION_ERROR_NETWORK_ERROR;
         error_message = error_data->message;
         break;
-    case TWITTER_REQUEST_ERROR_INVALID_XML:
+    case TWITTER_REQUEST_ERROR_INVALID_FORMAT:
         reason = PURPLE_CONNECTION_ERROR_NETWORK_ERROR;
         error_message = _("Received Invalid XML");
         break;
@@ -264,71 +263,71 @@ char           *twitter_chat_get_name(GHashTable * components)
     return NULL;
 }
 
-static void get_lists_cb(TwitterRequestor * r, xmlnode * node, gpointer user_data)
+void get_lists_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
-    xmlnode        *list;
-
-    purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
-    if (!node)
-        return;
-
-    list = xmlnode_get_child(node, "lists");
-
-    if (!list) {
-        return;
-    }
-
-    for (list = list->child; list; list = list->next) {
-        if (list->name && !g_strcmp0(list->name, "list")) {
-            long long       id;
-            gchar          *owner = NULL;
-            gchar          *id_str = xmlnode_get_child_data(list, "id");
-            gchar          *name = xmlnode_get_child_data(list, "full_name");
-            xmlnode        *user = xmlnode_get_child(list, "user");
-            if (user) {
-                owner = xmlnode_get_child_data(user, "screen_name");
-            }
-
-            if (id_str) {
-                id = strtoll(id_str, NULL, 10);
-            } else {
-                id = 0;
-                purple_debug_warning(purple_account_get_protocol_id(r->account), "error with xmlnode. name = 0x%p, id_str=0x%p\n", name, id_str);
-            }
+	gpointer list;
+	
+	purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
+	if (!node)
+		return;
+	
+	list = r->format->iter_start(node, "lists");
+	
+	if (!list) {
+		return;
+	}
+	
+	for (; !r->format->iter_done(list); list = r->format->iter_next(list)) {
+		if (r->format->get_name(list) && !g_strcmp0(r->format->get_name(list), "list")) {
+			gchar *       id;
+			gchar          *owner = NULL;
+			id = r->format->get_str(list, "id_str");
+			gchar          *name = r->format->get_str(list, "full_name");
+			gpointer        user = r->format->get_node(list, "user");
+			if (user) {
+				owner = r->format->get_str(user, "screen_name");
+			}
+			
 #ifdef _HAZE_
-            /* TODO */
+			// TODO
 #else
-            purple_debug_info(purple_account_get_protocol_id(r->account), "List found: name %s, id %lld\n", name, id);
-            twitter_blist_chat_list_new(r->account, name, owner, id);
+			purple_debug_info(purple_account_get_protocol_id(r->account), "List found: name %s, id %s\n", name, id);
+			twitter_blist_chat_list_new(r->account, name, owner, id);
 #endif
-
-            g_free(id_str);
-            g_free(name);
-            g_free(owner);
-        }
-    }
+			
+			g_free(name);
+			g_free(owner);
+		}
+	}
 }
 
-static void get_saved_searches_cb(TwitterRequestor * r, xmlnode * node, gpointer user_data)
+void get_saved_searches_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
-    xmlnode        *search;
+	gpointer iter;
+    gpointer search;
 
-    purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
+	purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
+	
+    for (iter = r->format->iter_start(node, NULL); !r->format->iter_done(iter); iter = r->format->iter_next(iter)) {
+		search = r->format->get_iter_node(iter);
 
-    for (search = node->child; search; search = search->next) {
-        if (search->name && !g_strcmp0(search->name, "saved_search")) {
-            gchar          *query = xmlnode_get_child_data(search, "query");
+        if (r->format->is_name(search, "saved_search")) {
+            gchar          *query = r->format->get_str(search, "query");
+
+			if (query != NULL)
+			{
 #ifdef _HAZE_
-            char           *buddy_name = g_strdup_printf("#%s", query);
-
-            twitter_buddy_new(r->account, buddy_name, NULL);
-            purple_prpl_got_user_status(r->account, buddy_name, TWITTER_STATUS_ONLINE, NULL);
-            g_free(buddy_name);
+				char           *buddy_name = g_strdup_printf("#%s", query);
+				
+				twitter_buddy_new(r->account, buddy_name, NULL);
+				purple_prpl_got_user_status(r->account, buddy_name, TWITTER_STATUS_ONLINE, NULL);
+				g_free(buddy_name);
 #else
-            twitter_blist_chat_search_new(r->account, query);
+				twitter_blist_chat_search_new(r->account, query);
 #endif
-            g_free(query);
-        }
+				g_free(query);
+			}
+		}
     }
 }
 
@@ -529,7 +528,7 @@ static void twitter_get_friends_verify_connection_cb(TwitterRequestor * r, GList
     }
 }
 
-static void twitter_get_rate_limit_status_cb(TwitterRequestor * r, xmlnode * node, gpointer user_data)
+static void twitter_get_rate_limit_status_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
     /*
      * <hash>
@@ -540,27 +539,32 @@ static void twitter_get_rate_limit_status_cb(TwitterRequestor * r, xmlnode * nod
      * </hash>
      */
 
-    xmlnode        *child;
+	/*
+    gpointer        child;
     int             remaining_hits = 0;
     int             hourly_limit = 0;
     char           *message;
-    for (child = node->child; child; child = child->next) {
-        if (child->name) {
-            if (!strcmp(child->name, "remaining-hits")) {
-                char           *data = xmlnode_get_data_unescaped(child);
+
+	child = r->format->iter_start(node, NULL);
+	
+    for (; !r->format->iter_done(node); child = r->format->iter_next(child)) {
+        if (r->format->get_name(child)) {
+            if (r->format->is_name(child, "remaining-hits")) {
+                char           *data = r->format->get_str(child, "remaining-hits"); // TODO unescaped?
                 remaining_hits = atoi(data);
                 g_free(data);
-            } else if (!strcmp(child->name, "hourly-limit")) {
-                char           *data = xmlnode_get_data_unescaped(child);
+            } else if (!strcmp(r->format->get_name(child), "hourly-limit")) {
+                char           *data = r->format->get_str(child, "hourly-limit");
                 hourly_limit = atoi(data);
                 g_free(data);
             }
         }
     }
     message = g_strdup_printf("%d/%d %s", remaining_hits, hourly_limit, _("Remaining"));
-    purple_notify_info(NULL,                     /* plugin handle or PurpleConnection */
+    purple_notify_info(NULL,                     // plugin handle or PurpleConnection
                        _("Rate Limit Status"), _("Rate Limit Status"), (message));
     g_free(message);
+	*/
 }
 
 /*
@@ -568,7 +572,7 @@ static void twitter_get_rate_limit_status_cb(TwitterRequestor * r, xmlnode * nod
  */
 const char     *twitter_list_icon(PurpleAccount * account, PurpleBuddy * buddy)
 {
-    return "prpltwtr";
+    return GENERIC_PROTOCOL_ID;
 }
 
 char           *twitter_status_text(PurpleBuddy * buddy)
@@ -722,7 +726,7 @@ GList          *twitter_actions(PurplePlugin * plugin, gpointer context)
 }
 
 typedef struct {
-    void            (*success_cb) (PurpleAccount * account, long long id, gpointer user_data);
+    void            (*success_cb) (PurpleAccount * account, gchar * id, gpointer user_data);
     void            (*error_cb) (PurpleAccount * account, const TwitterRequestErrorData * error_data, gpointer user_data);
     gpointer        user_data;
 } TwitterLastSinceIdRequest;
@@ -730,7 +734,6 @@ typedef struct {
 //TODO: rename
 void prpltwtr_verify_connection(PurpleAccount * account)
 {
-    gboolean        retrieve_history;
     PurpleConnection *gc;
 
     //To verify the connection, we get the user's friends.
@@ -738,7 +741,7 @@ void prpltwtr_verify_connection(PurpleAccount * account)
 
     /* If history retrieval enabled, read last reply id from config file.
      * There's no config file, just set last reply id to 0 */
-    retrieve_history = twitter_option_get_history(account);
+    twitter_option_get_history(account);
 
     //If we don't have a stored last reply id, we don't want to get the entire history (EVERY reply)
     gc = purple_account_get_connection(account);
@@ -828,6 +831,8 @@ void prpltwtr_login(PurpleAccount * account)
     g_strfreev(userparts);
 
     twitter->requestor = g_new0(TwitterRequestor, 1);
+	twitter->requestor->format = g_new0(TwitterFormat, 1);
+	twitter->requestor->urls = g_new0(TwitterUrls, 1);
     twitter->requestor->account = account;
     twitter->requestor->post_failed = requestor_post_failed;
     twitter->requestor->do_send = twitter_requestor_send;
@@ -840,10 +845,13 @@ void prpltwtr_login(PurpleAccount * account)
         twitter->requestor->post_send = prpltwtr_auth_post_send_oauth;
     }
 
+	// Set up the URLs and formats for this requestor.
+	prpltwtr_plugin_setup(twitter->requestor);
+
     /* key: gchar *, value: TwitterEndpointChat */
     twitter->chat_contexts = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, (GDestroyNotify) twitter_endpoint_chat_free);
 
-    /* key: gchar *, value: gchar * (of a long long) */
+    /* key: gchar *, value: gchar * (of a gchar *) */
     twitter->user_reply_id_table = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 
     purple_signal_emit(purple_accounts_get_handle(), "prpltwtr-connecting", account);
@@ -911,7 +919,7 @@ static void twitter_set_status_error_cb(TwitterRequestor * r, const TwitterReque
     const char     *message;
     if (error_data->type == TWITTER_REQUEST_ERROR_SERVER || error_data->type == TWITTER_REQUEST_ERROR_TWITTER_GENERAL) {
         message = error_data->message;
-    } else if (error_data->type == TWITTER_REQUEST_ERROR_INVALID_XML) {
+    } else if (error_data->type == TWITTER_REQUEST_ERROR_INVALID_FORMAT) {
         message = _("Unknown reply by twitter server");
     } else {
         message = _("Unknown error");
@@ -1048,9 +1056,9 @@ static void twitter_blist_char_attach_search_toggle(PurpleBlistNode * node, gpoi
     char           *chat_name = twitter_chat_get_name(components);
     PurpleConversation *conv;
 
-    purple_debug_info(purple_account_get_protocol_id(account), "Setting attach for %s to %d\n", chat_name, (int) userdata);
+    purple_debug_info(purple_account_get_protocol_id(account), "Setting attach for %s to %p\n", chat_name, userdata);
     conv = purple_find_conversation_with_account(PURPLE_CONV_TYPE_CHAT, chat_name, account);
-    g_hash_table_replace(components, g_strdup("attach_search_text"), (g_strdup_printf("%d", (int) userdata)));
+    g_hash_table_replace(components, g_strdup("attach_search_text"), (g_strdup_printf("%p", userdata)));
     purple_signal_emit(purple_conversations_get_handle(), "prpltwtr-changed-attached-search", conv);
     g_free(chat_name);
 }
@@ -1100,7 +1108,7 @@ static void twitter_blist_buddy_clear_reply(PurpleBlistNode * node, gpointer use
     purple_conversation_present(conv);
     g_free(conv_name);
     {
-        long long      *p = purple_conversation_get_data(conv, "twitter_conv_last_reply_id");
+        gchar *      *p = purple_conversation_get_data(conv, "twitter_conv_last_reply_id");
         if (p) {
             g_free(p);
             purple_conversation_set_data(conv, "twitter_conv_last_reply_id", NULL);
@@ -1217,14 +1225,14 @@ static void twitter_marshal_format_tweet(PurpleCallback cb, va_list args, void *
     void           *arg1 = va_arg(args, void *);    //account
     void           *arg2 = va_arg(args, void *);    //user
     void           *arg3 = va_arg(args, void *);    //message
-    long long       arg4 = va_arg(args, gint64);    //tweet_id
+    gchar *       arg4 = va_arg(args, gint64);    //tweet_id
     gint            arg5 = va_arg(args, gint);  //conv type
     void           *arg6 = va_arg(args, void *);    //conv name
     gboolean        arg7 = va_arg(args, gboolean);  //is_tweet
-    long long       arg8 = va_arg(args, gint64);    // in_reply_to_status_id
+    gchar *       arg8 = va_arg(args, gint64);    // in_reply_to_status_id
     gboolean        arg9 = va_arg(args, gboolean);  // in_reply_to_status_id
 
-    ret_val = ((gpointer(*)(void *, void *, void *, gint64, gint, void *, gboolean, long long, gboolean, void *)) cb) (arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, data);
+    ret_val = ((gpointer(*)(void *, void *, void *, gchar *, gint, void *, gboolean, gchar *, gboolean, void *)) cb) (arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, data);
 
     if (return_val != NULL)
         *return_val = ret_val;
@@ -1233,10 +1241,10 @@ static void twitter_marshal_format_tweet(PurpleCallback cb, va_list args, void *
 static void twitter_marshal_received_im(PurpleCallback cb, va_list args, void *data, void **return_val)
 {
     void           *arg1 = va_arg(args, void *);    //account
-    long long       arg2 = va_arg(args, gint64);    //tweet_id
+    gchar *       arg2 = va_arg(args, gint64);    //tweet_id
     void           *arg3 = va_arg(args, void *);    //conv name
 
-    ((gpointer(*)(void *, gint64, void *, void *)) cb) (arg1, arg2, arg3, data);
+    ((gpointer(*)(void *, gchar *, void *, void *)) cb) (arg1, arg2, arg3, data);
 
     if (return_val != NULL)
         *return_val = NULL;

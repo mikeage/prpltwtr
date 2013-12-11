@@ -51,14 +51,13 @@ static char    *twitter_list_chat_name_from_components(GHashTable * components)
 
 static void twitter_get_list_parse_statuses(TwitterEndpointChat * endpoint_chat, GList * statuses)
 {
-    PurpleConnection *gc;
     GList          *l;
     TwitterUserTweet *user_tweet;
 
     purple_debug_info(purple_account_get_protocol_id(endpoint_chat->account), "%s\n", G_STRFUNC);
 
     g_return_if_fail(endpoint_chat != NULL);
-    gc = purple_account_get_connection(endpoint_chat->account);
+    purple_account_get_connection(endpoint_chat->account);
 
     if (!statuses) {
         /* At least update the topic with the new rate limit info */
@@ -69,10 +68,6 @@ static void twitter_get_list_parse_statuses(TwitterEndpointChat * endpoint_chat,
     l = g_list_last(statuses);
     user_tweet = l->data;
     if (user_tweet && user_tweet->status)
-        /* Tweets might not be sequential anymore. Take since_id from the last one, not the greatest */
-#if 0
-        &&user_tweet->status->id > twitter_connection_get_last_home_timeline_id(gc)
-#endif                       /* 0 */
     {
         TwitterListTimeoutContext *ctx = endpoint_chat->endpoint_data;
         gchar          *key = g_strdup_printf("list_%s", ctx->list_name);
@@ -88,7 +83,7 @@ static gboolean twitter_get_list_all_error_cb(TwitterRequestor * r, const Twitte
     TwitterEndpointChatId *chat_id = (TwitterEndpointChatId *) user_data;
     TwitterEndpointChat *endpoint_chat;
 
-    purple_debug_warning(purple_account_get_protocol_id(r->account), "%s(0x%X): %s\n", G_STRFUNC, (int) user_data, error_data->message);
+    purple_debug_warning(purple_account_get_protocol_id(r->account), "%s(%p): %s\n", G_STRFUNC, user_data, error_data->message);
 
     g_return_val_if_fail(chat_id != NULL, TRUE);
     endpoint_chat = twitter_endpoint_chat_find_by_id(chat_id);
@@ -108,7 +103,7 @@ static void twitter_get_list_error_cb(TwitterRequestor * r, const TwitterRequest
     return;
 }
 
-static void twitter_get_list_cb(TwitterRequestor * r, xmlnode * node, gpointer user_data)
+static void twitter_get_list_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
     TwitterEndpointChatId *chat_id = (TwitterEndpointChatId *) user_data;
     TwitterEndpointChat *endpoint_chat;
@@ -129,7 +124,7 @@ static void twitter_get_list_cb(TwitterRequestor * r, xmlnode * node, gpointer u
     endpoint_chat->retrieval_in_progress = FALSE;
     endpoint_chat->retrieval_in_progress_timeout = 0;
 
-    statuses = twitter_statuses_node_parse(node);
+    statuses = twitter_statuses_node_parse(r, node);
     twitter_get_list_parse_statuses(endpoint_chat, statuses);
 
 }
@@ -155,7 +150,7 @@ static void twitter_get_list_all_cb(TwitterRequestor * r, GList * nodes, gpointe
     endpoint_chat->retrieval_in_progress = FALSE;
     endpoint_chat->retrieval_in_progress_timeout = 0;
 
-    statuses = twitter_statuses_nodes_parse(nodes);
+    statuses = twitter_statuses_nodes_parse(r, nodes);
     twitter_get_list_parse_statuses(endpoint_chat, statuses);
 }
 
@@ -166,10 +161,11 @@ static gboolean twitter_list_timeout(TwitterEndpointChat * endpoint_chat)
     TwitterEndpointChatId *chat_id = NULL;
     gchar          *key = g_strdup_printf("list_%s", ctx->list_name);
 
-    ctx->last_tweet_id = purple_account_get_long_long(endpoint_chat->account, key, -1);
+	// TODO Discard const gchar *
+    ctx->last_tweet_id = (gchar *)purple_account_get_string(endpoint_chat->account, key, NULL);
     g_free(key);
 
-    purple_debug_info(purple_account_get_protocol_id(account), "Resuming list for %s from %lld\n", ctx->list_name, ctx->last_tweet_id);
+    purple_debug_info(purple_account_get_protocol_id(account), "Resuming list for %s from %s\n", ctx->list_name, ctx->last_tweet_id);
 
     if (endpoint_chat->retrieval_in_progress && endpoint_chat->retrieval_in_progress_timeout <= 0) {
         purple_debug_warning(purple_account_get_protocol_id(account), "There was a retreival in progress, but it appears dead. Ignoring it\n");
@@ -191,7 +187,7 @@ static gboolean twitter_list_timeout(TwitterEndpointChat * endpoint_chat)
         purple_debug_info(purple_account_get_protocol_id(account), "Retrieving %s statuses for first time\n", ctx->list_name);
         twitter_api_get_list(purple_account_get_requestor(account), ctx->list_id, ctx->owner, ctx->last_tweet_id, TWITTER_LIST_INITIAL_COUNT, 1, twitter_get_list_cb, twitter_get_list_error_cb, chat_id);
     } else {
-        purple_debug_info(purple_account_get_protocol_id(account), "Retrieving %s statuses since %lld\n", ctx->list_name, ctx->last_tweet_id);
+        purple_debug_info(purple_account_get_protocol_id(account), "Retrieving %s statuses since %s\n", ctx->list_name, ctx->last_tweet_id);
         twitter_api_get_list_all(purple_account_get_requestor(account), ctx->list_id, ctx->owner, ctx->last_tweet_id, twitter_get_list_all_cb, twitter_get_list_all_error_cb, twitter_option_list_max_tweets(account), chat_id);
     }
 
