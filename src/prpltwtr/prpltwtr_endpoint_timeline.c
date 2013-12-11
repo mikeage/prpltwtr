@@ -1,5 +1,9 @@
 #include "prpltwtr_endpoint_timeline.h"
 
+const gchar    *twitter_account_get_last_home_timeline_id(PurpleAccount * account);
+void            twitter_account_set_last_home_timeline_id(PurpleAccount * account, gchar * reply_id);
+const gchar    *twitter_connection_get_last_home_timeline_id(PurpleConnection * gc);
+void            twitter_connection_set_last_home_timeline_id(PurpleConnection * gc, gchar * reply_id);
 //TODO: Should these be here?
 const gchar    *twitter_account_get_last_home_timeline_id(PurpleAccount * account)
 {

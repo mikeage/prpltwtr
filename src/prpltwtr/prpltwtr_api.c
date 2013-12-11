@@ -302,9 +302,11 @@ void twitter_api_get_friends(TwitterRequestor * r, TwitterSendRequestMultiPageAl
 
 static void twitter_api_send_request_single(TwitterRequestor * r, const gchar * url, gchar * since_id, int count, int page, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
 {
-    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s: url %s\n", G_STRFUNC, url);
 
     TwitterRequestParams *params = twitter_request_params_new();
+
+    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s: url %s\n", G_STRFUNC, url);
+
     twitter_request_params_add(params, twitter_request_param_new_int("count", count));
     /* Timelines use count. Lists use per_page. But twitter seems to accept both w/o complaining */
     twitter_request_params_add(params, twitter_request_param_new_int("per_page", count));
@@ -475,26 +477,17 @@ void twitter_api_send_dm(TwitterRequestor * r, const char *user, const char *msg
 
 void twitter_api_send_rt(TwitterRequestor * r, gchar * id, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
 {
-    g_return_if_fail(id > 0);
-
     twitter_send_format_request(r, TRUE, twitter_option_url_rt(r->account, id), NULL, success_func, error_func, data);
-
 }
 
 void twitter_api_add_favorite(TwitterRequestor * r, gchar * id, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
 {
-    g_return_if_fail(id > 0);
-
     twitter_send_format_request(r, TRUE, twitter_option_url_add_favorite(r, id), NULL, success_func, error_func, data);
-
 }
 
 void twitter_api_delete_favorite(TwitterRequestor * r, gchar * id, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
 {
-    g_return_if_fail(id > 0);
-
     twitter_send_format_request(r, TRUE, twitter_option_url_delete_favorite(r, id), NULL, success_func, error_func, data);
-
 }
 
 void twitter_api_report_spammer(TwitterRequestor * r, const gchar * user, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
@@ -511,17 +504,12 @@ void twitter_api_report_spammer(TwitterRequestor * r, const gchar * user, Twitte
 
 void twitter_api_get_status(TwitterRequestor * r, gchar * id, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
 {
-    g_return_if_fail(id > 0);
-
     twitter_send_format_request(r, FALSE, twitter_option_url_get_status(r, id), NULL, success_func, error_func, data);
 }
 
 void twitter_api_delete_status(TwitterRequestor * r, gchar * id, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
 {
-    g_return_if_fail(id > 0);
-
     twitter_send_format_request(r, TRUE, twitter_option_url_delete_status(r, id), NULL, success_func, error_func, data);
-
 }
 
 static void     twitter_api_send_dms_success_cb(TwitterRequestor * r, gpointer node, gpointer _ctx);

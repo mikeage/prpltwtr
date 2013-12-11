@@ -58,12 +58,15 @@ prpltwtr_endpoint_reply.c \
 prpltwtr_endpoint_search.c \
 prpltwtr_endpoint_list.c \
 prpltwtr_endpoint_timeline.c \
+prpltwtr_format_json.c \
+prpltwtr_format_xml.c \
 prpltwtr_mbprefs.c \
 prpltwtr_prefs.c \
 prpltwtr_request.c \
 prpltwtr_search.c \
 prpltwtr_util.c \
 prpltwtr_xml.c \
+xmlnode_ext.c \
 
 C_SRC_TWITTER:=prpltwtr_plugin_twitter.c
 C_SRC_STATUSNET:=prpltwtr_plugin_statusnet.c 

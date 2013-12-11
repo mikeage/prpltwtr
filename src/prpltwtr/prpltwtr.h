@@ -74,4 +74,13 @@ void            prpltwtr_recoverable_disconnect(PurpleAccount * account, const c
 void            prpltwtr_disconnect(PurpleAccount * account, const char *message);
 void            prpltwtr_verify_connection(PurpleAccount * account);
 gboolean        prpltwtr_offline_message(const PurpleBuddy * buddy);
+
+/// Configures the requestor with the specific paths and formats used by this account.
+/// This will pre-calculate all the known paths used by the plugin (excluding those with
+/// additional parameters). In addition, it will set up the pointers to parse the data
+/// from the social network.
+///
+/// This will pick the appropriate network based on the account in the requestor.
+void            prpltwtr_plugin_setup(TwitterRequestor * requestor);
+
 #endif

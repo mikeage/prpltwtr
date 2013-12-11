@@ -1,8 +1,6 @@
 #ifndef _TWITTER_PLUGIN_H_
 #define _TWITTER_PLUGIN_H_
 
-typedef struct _TwitterRequestor TwitterRequestor;
-
 typedef struct {
     const gchar    *get_rate_limit_status;
     const gchar    *get_friends;
@@ -46,13 +44,5 @@ char           *twitter_chat_get_name(GHashTable * components);
 void            twitter_convo_closed(PurpleConnection * gc, const gchar * conv_name);
 void            twitter_set_buddy_icon(PurpleConnection * gc, PurpleStoredImage * img);
 void            prpltwtr_plugin_init(PurplePlugin * plugin);
-
-/// Configures the requestor with the specific paths and formats used by this account.
-/// This will pre-calculate all the known paths used by the plugin (excluding those with
-/// additional parameters). In addition, it will set up the pointers to parse the data
-/// from the social network.
-///
-/// This will pick the appropriate network based on the account in the requestor.
-void            prpltwtr_plugin_setup(TwitterRequestor * requestor);
 
 #endif

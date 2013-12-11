@@ -12,10 +12,10 @@ static TwitterImType twitter_account_get_default_im_type(PurpleAccount * account
 
 TwitterEndpointIm *twitter_endpoint_im_find(PurpleAccount * account, TwitterImType type)
 {
-    purple_debug_info(purple_account_get_protocol_id(account), "BEGIN: %s\n", G_STRFUNC);
-
     PurpleConnection *gc;
     TwitterConnectionData *twitter;
+
+    purple_debug_info(purple_account_get_protocol_id(account), "BEGIN: %s\n", G_STRFUNC);
 
     g_return_val_if_fail(type < TWITTER_IM_TYPE_UNKNOWN, NULL);
 
@@ -66,9 +66,9 @@ TwitterEndpointIm *twitter_conv_name_to_endpoint_im(PurpleAccount * account, con
 
 TwitterEndpointIm *twitter_endpoint_im_new(PurpleAccount * account, TwitterEndpointImSettings * settings, gboolean retrieve_history, gint initial_max_retrieve)
 {
-    purple_debug_info(purple_account_get_protocol_id(account), "BEGIN: %s\n", G_STRFUNC);
-
     TwitterEndpointIm *endpoint = g_new0(TwitterEndpointIm, 1);
+
+    purple_debug_info(purple_account_get_protocol_id(account), "BEGIN: %s\n", G_STRFUNC);
     endpoint->account = account;
     endpoint->settings = settings;
     endpoint->retrieve_history = retrieve_history;
@@ -87,9 +87,10 @@ void twitter_endpoint_im_free(TwitterEndpointIm * ctx)
 
 static gboolean twitter_endpoint_im_error_cb(TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data)
 {
+    TwitterEndpointIm *ctx = (TwitterEndpointIm *) user_data;
+
     purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
 
-    TwitterEndpointIm *ctx = (TwitterEndpointIm *) user_data;
     if (ctx->settings->error_cb(r, error_data, NULL)) {
         twitter_endpoint_im_start_timer(ctx);
     }
@@ -98,9 +99,10 @@ static gboolean twitter_endpoint_im_error_cb(TwitterRequestor * r, const Twitter
 
 static void twitter_endpoint_im_success_cb(TwitterRequestor * r, GList * nodes, gpointer user_data)
 {
+    TwitterEndpointIm *ctx = (TwitterEndpointIm *) user_data;
+
     purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
 
-    TwitterEndpointIm *ctx = (TwitterEndpointIm *) user_data;
     ctx->settings->success_cb(r, nodes, NULL);
     ctx->ran_once = TRUE;
     twitter_endpoint_im_start_timer(ctx);
@@ -159,7 +161,7 @@ void twitter_endpoint_im_start(TwitterEndpointIm * ctx)
 
 const gchar    *twitter_endpoint_im_get_since_id(TwitterEndpointIm * ctx)
 {
-    return (ctx->since_id > 0 ? ctx->since_id : twitter_endpoint_im_settings_load_since_id(ctx->account, ctx->settings));
+    return (ctx->since_id ? ctx->since_id : twitter_endpoint_im_settings_load_since_id(ctx->account, ctx->settings));
 }
 
 void twitter_endpoint_im_set_since_id(TwitterEndpointIm * ctx, gchar * since_id)

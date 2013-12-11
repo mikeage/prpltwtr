@@ -37,6 +37,7 @@
 
 #include <debug.h>
 #include <request.h>
+#include "prpltwtr.h"
 #include "prpltwtr_prefs.h"
 #include "prpltwtr_request.h"
 #include "prpltwtr_util.h"
@@ -47,6 +48,7 @@
 #define USER_AGENT "Mozilla/4.0 (compatible; MSIE 5.5)"
 
 //TODO: clean this up to be a bit more robust. 
+const gchar    *twitter_account_get_last_home_timeline_id(PurpleAccount * account);
 
 typedef struct {
     TwitterRequestor *requestor;
@@ -101,6 +103,7 @@ typedef struct {
 void            twitter_send_format_request_multipage_do(TwitterRequestor * r, TwitterFormatMultiPageRequestData * request_data);
 
 static void     twitter_send_format_request_with_cursor_cb(TwitterRequestor * r, gpointer node, gpointer user_data);
+void            twitter_send_format_request_multipage_cb(TwitterRequestor * r, gpointer node, gpointer user_data);
 
 TwitterRequestParam *twitter_request_param_new(const gchar * name, const gchar * value)
 {
@@ -521,14 +524,14 @@ void twitter_send_xml_request(TwitterRequestor * r, gboolean post, const char *u
 /// calling the appropriate callback.
 static void twitter_format_request_success_cb(TwitterRequestor * r, const gchar * response, gpointer user_data)
 {
-    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
-
     TwitterSendFormatRequestData *request_data = user_data;
     const gchar    *error_message = NULL;
     gchar          *error_node_text = NULL;
     gpointer        response_node = NULL;
     TwitterRequestErrorType error_type = TWITTER_REQUEST_ERROR_NONE;
     TwitterFormat  *format = r->format;
+
+    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
 
     response_node = format->from_str(response, strlen(response));
 
@@ -699,12 +702,12 @@ int xmlnode_child_count(xmlnode * parent)
 
 void twitter_send_format_request_multipage_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
-    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
-
     TwitterFormatMultiPageRequestData *request_data = user_data;
     int             count = 0;
     gboolean        get_next_page;
     gboolean        last_page = FALSE;
+
+    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
 
     count = r->format->get_node_child_count(node);
 
@@ -789,9 +792,9 @@ static gboolean twitter_send_format_request_multipage_all_success_cb(TwitterRequ
 {
     TwitterMultiPageAllRequestData *request_data_all = user_data;
 
-    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s: object %d array %d count %d\n", G_STRFUNC, JSON_NODE_TYPE(node) == JSON_NODE_OBJECT, JSON_NODE_TYPE(node) == JSON_NODE_ARRAY, g_list_length(request_data_all->nodes));
-
     gint            node_count;
+
+    purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s: object %d array %d count %d\n", G_STRFUNC, JSON_NODE_TYPE(node) == JSON_NODE_OBJECT, JSON_NODE_TYPE(node) == JSON_NODE_ARRAY, g_list_length(request_data_all->nodes));
 
     // TODO If we clean this out, it will blow away.
     // TODO request_data_all->nodes = NULL;
@@ -822,9 +825,10 @@ static gboolean twitter_send_format_request_multipage_all_error_cb(TwitterReques
 
 void twitter_send_format_request_multipage_all(TwitterRequestor * r, const char *url, TwitterRequestParams * params, TwitterSendFormatRequestMultiPageAllSuccessFunc success_callback, TwitterSendRequestMultiPageAllErrorFunc error_callback, int expected_count, gint max_count, gpointer data)
 {
+    TwitterFormatMultiPageAllRequestData *request_data_all = g_new0(TwitterFormatMultiPageAllRequestData, 1);
+
     purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
 
-    TwitterFormatMultiPageAllRequestData *request_data_all = g_new0(TwitterFormatMultiPageAllRequestData, 1);
     request_data_all->success_callback = success_callback;
     request_data_all->error_callback = error_callback;
     request_data_all->nodes = NULL;

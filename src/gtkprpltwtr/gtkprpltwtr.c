@@ -115,6 +115,7 @@ static void twitter_get_status_success_cb(TwitterRequestor * r, gpointer node, g
 
     PurpleConnection *gc;
     TwitterConnectionData *twitter;
+    gpointer        user_node = NULL;
 
     if (!conv_id)
         return;
@@ -132,7 +133,7 @@ static void twitter_get_status_success_cb(TwitterRequestor * r, gpointer node, g
         return;
     }
 
-    gpointer        user_node = r->format->get_node(node, "user");
+    user_node = r->format->get_node(node, "user");
     user = twitter_user_node_parse(r, user_node);
     if (!user || !user->screen_name) {
         purple_debug_error(PLUGIN_ID, "Essential information missing from the user!\n");
@@ -997,8 +998,8 @@ static gchar   *gtkprpltwtr_format_tweet_cb(PurpleAccount * account, const char 
             g_string_append_printf(tweet, "&favorited=TRUE");
         g_string_append_printf(tweet, "&conv_type=%d&conv_name=%s", conv_type, purple_url_encode(conv_name));
         if (in_reply_to_status_id) {
-		   	g_string_append_printf(tweet, "&in_reply_to_status_id=%s", in_reply_to_status_id);
-		}
+            g_string_append_printf(tweet, "&in_reply_to_status_id=%s", in_reply_to_status_id);
+        }
         g_string_append_printf(tweet, "&protocol_id=%s\">*</a>", purple_account_get_protocol_id(account));
     }
 

@@ -32,6 +32,12 @@
 #define PURPLE_BUDDY(obj) ((PurpleBuddy *)(obj))
 #endif
 
+/* TODO: find the proper place for these APIs. Header, or perhaps private */
+PurpleChat     *twitter_blist_chat_list_new(PurpleAccount * account, const char *list_name, const char *owner, gchar * list_id);
+PurpleChat     *twitter_blist_chat_search_new(PurpleAccount * account, const char *searchtext);
+static void     get_lists_cb(TwitterRequestor * r, gpointer node, gpointer user_data);
+static void     get_saved_searches_cb(TwitterRequestor * r, gpointer node, gpointer user_data);
+
 /******************************************************
  *  Chat
  ******************************************************/
@@ -263,7 +269,7 @@ char           *twitter_chat_get_name(GHashTable * components)
     return NULL;
 }
 
-void get_lists_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
+static void get_lists_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
     gpointer        list;
 
@@ -301,7 +307,7 @@ void get_lists_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
     }
 }
 
-void get_saved_searches_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
+static void get_saved_searches_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
     gpointer        iter;
     gpointer        search;

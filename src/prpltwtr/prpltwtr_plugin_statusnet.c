@@ -228,3 +228,31 @@ void prpltwtr_statusnet_login(PurpleAccount * account)
         prpltwtr_verify_connection(account);
     }
 }
+
+void prpltwtr_plugin_setup(TwitterRequestor * requestor)
+{
+    PurpleAccount  *account = requestor->account;
+    TwitterFormat  *format = requestor->format;
+    TwitterUrls    *urls = requestor->urls;
+
+    // Configure the system to use XML as the communication format.
+    // TODO
+    //prpltwtr_format_xml_setup(format);
+
+    // TODO urls->host = twitter_option_api_host(account);
+    // TODO urls->subdir = twitter_option_api_subdir(account);
+    urls->get_rate_limit_status = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_RATE_LIMIT_STATUS, format->extension));
+    urls->get_friends = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_FRIENDS, format->extension));
+    urls->get_home_timeline = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_HOME_TIMELINE, format->extension));
+    urls->get_mentions = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_MENTIONS, format->extension));
+    urls->get_dms = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_DMS, format->extension));
+    urls->update_status = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_UPDATE_STATUS, format->extension));
+    urls->new_dm = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_NEW_DM, format->extension));
+    urls->get_saved_searches = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_SAVED_SEARCHES, format->extension));
+    urls->get_subscribed_lists = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_SUBSCRIBED_LISTS, format->extension));
+    urls->get_personal_lists = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_PERSONAL_LISTS, format->extension));
+    urls->get_search_results = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_SEARCH_RESULTS, format->extension));   // .atom
+    urls->verify_credentials = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_VERIFY_CREDENTIALS, format->extension));
+    urls->report_spammer = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_REPORT_SPAMMER, format->extension));
+    urls->get_user_info = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_USER_INFO, format->extension));
+}

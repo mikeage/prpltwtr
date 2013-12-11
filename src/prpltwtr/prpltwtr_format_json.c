@@ -36,15 +36,33 @@ typedef struct {
     gint            count;
 } _TwitterJsonIter;
 
-gchar          *prpltwtr_format_json_get_str(gpointer node, const gchar * child_node_name);
-
-void prpltwtr_format_json_free_node(gpointer node)
+static gchar   *json_get_str(gpointer node, const gchar * child_node_name);
+static void     json_free_node(gpointer node);
+static GList   *json_copy_into(gpointer node, GList * list, gint * count_ref);
+static gpointer json_copy_node(gpointer node);
+static gpointer json_from_str(const gchar * response, int response_length);
+static gchar   *json_get_attr(gpointer node, const gchar * attr_name);
+static gpointer json_get_iter_node(gpointer iter);
+static gchar   *json_get_name(gpointer node);
+static gpointer json_get_node(gpointer node, const gchar * child_node_name);
+static gint     json_get_node_child_count(gpointer node);
+static gchar   *json_get_str(gpointer node, const gchar * child_node_name);
+static gboolean json_is_name(gpointer node, const gchar * child_name);
+static gpointer json_iter_start(gpointer node, const gchar * child_name);
+static gboolean json_iter_done(gpointer iter);
+static gpointer json_iter_next(gpointer iter);
+static const gchar *json_node_parse_error(gpointer node);
+;
+static void json_free_node(gpointer node)
 {
     json_node_free(node);
 }
 
-GList          *prpltwtr_format_json_copy_into(gpointer node, GList * list, gint * count_ref)
+static GList   *json_copy_into(gpointer node, GList * list, gint * count_ref)
 {
+    JsonArray      *array = NULL;
+    int             count;
+    int             i;
     purple_debug_info(GENERIC_PROTOCOL_ID, "BEGIN: %s: is array %d\n", G_STRFUNC, JSON_NODE_TYPE(node) == JSON_NODE_ARRAY);
 
     if (JSON_NODE_TYPE(node) != JSON_NODE_ARRAY) {
@@ -52,9 +70,8 @@ GList          *prpltwtr_format_json_copy_into(gpointer node, GList * list, gint
         return list;
     }
 
-    JsonArray      *array = json_node_get_array(node);
-    int             count = json_array_get_length(array);
-    int             i;
+    array = json_node_get_array(node);
+    count = json_array_get_length(array);
 
     purple_debug_info(GENERIC_PROTOCOL_ID, "MIDDLE: %s: count %d\n", G_STRFUNC, count);
 
@@ -71,16 +88,19 @@ GList          *prpltwtr_format_json_copy_into(gpointer node, GList * list, gint
     return list;
 }
 
-gpointer prpltwtr_format_json_copy_node(gpointer node)
+static gpointer json_copy_node(gpointer node)
 {
-    purple_debug_info(GENERIC_PROTOCOL_ID, "BEGIN: %s: node %d\n", G_STRFUNC, JSON_NODE_TYPE(node));
     JsonNode       *copy = json_node_copy(node);
+
+    purple_debug_info(GENERIC_PROTOCOL_ID, "BEGIN: %s: node %d\n", G_STRFUNC, JSON_NODE_TYPE(node));
+
     return copy;
 }
 
-gpointer prpltwtr_format_json_from_str(const gchar * response, int response_length)
+static gpointer json_from_str(const gchar * response, int response_length)
 {
     JsonParser     *parser = json_parser_new();
+    JsonNode       *root;
 
     GError         *error = NULL;
     //purple_debug_info(GENERIC_PROTOCOL_ID, "%s: %s", G_STRFUNC, response);
@@ -93,48 +113,50 @@ gpointer prpltwtr_format_json_from_str(const gchar * response, int response_leng
         return NULL;
     }
 
-    JsonNode       *root = json_parser_get_root(parser);
+    root = json_parser_get_root(parser);
     purple_debug_info(GENERIC_PROTOCOL_ID, "%s: isObject %d isArray %d\n", G_STRFUNC, JSON_NODE_TYPE(root) == JSON_NODE_OBJECT, JSON_NODE_TYPE(root) == JSON_NODE_ARRAY);
     return root;
 }
 
-gchar          *prpltwtr_format_json_get_attr(gpointer node, const gchar * attr_name)
+static gchar   *json_get_attr(gpointer node, const gchar * attr_name)
 {
     if (JSON_NODE_TYPE(node) != JSON_NODE_OBJECT)
         return NULL;
 
-    return prpltwtr_format_json_get_str(node, attr_name);
+    return json_get_str(node, attr_name);
 }
 
-gpointer prpltwtr_format_json_get_iter_node(gpointer iter)
+static gpointer json_get_iter_node(gpointer iter)
 {
     _TwitterJsonIter *json_iter = iter;
     return json_iter->node;
 }
 
-gchar          *prpltwtr_format_json_get_name(gpointer node)
+static gchar   *json_get_name(gpointer node)
 {
     const gchar    *name = json_node_type_name(node);
     return g_strdup(name);
 }
 
-gpointer prpltwtr_format_json_get_node(gpointer node, const gchar * child_node_name)
+static gpointer json_get_node(gpointer node, const gchar * child_node_name)
 {
+    JsonObject     *node_object;
+    JsonNode       *child;
     if (JSON_NODE_TYPE(node) != JSON_NODE_OBJECT)
         return NULL;
 
-    JsonObject     *node_object = json_node_get_object(node);
+    node_object = json_node_get_object(node);
 
     // If we don't have the member, then return a NULL which indicates no error.
     if (!json_object_has_member(node_object, child_node_name)) {
         return NULL;
     }
 
-    JsonNode       *child = json_object_get_member(node_object, child_node_name);
+    child = json_object_get_member(node_object, child_node_name);
     return child;
 }
 
-gint prpltwtr_format_json_get_node_child_count(gpointer node)
+static gint json_get_node_child_count(gpointer node)
 {
     purple_debug_info(GENERIC_PROTOCOL_ID, "BEGIN: %s\n", G_STRFUNC);
 
@@ -152,34 +174,38 @@ gint prpltwtr_format_json_get_node_child_count(gpointer node)
     }
 }
 
-gchar          *prpltwtr_format_json_get_str(gpointer node, const gchar * child_node_name)
+static gchar   *json_get_str(gpointer node, const gchar * child_node_name)
 {
+    JsonObject     *node_object;
+    const gchar    *const_value;
+    gchar          *child_value;
+
     if (JSON_NODE_TYPE(node) != JSON_NODE_OBJECT)
         return NULL;
 
-    JsonObject     *node_object = json_node_get_object(node);
+    node_object = json_node_get_object(node);
 
     // If we don't have the member, then return a NULL which indicates no error.
     if (!json_object_has_member(node_object, child_node_name)) {
         return NULL;
     }
 
-    const gchar    *const_value = json_object_get_string_member(node_object, child_node_name);
+    const_value = json_object_get_string_member(node_object, child_node_name);
 
     if (!g_strcmp0(const_value, "(null)")) {
         return NULL;
     }
 
-    gchar          *child_value = g_strdup(const_value);
+    child_value = g_strdup(const_value);
     return child_value;
 }
 
-gboolean prpltwtr_format_json_is_name(gpointer node, const gchar * child_name)
+static gboolean json_is_name(gpointer node, const gchar * child_name)
 {
     return TRUE;
 }
 
-gpointer prpltwtr_format_json_iter_start(gpointer node, const gchar * child_name)
+static gpointer json_iter_start(gpointer node, const gchar * child_name)
 {
     // Initialize the
     _TwitterJsonIter *iter = g_new0(_TwitterJsonIter, 1);
@@ -193,10 +219,7 @@ gpointer prpltwtr_format_json_iter_start(gpointer node, const gchar * child_name
             purple_debug_info(GENERIC_PROTOCOL_ID, "ERROR: %s: Node is not an array and name is not provided\n", G_STRFUNC);
             return NULL;
         }
-
-        JsonNode       *child = prpltwtr_format_json_get_node(node, child_name);
-
-        iter->array = json_node_get_array(child);
+        iter->array = json_node_get_array(json_get_node(node, child_name));
     }
 
     // Populate the items.
@@ -212,12 +235,12 @@ gpointer prpltwtr_format_json_iter_start(gpointer node, const gchar * child_name
     return iter;
 }
 
-gboolean prpltwtr_format_json_iter_done(gpointer iter)
+static gboolean json_iter_done(gpointer iter)
 {
     return iter == NULL;
 }
 
-gpointer prpltwtr_format_json_iter_next(gpointer iter)
+static gpointer json_iter_next(gpointer iter)
 {
     _TwitterJsonIter *json_iter = iter;
     json_iter->index++;
@@ -232,28 +255,28 @@ gpointer prpltwtr_format_json_iter_next(gpointer iter)
     return iter;
 }
 
-const gchar    *prpltwtr_format_json_node_parse_error(gpointer node)
+static const gchar *json_node_parse_error(gpointer node)
 {
-    return prpltwtr_format_json_get_str(node, "error");
+    return json_get_str(node, "error");
 }
 
 void prpltwtr_format_json_setup(TwitterFormat * format)
 {
     format->extension = ".json";
 
-    format->copy_into = prpltwtr_format_json_copy_into;
-    format->copy_node = prpltwtr_format_json_copy_node;
-    format->free_node = prpltwtr_format_json_free_node;
-    format->from_str = prpltwtr_format_json_from_str;
-    format->get_attr = prpltwtr_format_json_get_attr;
-    format->get_iter_node = prpltwtr_format_json_get_iter_node;
-    format->get_name = prpltwtr_format_json_get_name;
-    format->get_node = prpltwtr_format_json_get_node;
-    format->get_node_child_count = prpltwtr_format_json_get_node_child_count;
-    format->get_str = prpltwtr_format_json_get_str;
-    format->is_name = prpltwtr_format_json_is_name;
-    format->iter_start = prpltwtr_format_json_iter_start;
-    format->iter_done = prpltwtr_format_json_iter_done;
-    format->iter_next = prpltwtr_format_json_iter_next;
-    format->parse_error = prpltwtr_format_json_node_parse_error;
+    format->copy_into = json_copy_into;
+    format->copy_node = json_copy_node;
+    format->free_node = json_free_node;
+    format->from_str = json_from_str;
+    format->get_attr = json_get_attr;
+    format->get_iter_node = json_get_iter_node;
+    format->get_name = json_get_name;
+    format->get_node = json_get_node;
+    format->get_node_child_count = json_get_node_child_count;
+    format->get_str = json_get_str;
+    format->is_name = json_is_name;
+    format->iter_start = json_iter_start;
+    format->iter_done = json_iter_done;
+    format->iter_next = json_iter_next;
+    format->parse_error = json_node_parse_error;
 }

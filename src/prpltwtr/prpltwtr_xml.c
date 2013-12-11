@@ -1,6 +1,8 @@
 #include <json-glib/json-glib.h>
 
 #include "prpltwtr_xml.h"
+const gchar    *twitter_account_get_last_home_timeline_id(PurpleAccount * account);
+TwitterUserTweet *twitter_search_entry_node_parse(TwitterRequestor * r, gpointer entry_node);
 
 static time_t twitter_get_timezone_offset()
 {
@@ -162,14 +164,15 @@ TwitterSearchResults *twitter_search_results_node_parse(TwitterRequestor * r, gp
     GList          *search_results = NULL;
     const gchar    *refresh_url = NULL;
     gchar          *max_id = 0; // id of last search result
-    gpointer       *link_node;
+    gpointer       *link_node = NULL;
     gpointer        iter;
     gpointer        entry_node;
     const gchar    *ptr;
 
     for (iter = r->format->iter_start(response_node, "link"); !r->format->iter_done(iter); iter = r->format->iter_next(iter)) {
+        const char     *rel = NULL;
         link_node = r->format->get_iter_node(iter);
-        const char     *rel = r->format->get_attr(link_node, "rel");
+        rel = r->format->get_attr(link_node, "rel");
         if (rel != NULL && !strcmp(rel, "refresh")) {
             const char     *refresh_url_full = r->format->get_attr(link_node, "href");
             ptr = strstr(refresh_url_full, "?");
@@ -300,9 +303,10 @@ TwitterUserTweet *twitter_update_status_node_parse(TwitterRequestor * r, gpointe
 {
     TwitterTweet   *tweet = twitter_status_node_parse(r, update_status_node);
     TwitterUserData *user;
+    gpointer        child_node = NULL;
     if (!tweet)
         return NULL;
-    gpointer        child_node = r->format->get_node(update_status_node, "user");
+    child_node = r->format->get_node(update_status_node, "user");
     user = twitter_user_node_parse(r, child_node);
     if (!user) {
         twitter_status_data_free(tweet);
@@ -316,10 +320,11 @@ TwitterUserTweet *twitter_verify_credentials_parse(TwitterRequestor * r, gpointe
     TwitterUserData *user = twitter_user_node_parse(r, node);
     TwitterTweet   *tweet;
     TwitterUserTweet *data;
+    gpointer        child_node = NULL;
     if (!user)
         return NULL;
 
-    gpointer        child_node = r->format->get_node(node, "status");
+    child_node = r->format->get_node(node, "status");
     tweet = twitter_status_node_parse(r, child_node);
     data = twitter_user_tweet_new(user->screen_name, user->profile_image_url, user, tweet);
 
@@ -371,11 +376,11 @@ void twitter_user_tweet_free(TwitterUserTweet * ut)
 
 GList          *twitter_dms_node_parse(TwitterRequestor * r, gpointer dms_node)
 {
-    purple_debug_info(GENERIC_PROTOCOL_ID, "%s: END\n", G_STRFUNC);
-
     GList          *dms = NULL;
     gpointer       *dm_node;
     gpointer        iter;
+
+    purple_debug_info(GENERIC_PROTOCOL_ID, "%s: END\n", G_STRFUNC);
 
     if (JSON_NODE_TYPE(dms_node) == JSON_NODE_ARRAY) {
         for (iter = r->format->iter_start(dms_node, NULL); !r->format->iter_done(iter); iter = r->format->iter_next(iter)) {
