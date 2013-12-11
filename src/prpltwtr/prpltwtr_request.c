@@ -89,7 +89,7 @@ typedef struct {
 
 typedef struct {
     GList          *nodes;
-    gchar *       next_cursor;
+    gchar          *next_cursor;
     gchar          *url;
     TwitterRequestParams *params;
 
@@ -524,11 +524,11 @@ static void twitter_format_request_success_cb(TwitterRequestor * r, const gchar 
     purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
 
     TwitterSendFormatRequestData *request_data = user_data;
-    const gchar *error_message = NULL;
-    gchar *error_node_text = NULL;
-    gpointer response_node = NULL;
+    const gchar    *error_message = NULL;
+    gchar          *error_node_text = NULL;
+    gpointer        response_node = NULL;
     TwitterRequestErrorType error_type = TWITTER_REQUEST_ERROR_NONE;
-	TwitterFormat *format = r->format;
+    TwitterFormat  *format = r->format;
 
     response_node = format->from_str(response, strlen(response));
 
@@ -561,8 +561,8 @@ static void twitter_format_request_success_cb(TwitterRequestor * r, const gchar 
     }
 
     if (response_node != NULL)
-		format->free_node(response_node);
-	if (error_node_text != NULL)
+        format->free_node(response_node);
+    if (error_node_text != NULL)
         g_free(error_node_text);
     g_free(request_data);
 }
@@ -791,15 +791,15 @@ static gboolean twitter_send_format_request_multipage_all_success_cb(TwitterRequ
 
     purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s: object %d array %d count %d\n", G_STRFUNC, JSON_NODE_TYPE(node) == JSON_NODE_OBJECT, JSON_NODE_TYPE(node) == JSON_NODE_ARRAY, g_list_length(request_data_all->nodes));
 
-	gint node_count;
+    gint            node_count;
 
-	// TODO If we clean this out, it will blow away.
-	// TODO request_data_all->nodes = NULL;
-	// TODO request_data_all->current_count = 0;
-	
-	request_data_all->nodes = r->format->copy_into(node, request_data_all->nodes, &node_count);
+    // TODO If we clean this out, it will blow away.
+    // TODO request_data_all->nodes = NULL;
+    // TODO request_data_all->current_count = 0;
+
+    request_data_all->nodes = r->format->copy_into(node, request_data_all->nodes, &node_count);
     request_data_all->current_count += node_count;
-	
+
     purple_debug_info(purple_account_get_protocol_id(r->account), "%s last_page: %d current_count: %d max_count: %d count: %d\n", G_STRFUNC, last_page ? 1 : 0, request_data_all->current_count, request_data_all->max_count, request_multi->expected_count);
     if (last_page || (request_data_all->max_count > 0 && request_data_all->current_count >= request_data_all->max_count)) {
         request_data_all->success_callback(r, request_data_all->nodes, request_data_all->user_data);
@@ -846,8 +846,8 @@ static void twitter_request_with_cursor_data_free(TwitterRequestor * r, TwitterR
     GList          *l;
 
     for (l = request_data->nodes; l; l = l->next)
-		r->format->free_node(l->data);
-	
+        r->format->free_node(l->data);
+
     g_list_free(request_data->nodes);
     g_free(request_data->url);
     twitter_request_params_free(request_data->params);
@@ -871,7 +871,7 @@ static void twitter_send_format_request_with_cursor_cb(TwitterRequestor * r, gpo
 
     purple_debug_info(purple_account_get_protocol_id(r->account), "%s next_cursor: %s\n", G_STRFUNC, request_data->next_cursor);
 
-	request_data->nodes = g_list_prepend(request_data->nodes, r->format->copy_node(node));
+    request_data->nodes = g_list_prepend(request_data->nodes, r->format->copy_node(node));
 
     if (request_data->next_cursor) {
         int             len = request_data->params->len;
@@ -939,7 +939,7 @@ void twitter_requestor_free(TwitterRequestor * r)
         g_list_free(r->pending_requests);
         g_free(error_data);
     }
-	g_free(r->urls);
-	g_free(r->format);
+    g_free(r->urls);
+    g_free(r->format);
     g_free(r);
 }

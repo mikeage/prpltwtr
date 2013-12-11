@@ -35,7 +35,7 @@
 #include "prpltwtr_conn.h"
 #include "prpltwtr_request.h"
 
-const gchar *twitter_api_create_url(PurpleAccount * account, const gchar * endpoint)
+const gchar    *twitter_api_create_url(PurpleAccount * account, const gchar * endpoint)
 {
     static char     url[1024];
     const gchar    *host = twitter_option_api_host(account);
@@ -49,7 +49,7 @@ const gchar *twitter_api_create_url(PurpleAccount * account, const gchar * endpo
     return url;
 }
 
-const gchar *twitter_api_create_url_ext(PurpleAccount * account, const gchar * endpoint, const gchar * extension)
+const gchar    *twitter_api_create_url_ext(PurpleAccount * account, const gchar * endpoint, const gchar * extension)
 {
     static char     url[1024];
     const gchar    *host = twitter_option_api_host(account);
@@ -103,11 +103,11 @@ static const gchar *twitter_option_url_rt(PurpleAccount * account, gchar * id)
 
 static const gchar *twitter_option_url_get_status(TwitterRequestor * r, gchar * id)
 {
-	PurpleAccount  *account = r->account;
+    PurpleAccount  *account = r->account;
     gchar          *url = g_strdup_printf("%s/%s%s",
                                           TWITTER_PREF_URL_GET_STATUS,
                                           id,
-										  r->format->extension);
+                                          r->format->extension);
     const gchar    *result = twitter_api_create_url(account,
                                                     url);
     g_free(url);
@@ -116,11 +116,11 @@ static const gchar *twitter_option_url_get_status(TwitterRequestor * r, gchar * 
 
 static const gchar *twitter_option_url_delete_status(TwitterRequestor * r, gchar * id)
 {
-	PurpleAccount  *account = r->account;
+    PurpleAccount  *account = r->account;
     gchar          *url = g_strdup_printf("%s/%s%s",
                                           TWITTER_PREF_URL_DELETE_STATUS,
                                           id,
-										  r->format->extension);
+                                          r->format->extension);
     const gchar    *result = twitter_api_create_url(account, url);
     g_free(url);
     return result;
@@ -128,11 +128,11 @@ static const gchar *twitter_option_url_delete_status(TwitterRequestor * r, gchar
 
 static const gchar *twitter_option_url_add_favorite(TwitterRequestor * r, gchar * id)
 {
-	PurpleAccount  *account = r->account;
+    PurpleAccount  *account = r->account;
     gchar          *url = g_strdup_printf("%s/%s%s",
                                           TWITTER_PREF_URL_ADD_FAVORITE,
                                           id,
-										  r->format->extension);
+                                          r->format->extension);
     const gchar    *result = twitter_api_create_url(account, url);
     g_free(url);
     return result;
@@ -140,11 +140,11 @@ static const gchar *twitter_option_url_add_favorite(TwitterRequestor * r, gchar 
 
 static const gchar *twitter_option_url_delete_favorite(TwitterRequestor * r, gchar * id)
 {
-	PurpleAccount  *account = r->account;
+    PurpleAccount  *account = r->account;
     gchar          *url = g_strdup_printf("%s/%s%s",
                                           TWITTER_PREF_URL_DELETE_FAVORITE,
                                           id,
-										  r->format->extension);
+                                          r->format->extension);
     const gchar    *result = twitter_api_create_url(account, url);
     g_free(url);
     return result;
@@ -338,7 +338,7 @@ static void twitter_api_get_all_since(TwitterRequestor * r, const gchar * url, g
 {
     TwitterRequestParams *params = twitter_request_params_new();
     if (since_id != NULL && g_strcmp0("0", since_id) != 0)
-		twitter_request_params_add(params, twitter_request_param_new("since_id", since_id));
+        twitter_request_params_add(params, twitter_request_param_new("since_id", since_id));
 
     purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
 
@@ -373,7 +373,7 @@ void twitter_api_get_replies_all(TwitterRequestor * r, gchar * since_id, Twitter
 
 void twitter_api_get_dms(TwitterRequestor * r, gchar * since_id, int count, int page, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
 {
-	twitter_api_send_request_single(r, r->urls->get_dms, since_id, count, page, success_func, error_func, data);
+    twitter_api_send_request_single(r, r->urls->get_dms, since_id, count, page, success_func, error_func, data);
 }
 
 void twitter_api_get_dms_all(TwitterRequestor * r, gchar * since_id, TwitterSendRequestMultiPageAllSuccessFunc success_func, TwitterSendRequestMultiPageAllErrorFunc error_func, gint max_count, gpointer data)
@@ -402,7 +402,7 @@ typedef struct {
     int             statuses_index;
 
     //set status only
-    gchar *       in_reply_to_status_id;
+    gchar          *in_reply_to_status_id;
 
     //dm only
     gchar          *dm_who;

@@ -28,7 +28,7 @@ typedef struct {
 
 typedef struct {
     PurpleAccount  *account;
-    gchar *       since_id;
+    gchar          *since_id;
     gboolean        retrieve_history;
     gint            initial_max_retrieve;
     TwitterEndpointImSettings *settings;
@@ -46,9 +46,9 @@ TwitterEndpointIm *twitter_conv_name_to_endpoint_im(PurpleAccount * account, con
 const char     *twitter_conv_name_to_buddy_name(PurpleAccount * account, const char *name);
 
 void            twitter_endpoint_im_settings_save_since_id(PurpleAccount * account, TwitterEndpointImSettings * settings, gchar * since_id);
-const gchar *       twitter_endpoint_im_settings_load_since_id(PurpleAccount * account, TwitterEndpointImSettings * settings);
+const gchar    *twitter_endpoint_im_settings_load_since_id(PurpleAccount * account, TwitterEndpointImSettings * settings);
 void            twitter_endpoint_im_set_since_id(TwitterEndpointIm * ctx, gchar * since_id);
-const gchar *       twitter_endpoint_im_get_since_id(TwitterEndpointIm * ctx);
+const gchar    *twitter_endpoint_im_get_since_id(TwitterEndpointIm * ctx);
 
 void            twitter_endpoint_im_start(TwitterEndpointIm * ctx);
 char           *twitter_endpoint_im_buddy_name_to_conv_name(TwitterEndpointIm * im, const char *name);

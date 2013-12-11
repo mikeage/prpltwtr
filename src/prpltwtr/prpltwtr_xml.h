@@ -26,7 +26,7 @@
 
 typedef struct {
     PurpleAccount  *account;
-    gchar *       id;
+    gchar          *id;
     gchar          *name;
     gchar          *screen_name;
     gchar          *profile_image_url;
@@ -38,8 +38,8 @@ typedef struct {
 
 typedef struct {
     gchar          *text;
-    gchar *       id;
-    gchar *       in_reply_to_status_id;
+    gchar          *id;
+    gchar          *in_reply_to_status_id;
     gchar          *in_reply_to_screen_name;
     time_t          created_at;
     gboolean        favorited;

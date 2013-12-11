@@ -14,7 +14,7 @@ typedef struct {
     guint           get_friends_timer;
     guint           update_presence_timer;
 
-    gchar *       last_home_timeline_id;
+    gchar          *last_home_timeline_id;
 
     /* a table of TwitterEndpointChat
      * where the key will be the chat name

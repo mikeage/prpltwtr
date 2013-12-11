@@ -109,8 +109,8 @@ static void twitter_endpoint_im_success_cb(TwitterRequestor * r, GList * nodes, 
 static gboolean twitter_im_timer_timeout(gpointer _ctx)
 {
     TwitterEndpointIm *ctx = (TwitterEndpointIm *) _ctx;
-	// TODO Discard const gchar *
-    ctx->settings->get_im_func(purple_account_get_requestor(ctx->account), (gchar *)twitter_endpoint_im_get_since_id(ctx), twitter_endpoint_im_success_cb, twitter_endpoint_im_error_cb, ctx->ran_once ? -1 : ctx->initial_max_retrieve, ctx);
+    // TODO Discard const gchar *
+    ctx->settings->get_im_func(purple_account_get_requestor(ctx->account), (gchar *) twitter_endpoint_im_get_since_id(ctx), twitter_endpoint_im_success_cb, twitter_endpoint_im_error_cb, ctx->ran_once ? -1 : ctx->initial_max_retrieve, ctx);
     ctx->timer = 0;
     return FALSE;
 }
@@ -157,7 +157,7 @@ void twitter_endpoint_im_start(TwitterEndpointIm * ctx)
     }
 }
 
-const gchar * twitter_endpoint_im_get_since_id(TwitterEndpointIm * ctx)
+const gchar    *twitter_endpoint_im_get_since_id(TwitterEndpointIm * ctx)
 {
     return (ctx->since_id > 0 ? ctx->since_id : twitter_endpoint_im_settings_load_since_id(ctx->account, ctx->settings));
 }
@@ -168,7 +168,7 @@ void twitter_endpoint_im_set_since_id(TwitterEndpointIm * ctx, gchar * since_id)
     twitter_endpoint_im_settings_save_since_id(ctx->account, ctx->settings, since_id);
 }
 
-const gchar * twitter_endpoint_im_settings_load_since_id(PurpleAccount * account, TwitterEndpointImSettings * settings)
+const gchar    *twitter_endpoint_im_settings_load_since_id(PurpleAccount * account, TwitterEndpointImSettings * settings)
 {
     return purple_account_get_string(account, settings->since_id_setting_id, NULL);
 }

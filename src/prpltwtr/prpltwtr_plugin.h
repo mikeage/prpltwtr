@@ -4,20 +4,20 @@
 typedef struct _TwitterRequestor TwitterRequestor;
 
 typedef struct {
-	const gchar *get_rate_limit_status;
-	const gchar *get_friends;
-	const gchar *get_home_timeline;
-	const gchar *get_mentions;
-	const gchar *get_dms;
-	const gchar *update_status;
-	const gchar *new_dm;
-	const gchar *get_saved_searches;
-	const gchar *get_subscribed_lists;
-	const gchar *get_personal_lists;
-	const gchar *get_search_results;
-	const gchar *verify_credentials;
-	const gchar *report_spammer;
-	const gchar *get_user_info;
+    const gchar    *get_rate_limit_status;
+    const gchar    *get_friends;
+    const gchar    *get_home_timeline;
+    const gchar    *get_mentions;
+    const gchar    *get_dms;
+    const gchar    *update_status;
+    const gchar    *new_dm;
+    const gchar    *get_saved_searches;
+    const gchar    *get_subscribed_lists;
+    const gchar    *get_personal_lists;
+    const gchar    *get_search_results;
+    const gchar    *verify_credentials;
+    const gchar    *report_spammer;
+    const gchar    *get_user_info;
 } TwitterUrls;
 
 void            twitter_destroy(PurplePlugin * plugin);

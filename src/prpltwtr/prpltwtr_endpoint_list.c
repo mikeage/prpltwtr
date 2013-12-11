@@ -67,8 +67,7 @@ static void twitter_get_list_parse_statuses(TwitterEndpointChat * endpoint_chat,
 
     l = g_list_last(statuses);
     user_tweet = l->data;
-    if (user_tweet && user_tweet->status)
-    {
+    if (user_tweet && user_tweet->status) {
         TwitterListTimeoutContext *ctx = endpoint_chat->endpoint_data;
         gchar          *key = g_strdup_printf("list_%s", ctx->list_name);
         ctx->last_tweet_id = user_tweet->status->id;
@@ -161,8 +160,8 @@ static gboolean twitter_list_timeout(TwitterEndpointChat * endpoint_chat)
     TwitterEndpointChatId *chat_id = NULL;
     gchar          *key = g_strdup_printf("list_%s", ctx->list_name);
 
-	// TODO Discard const gchar *
-    ctx->last_tweet_id = (gchar *)purple_account_get_string(endpoint_chat->account, key, NULL);
+    // TODO Discard const gchar *
+    ctx->last_tweet_id = (gchar *) purple_account_get_string(endpoint_chat->account, key, NULL);
     g_free(key);
 
     purple_debug_info(purple_account_get_protocol_id(account), "Resuming list for %s from %s\n", ctx->list_name, ctx->last_tweet_id);

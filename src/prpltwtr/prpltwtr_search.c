@@ -59,8 +59,8 @@ void twitter_search(TwitterRequestor * r, TwitterRequestParams * params, Twitter
         ctx->user_data = data;
         ctx->success_func = success_cb;
         ctx->error_func = error_cb;
-        twitter_send_format_request(r, FALSE, search_url, params, twitter_send_search_success_cb, NULL,    //TODO error
-                                 ctx);
+        twitter_send_format_request(r, FALSE, search_url, params, twitter_send_search_success_cb, NULL, //TODO error
+                                    ctx);
 
     }
 }

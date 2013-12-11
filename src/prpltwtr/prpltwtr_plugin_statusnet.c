@@ -27,7 +27,7 @@
 #include "prpltwtr.h"
 
 #include "prpltwtr_mbprefs.h"
-void prpltwtr_statusnet_login(PurpleAccount * account);
+void            prpltwtr_statusnet_login(PurpleAccount * account);
 
 static PurplePluginProtocolInfo prpl_info = {
     OPT_PROTO_CHAT_TOPIC | OPT_PROTO_PASSWORD_OPTIONAL, /* options */
@@ -50,7 +50,7 @@ static PurplePluginProtocolInfo prpl_info = {
     twitter_blist_node_menu,                     /* blist_node_menu */
     twitter_chat_info,                           /* chat_info */
     twitter_chat_info_defaults,                  /* chat_info_defaults */
-    prpltwtr_statusnet_login,                              /* login */
+    prpltwtr_statusnet_login,                    /* login */
     twitter_close,                               /* close */
     twitter_send_im,                             //twitter_send_dm,       /* send_im */
     twitter_set_info,                            /* set_info */
@@ -192,8 +192,8 @@ void prpltwtr_statusnet_login(PurpleAccount * account)
     g_strfreev(userparts);
 
     twitter->requestor = g_new0(TwitterRequestor, 1);
-	twitter->requestor->format = g_new0(TwitterFormat, 1);
-	twitter->requestor->urls = g_new0(TwitterUrls, 1);
+    twitter->requestor->format = g_new0(TwitterFormat, 1);
+    twitter->requestor->urls = g_new0(TwitterUrls, 1);
     twitter->requestor->account = account;
     twitter->requestor->post_failed = prpltwtr_requestor_post_failed;
     twitter->requestor->do_send = twitter_requestor_send;
@@ -206,8 +206,8 @@ void prpltwtr_statusnet_login(PurpleAccount * account)
         twitter->requestor->post_send = prpltwtr_auth_post_send_oauth;
     }
 
-	// Set up the URLs and formats for this requestor.
-	prpltwtr_plugin_setup(twitter->requestor);
+    // Set up the URLs and formats for this requestor.
+    prpltwtr_plugin_setup(twitter->requestor);
 
     /* key: gchar *, value: TwitterEndpointChat */
     twitter->chat_contexts = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, (GDestroyNotify) twitter_endpoint_chat_free);

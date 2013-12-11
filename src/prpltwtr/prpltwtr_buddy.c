@@ -1,7 +1,7 @@
 #include "prpltwtr_buddy.h"
 #include "prpltwtr_util.h"
-static void set_id(PurpleBuddy *b, gchar * id);
-static gchar * get_id(PurpleBuddy *b);
+static void     set_id(PurpleBuddy * b, gchar * id);
+static gchar   *get_id(PurpleBuddy * b);
 
 //TODO this should be TwitterBuddy
 TwitterUserTweet *twitter_buddy_get_buddy_data(PurpleBuddy * b)
@@ -155,29 +155,27 @@ PurpleBuddy    *twitter_buddy_new(PurpleAccount * account, const char *screennam
     return b;
 }
 
-static gchar * get_id(PurpleBuddy *b)
+static gchar   *get_id(PurpleBuddy * b)
 {
-	PurpleBlistNode *node;
-	gchar * id = NULL;
-	const gchar * id_str = NULL;
+    PurpleBlistNode *node;
+    gchar          *id = NULL;
+    const gchar    *id_str = NULL;
 
-	if ((node = (PurpleBlistNode *)b) != NULL)
-	{
-		id_str =  purple_blist_node_get_string(node, "prpltwtr_id");
-		id = g_strdup(id_str);
-	}
+    if ((node = (PurpleBlistNode *) b) != NULL) {
+        id_str = purple_blist_node_get_string(node, "prpltwtr_id");
+        id = g_strdup(id_str);
+    }
 
-	return id;
+    return id;
 }
 
-static void set_id(PurpleBuddy *b, gchar * id)
+static void set_id(PurpleBuddy * b, gchar * id)
 {
-	PurpleBlistNode *node;
+    PurpleBlistNode *node;
 
-	if ((node = (PurpleBlistNode *)b) != NULL)
-	{
-		purple_blist_node_set_string(node, "prpltwtr_id", id);
-	}
+    if ((node = (PurpleBlistNode *) b) != NULL) {
+        purple_blist_node_set_string(node, "prpltwtr_id", id);
+    }
 }
 
 void twitter_buddy_set_user_data(PurpleAccount * account, TwitterUserData * u, gboolean add_missing_buddy)
@@ -199,51 +197,51 @@ void twitter_buddy_set_user_data(PurpleAccount * account, TwitterUserData * u, g
     g_strfreev(userparts);
 
     b = purple_find_buddy(account, u->screen_name);
-	if (add_missing_buddy) {
-		/* If we have the buddy, but there's no ID stored (legacy buddy; pre-0.11.4) */
-		if (b && !get_id(b)) {
-			set_id(b, u->id);
-			purple_debug_warning(purple_account_get_protocol_id(account), "Updated legacy buddy %s with id %s\n", u->screen_name, u->id);
-		}
+    if (add_missing_buddy) {
+        /* If we have the buddy, but there's no ID stored (legacy buddy; pre-0.11.4) */
+        if (b && !get_id(b)) {
+            set_id(b, u->id);
+            purple_debug_warning(purple_account_get_protocol_id(account), "Updated legacy buddy %s with id %s\n", u->screen_name, u->id);
+        }
 
-		/* Look for another buddy with the same ID. This indicates a rename */
-		if (!b) {
-			GSList *buddies;
-			GSList *cur_buddy;
-			purple_debug_info(purple_account_get_protocol_id(account), "No matching buddy for name %s found. Searching by id %s\n", u->screen_name, u->id);
-			buddies = purple_find_buddies(account, NULL);
-			if (buddies) {
-				for (cur_buddy = buddies; !b && cur_buddy; cur_buddy=g_slist_next(cur_buddy)) {
-			if (!(PURPLE_BLIST_NODE_IS_BUDDY(cur_buddy->data))) {
-				continue;
-			}
-					if (u->id == get_id((PurpleBuddy *)(cur_buddy->data))) {
-						b = (PurpleBuddy *)(cur_buddy->data);
-						purple_debug_info(purple_account_get_protocol_id(account), "Renaming %s to %s b/c ID %s matches!\n", purple_buddy_get_name(b), u->screen_name, u->id);
-						purple_blist_rename_buddy(b, u->screen_name);
-					}
-				}
-				g_slist_free(buddies);
-			}
-		}
+        /* Look for another buddy with the same ID. This indicates a rename */
+        if (!b) {
+            GSList         *buddies;
+            GSList         *cur_buddy;
+            purple_debug_info(purple_account_get_protocol_id(account), "No matching buddy for name %s found. Searching by id %s\n", u->screen_name, u->id);
+            buddies = purple_find_buddies(account, NULL);
+            if (buddies) {
+                for (cur_buddy = buddies; !b && cur_buddy; cur_buddy = g_slist_next(cur_buddy)) {
+                    if (!(PURPLE_BLIST_NODE_IS_BUDDY(cur_buddy->data))) {
+                        continue;
+                    }
+                    if (u->id == get_id((PurpleBuddy *) (cur_buddy->data))) {
+                        b = (PurpleBuddy *) (cur_buddy->data);
+                        purple_debug_info(purple_account_get_protocol_id(account), "Renaming %s to %s b/c ID %s matches!\n", purple_buddy_get_name(b), u->screen_name, u->id);
+                        purple_blist_rename_buddy(b, u->screen_name);
+                    }
+                }
+                g_slist_free(buddies);
+            }
+        }
 
-		/* Add the new buddy */
-		if (!b) {
-			const gchar    *alias_type = twitter_option_alias_format(account);
-			gchar          *alias;
-			if (!strcmp(alias_type, TWITTER_PREF_ALIAS_FORMAT_FULLNAME)) {
-				alias = g_strdup_printf("%s", u->name);
-			} else if (!strcmp(alias_type, TWITTER_PREF_ALIAS_FORMAT_NICK)) {
-				alias = g_strdup_printf("%s", u->screen_name);
-			} else {
-				alias = g_strdup_printf("%s | %s", u->name, u->screen_name);
-			}
-			b = twitter_buddy_new(account, u->screen_name, alias);
-			set_id(b, u->id);
-			purple_debug_info(purple_account_get_protocol_id(account), "Added buddy %s with id %s\n", u->screen_name, u->id);
-			g_free(alias);
-		}
-	}
+        /* Add the new buddy */
+        if (!b) {
+            const gchar    *alias_type = twitter_option_alias_format(account);
+            gchar          *alias;
+            if (!strcmp(alias_type, TWITTER_PREF_ALIAS_FORMAT_FULLNAME)) {
+                alias = g_strdup_printf("%s", u->name);
+            } else if (!strcmp(alias_type, TWITTER_PREF_ALIAS_FORMAT_NICK)) {
+                alias = g_strdup_printf("%s", u->screen_name);
+            } else {
+                alias = g_strdup_printf("%s | %s", u->name, u->screen_name);
+            }
+            b = twitter_buddy_new(account, u->screen_name, alias);
+            set_id(b, u->id);
+            purple_debug_info(purple_account_get_protocol_id(account), "Added buddy %s with id %s\n", u->screen_name, u->id);
+            g_free(alias);
+        }
+    }
 
     if (!b) {
         twitter_user_data_free(u);

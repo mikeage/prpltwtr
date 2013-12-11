@@ -24,9 +24,9 @@ TwitterRequestor *purple_account_get_requestor(PurpleAccount * account)
 {
     PurpleConnection *gc = purple_account_get_connection(account);
     TwitterConnectionData *twitter = NULL;
-	if (gc)
-	   twitter=gc->proto_data;
-	if (twitter)
-		return twitter->requestor;
-	return NULL;
+    if (gc)
+        twitter = gc->proto_data;
+    if (twitter)
+        return twitter->requestor;
+    return NULL;
 }

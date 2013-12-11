@@ -27,6 +27,6 @@
 
 /// Populates the format object with the various function pointers and settings to
 /// use JSON as the format used to communicate with the server.
-void prpltwtr_format_json_setup(TwitterFormat *format);
+void            prpltwtr_format_json_setup(TwitterFormat * format);
 
 #endif

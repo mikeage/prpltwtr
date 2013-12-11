@@ -299,7 +299,7 @@ static gboolean twitter_sent_tweets_contains_id(TwitterEndpointChat * ctx, gchar
 {
     GList          *l;
     for (l = ctx->sent_tweet_ids; l; l = l->next) {
-        gchar *      *el = l->data;
+        gchar         **el = l->data;
         if (*el == id)
             return TRUE;
         else if (*el > id)
@@ -311,7 +311,7 @@ static gboolean twitter_sent_tweets_contains_id(TwitterEndpointChat * ctx, gchar
 //Removes all tweet id before id
 static void twitter_sent_tweets_ids_remove_before(TwitterEndpointChat * ctx, gchar * id)
 {
-    while (ctx->sent_tweet_ids && *((gchar * *) ctx->sent_tweet_ids->data) <= id) {
+    while (ctx->sent_tweet_ids && *((gchar * *)ctx->sent_tweet_ids->data) <= id) {
         g_free(ctx->sent_tweet_ids->data);
         ctx->sent_tweet_ids = g_list_delete_link(ctx->sent_tweet_ids, ctx->sent_tweet_ids);
     }
@@ -346,7 +346,7 @@ void twitter_chat_got_user_tweets(TwitterEndpointChat * endpoint_chat, GList * u
 {
     PurpleAccount  *account;
     GList          *l;
-    gchar *       max_id = 0;
+    gchar          *max_id = 0;
 
     g_return_if_fail(endpoint_chat != NULL);
 
@@ -362,7 +362,7 @@ void twitter_chat_got_user_tweets(TwitterEndpointChat * endpoint_chat, GList * u
             TwitterTweet   *status;
 
             if (user)
-				/* Instead of getting the following list, we'll add them as they come in */
+                /* Instead of getting the following list, we'll add them as they come in */
                 twitter_buddy_set_user_data(account, user, twitter_option_get_following(account));
 //                twitter_buddy_set_user_data(account, user, FALSE);
 
@@ -394,7 +394,7 @@ static int _tweet_id_compare(gchar * *a, gchar * *b)
 
 static void twitter_add_sent_tweet_id(TwitterEndpointChat * endpoint_chat, gchar * tweet_id)
 {
-    gchar *      *p = g_new(gchar *, 1);
+    gchar         **p = g_new(gchar *, 1);
     *p = tweet_id;
     endpoint_chat->sent_tweet_ids = g_list_insert_sorted(endpoint_chat->sent_tweet_ids, p, (GCompareFunc) _tweet_id_compare);
 }

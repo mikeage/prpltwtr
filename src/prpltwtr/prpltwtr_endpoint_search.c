@@ -107,8 +107,8 @@ static gboolean twitter_endpoint_search_interval_start(TwitterEndpointChat * end
     TwitterEndpointChatId *chat_id = NULL;
     gchar          *key = g_strdup_printf("search_%s", ctx->search_text);
 
-	// TODO Discard const on gchar *
-    ctx->last_tweet_id = (gchar *)purple_account_get_string(endpoint_chat->account, key, NULL);
+    // TODO Discard const on gchar *
+    ctx->last_tweet_id = (gchar *) purple_account_get_string(endpoint_chat->account, key, NULL);
     purple_debug_info(purple_account_get_protocol_id(endpoint_chat->account), "Resuming search for %s from %s\n", ctx->search_text, ctx->last_tweet_id);
 
     chat_id = twitter_endpoint_chat_id_new(endpoint_chat);

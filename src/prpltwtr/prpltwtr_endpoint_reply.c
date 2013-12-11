@@ -27,12 +27,12 @@ static int twitter_send_reply_do(PurpleAccount * account, const char *who, const
 {
     gchar          *added_text = g_strdup_printf("@%s", who);
     GArray         *statuses = twitter_utf8_get_segments(message, MAX_TWEET_LENGTH, added_text, TRUE);
-    gchar *       in_reply_to_status_id = NULL;
+    gchar          *in_reply_to_status_id = NULL;
     gchar          *conv_name = twitter_endpoint_im_buddy_name_to_conv_name(twitter_endpoint_im_find(account, TWITTER_IM_TYPE_AT_MSG), who);
     PurpleConversation *conv = purple_find_conversation_with_account(PURPLE_CONV_TYPE_IM, conv_name, account);
 
     if (conv) {
-        gchar *      *in_reply_to_status_id_pnt = purple_conversation_get_data(conv, "twitter_conv_last_reply_id");
+        gchar         **in_reply_to_status_id_pnt = purple_conversation_get_data(conv, "twitter_conv_last_reply_id");
         if (in_reply_to_status_id_pnt) {
             in_reply_to_status_id = *in_reply_to_status_id_pnt;
             if (!purple_conversation_get_data(conv, "twitter_conv_last_reply_id_manual")) {
@@ -119,7 +119,7 @@ static void twitter_get_replies_all_cb(TwitterRequestor * r, GList * nodes, gpoi
 static void twitter_get_replies_get_last_since_id_success_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
     TwitterLastSinceIdRequest *last = user_data;
-    gchar *       id = 0;
+    gchar          *id = 0;
     gpointer        status_node = r->format->get_node(node, "status");
     purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
     if (status_node != NULL) {
@@ -153,7 +153,7 @@ static void twitter_get_replies_last_since_id(PurpleAccount * account, void (*su
 
 static void twitter_endpoint_reply_convo_closed(PurpleConversation * conv)
 {
-    gchar *      *id;
+    gchar         **id;
     PurpleConnection *gc = NULL;
     TwitterConnectionData *twitter = NULL;
     if (!conv)
@@ -181,7 +181,7 @@ PurpleConversation *twitter_endpoint_reply_conversation_new(TwitterEndpointIm * 
 
         if (conv) {
             if (force || !purple_conversation_get_data(conv, "twitter_conv_last_reply_id_manual")) {
-                gchar *      *p = purple_conversation_get_data(conv, "twitter_conv_last_reply_id");
+                gchar         **p = purple_conversation_get_data(conv, "twitter_conv_last_reply_id");
                 if (p)
                     g_free(p);
                 purple_conversation_set_data(conv, "twitter_conv_last_reply_id", NULL);

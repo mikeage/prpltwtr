@@ -24,4 +24,3 @@
 
 #include "prpltwtr.h"
 #include "prpltwtr_format.h"
-

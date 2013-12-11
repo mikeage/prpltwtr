@@ -50,7 +50,7 @@ static PurplePluginProtocolInfo prpl_info = {
     twitter_blist_node_menu,                     /* blist_node_menu */
     twitter_chat_info,                           /* chat_info */
     twitter_chat_info_defaults,                  /* chat_info_defaults */
-    prpltwtr_twitter_login,                              /* login */
+    prpltwtr_twitter_login,                      /* login */
     twitter_close,                               /* close */
     twitter_send_im,                             //twitter_send_dm, /* send_im */
     twitter_set_info,                            /* set_info */
@@ -192,8 +192,8 @@ void prpltwtr_twitter_login(PurpleAccount * account)
     g_strfreev(userparts);
 
     twitter->requestor = g_new0(TwitterRequestor, 1);
-	twitter->requestor->format = g_new0(TwitterFormat, 1);
-	twitter->requestor->urls = g_new0(TwitterUrls, 1);
+    twitter->requestor->format = g_new0(TwitterFormat, 1);
+    twitter->requestor->urls = g_new0(TwitterUrls, 1);
     twitter->requestor->account = account;
     twitter->requestor->post_failed = prpltwtr_requestor_post_failed;
     twitter->requestor->do_send = twitter_requestor_send;
@@ -206,8 +206,8 @@ void prpltwtr_twitter_login(PurpleAccount * account)
         twitter->requestor->post_send = prpltwtr_auth_post_send_oauth;
     }
 
-	// Set up the URLs and formats for this requestor.
-	prpltwtr_plugin_setup(twitter->requestor);
+    // Set up the URLs and formats for this requestor.
+    prpltwtr_plugin_setup(twitter->requestor);
 
     /* key: gchar *, value: TwitterEndpointChat */
     twitter->chat_contexts = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, (GDestroyNotify) twitter_endpoint_chat_free);
@@ -231,27 +231,27 @@ void prpltwtr_twitter_login(PurpleAccount * account)
 
 void prpltwtr_plugin_setup(TwitterRequestor * requestor)
 {
-	PurpleAccount *account = requestor->account;
-	TwitterFormat *format = requestor->format;
-	TwitterUrls   *urls = requestor->urls;
+    PurpleAccount  *account = requestor->account;
+    TwitterFormat  *format = requestor->format;
+    TwitterUrls    *urls = requestor->urls;
 
-	// Configure the system to use JSON as the communication format.
-	prpltwtr_format_json_setup(format);
+    // Configure the system to use JSON as the communication format.
+    prpltwtr_format_json_setup(format);
 
-	// TODO urls->host = twitter_option_api_host(account);
-	// TODO urls->subdir = twitter_option_api_subdir(account);
-	urls->get_rate_limit_status = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_RATE_LIMIT_STATUS, format->extension));
-	urls->get_friends = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_FRIENDS, format->extension));
-	urls->get_home_timeline = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_HOME_TIMELINE, format->extension));
-	urls->get_mentions = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_MENTIONS, format->extension));
-	urls->get_dms = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_DMS, format->extension));
-	urls->update_status = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_UPDATE_STATUS, format->extension));
-	urls->new_dm = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_NEW_DM, format->extension));
-	urls->get_saved_searches = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_SAVED_SEARCHES, format->extension));
-	urls->get_subscribed_lists = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_SUBSCRIBED_LISTS, format->extension));
-	urls->get_personal_lists = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_PERSONAL_LISTS, format->extension));
-	urls->get_search_results = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_SEARCH_RESULTS, format->extension)); // .atom
-	urls->verify_credentials = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_VERIFY_CREDENTIALS, format->extension));
-	urls->report_spammer = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_REPORT_SPAMMER, format->extension));
-	urls->get_user_info = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_USER_INFO, format->extension));
+    // TODO urls->host = twitter_option_api_host(account);
+    // TODO urls->subdir = twitter_option_api_subdir(account);
+    urls->get_rate_limit_status = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_RATE_LIMIT_STATUS, format->extension));
+    urls->get_friends = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_FRIENDS, format->extension));
+    urls->get_home_timeline = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_HOME_TIMELINE, format->extension));
+    urls->get_mentions = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_MENTIONS, format->extension));
+    urls->get_dms = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_DMS, format->extension));
+    urls->update_status = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_UPDATE_STATUS, format->extension));
+    urls->new_dm = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_NEW_DM, format->extension));
+    urls->get_saved_searches = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_SAVED_SEARCHES, format->extension));
+    urls->get_subscribed_lists = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_SUBSCRIBED_LISTS, format->extension));
+    urls->get_personal_lists = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_PERSONAL_LISTS, format->extension));
+    urls->get_search_results = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_SEARCH_RESULTS, format->extension));   // .atom
+    urls->verify_credentials = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_VERIFY_CREDENTIALS, format->extension));
+    urls->report_spammer = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_REPORT_SPAMMER, format->extension));
+    urls->get_user_info = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_USER_INFO, format->extension));
 }

@@ -30,5 +30,3 @@
 gchar          *xmlnode_get_child_data(const xmlnode * node, const char *name);
 
 #endif
-
-
