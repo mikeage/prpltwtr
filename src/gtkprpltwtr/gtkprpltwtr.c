@@ -427,19 +427,19 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
     } else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_GET_ORIGINAL)) {
         TwitterConversationId *conv_id;
 
-        const char     *in_reply_to_status_id_str = NULL; // TODO Probably wrong
+        const char     *in_reply_to_status_id = NULL;   // TODO Probably wrong
 
         gchar          *conv_type_str;
         PurpleConversationType conv_type;
 
         gchar          *conv_name_encoded;
 
-        in_reply_to_status_id_str = g_hash_table_lookup(params, "in_reply_to_status_id");
+        in_reply_to_status_id = g_hash_table_lookup(params, "in_reply_to_status_id");
         conv_name_encoded = g_hash_table_lookup(params, "conv_name");
         conv_type_str = g_hash_table_lookup(params, "conv_type");
 
-        if (in_reply_to_status_id_str == NULL || in_reply_to_status_id_str[0] == '\0') {
-            purple_debug_error(PLUGIN_ID, "malformed uri. Invalid in_reply_to_status_id_str for GET_ORIGINAL\n");
+        if (in_reply_to_status_id == NULL || in_reply_to_status_id[0] == '\0') {
+            purple_debug_error(PLUGIN_ID, "malformed uri. Invalid in_reply_to_status_id for GET_ORIGINAL\n");
             return FALSE;
         }
 
@@ -450,7 +450,7 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
         conv_id->conv_name = g_strdup(purple_url_decode(conv_name_encoded));
         conv_id->type = conv_type;
 		// TODO Discard the const gchar *
-        twitter_api_get_status(purple_account_get_requestor(account), (gchar *)in_reply_to_status_id_str, twitter_get_status_success_cb, twitter_get_status_error_cb, conv_id);
+        twitter_api_get_status(purple_account_get_requestor(account), (gchar *)in_reply_to_status_id, twitter_get_status_success_cb, twitter_get_status_error_cb, conv_id);
 		}
     } else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_LINK)) {
         const char     *id_str,
@@ -715,6 +715,7 @@ static void twitter_url_menu_actions(GtkWidget * menu, const char *url)
     gsize           conv_type_len;
     gsize           favorited_len;
     gsize           protocol_id_len;
+    gsize           in_reply_to_status_id_len;
     PurpleConversationType conv_type;
     gboolean        favorited;
     PurpleAccount  *account;
@@ -724,7 +725,7 @@ static void twitter_url_menu_actions(GtkWidget * menu, const char *url)
     const gchar    *conv_type_tmp = url_get_param_value(url, "conv_type", &conv_type_len);
     const gchar    *favorited_tmp = url_get_param_value(url, "favorited", &favorited_len);
     const gchar    *protocol_id = url_get_param_value(url, "protocol_id", &protocol_id_len);
-    gchar *       in_reply_to_status_id;
+    const gchar    *in_reply_to_status_id = url_get_param_value(url, "in_reply_to_status_id", &in_reply_to_status_id_len);
     gchar          *account_name,
                    *user_name;
     if (!account_name_tmp || !user_name_tmp)
@@ -784,7 +785,7 @@ static void twitter_url_menu_actions(GtkWidget * menu, const char *url)
         g_strfreev(userparts);
     }
 
-    if (0 /* TODO */ && in_reply_to_status_id) {
+    if (in_reply_to_status_id) {
         img = gtk_image_new_from_stock(GTK_STOCK_HOME, GTK_ICON_SIZE_MENU);
         item = gtk_image_menu_item_new_with_mnemonic((_("In reply to...")));
         gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), img);
@@ -998,7 +999,11 @@ static gchar   *gtkprpltwtr_format_tweet_cb(PurpleAccount * account, const char 
         g_string_append_printf(tweet, "&text=%s", purple_url_encode(message));
         if (favorited)
             g_string_append_printf(tweet, "&favorited=TRUE");
-        g_string_append_printf(tweet, "&conv_type=%d&conv_name=%s&in_reply_to_status_id=%s&protocol_id=%s\">*</a>", conv_type, purple_url_encode(conv_name), in_reply_to_status_id, purple_account_get_protocol_id(account));
+        g_string_append_printf(tweet, "&conv_type=%d&conv_name=%s", conv_type, purple_url_encode(conv_name));
+        if (in_reply_to_status_id) {
+		   	g_string_append_printf(tweet, "&in_reply_to_status_id=%s", in_reply_to_status_id);
+		}
+        g_string_append_printf(tweet, "&protocol_id=%s\">*</a>", purple_account_get_protocol_id(account));
     }
 
     g_free(linkified_message);
