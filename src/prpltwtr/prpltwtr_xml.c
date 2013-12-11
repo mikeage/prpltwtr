@@ -125,7 +125,6 @@ TwitterUserTweet *twitter_search_entry_node_parse(TwitterRequestor * r, gpointer
 			ptr[0] = 0;
 		icon_url = twitter_search_entry_get_icon_url(r, entry_node);
 		entry = twitter_user_tweet_new(screen_name_str, icon_url, NULL, NULL);
-		g_free(screen_name_str);
 
 		tweet->text = r->format->get_str(entry_node, "title");
 		tweet->created_at = purple_str_to_time(created_at_str, TRUE, NULL, NULL, NULL);
@@ -133,6 +132,7 @@ TwitterUserTweet *twitter_search_entry_node_parse(TwitterRequestor * r, gpointer
 
 		g_free(id_str);
 		g_free(created_at_str);
+		g_free(screen_name_str);
 
 		return entry;
 	}
@@ -212,7 +212,6 @@ TwitterUserData *twitter_user_node_parse(TwitterRequestor * r, gpointer user_nod
 {
 	TwitterUserData *user;
 	TwitterFormat *format = r->format;
-	gchar *id_str;
 
 	if (user_node == NULL)
 		return NULL;
@@ -229,10 +228,8 @@ TwitterUserData *twitter_user_node_parse(TwitterRequestor * r, gpointer user_nod
 	user->name = format->get_str(user_node, "name");
 	user->profile_image_url = format->get_str(user_node, "profile_image_url");
 
-	id_str = format->get_str(user_node, "id_str"); // Need a generic way of handling this.
+	user->id = format->get_str(user_node, "id_str"); // Need a generic way of handling this.
 
-	user->id = id_str;
-	
 	purple_debug_info("prpltwtr/user_node_parse", "Loading user: %s (%s, %s)\n", user->screen_name, user->name, user->id);
 
 	user->statuses_count = format->get_str(user_node, "statuses_count");

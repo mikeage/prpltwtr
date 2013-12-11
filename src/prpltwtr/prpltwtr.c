@@ -279,11 +279,11 @@ void get_lists_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 	
 	for (; !r->format->iter_done(list); list = r->format->iter_next(list)) {
 		if (r->format->get_name(list) && !g_strcmp0(r->format->get_name(list), "list")) {
-			gchar *       id;
+			gchar *       id = r->format->get_str(list, "id_str");
 			gchar          *owner = NULL;
-			id = r->format->get_str(list, "id_str");
 			gchar          *name = r->format->get_str(list, "full_name");
 			gpointer        user = r->format->get_node(list, "user");
+
 			if (user) {
 				owner = r->format->get_str(user, "screen_name");
 			}
@@ -297,6 +297,7 @@ void get_lists_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 			
 			g_free(name);
 			g_free(owner);
+			g_free(id);
 		}
 	}
 }
