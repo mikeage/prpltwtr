@@ -1225,11 +1225,11 @@ static void twitter_marshal_format_tweet(PurpleCallback cb, va_list args, void *
     void           *arg1 = va_arg(args, void *);    //account
     void           *arg2 = va_arg(args, void *);    //user
     void           *arg3 = va_arg(args, void *);    //message
-    gchar *       arg4 = va_arg(args, gint64);    //tweet_id
+    gchar *       arg4 = va_arg(args, gchar *);    //tweet_id
     gint            arg5 = va_arg(args, gint);  //conv type
     void           *arg6 = va_arg(args, void *);    //conv name
     gboolean        arg7 = va_arg(args, gboolean);  //is_tweet
-    gchar *       arg8 = va_arg(args, gint64);    // in_reply_to_status_id
+    gchar *       arg8 = va_arg(args, gchar *);    // in_reply_to_status_id
     gboolean        arg9 = va_arg(args, gboolean);  // in_reply_to_status_id
 
     ret_val = ((gpointer(*)(void *, void *, void *, gchar *, gint, void *, gboolean, gchar *, gboolean, void *)) cb) (arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, data);
@@ -1241,7 +1241,7 @@ static void twitter_marshal_format_tweet(PurpleCallback cb, va_list args, void *
 static void twitter_marshal_received_im(PurpleCallback cb, va_list args, void *data, void **return_val)
 {
     void           *arg1 = va_arg(args, void *);    //account
-    gchar *       arg2 = va_arg(args, gint64);    //tweet_id
+    gchar *       arg2 = va_arg(args, gchar *);    //tweet_id
     void           *arg3 = va_arg(args, void *);    //conv name
 
     ((gpointer(*)(void *, gchar *, void *, void *)) cb) (arg1, arg2, arg3, data);
@@ -1301,16 +1301,16 @@ void prpltwtr_plugin_init(PurplePlugin * plugin)
                                purple_value_new(PURPLE_TYPE_STRING), 8, purple_value_new(PURPLE_TYPE_SUBTYPE, PURPLE_SUBTYPE_ACCOUNT),  //account
                                purple_value_new(PURPLE_TYPE_STRING),    //user
                                purple_value_new(PURPLE_TYPE_STRING),    //message
-                               purple_value_new(PURPLE_TYPE_INT64), //tweet_id
+                               purple_value_new(PURPLE_TYPE_STRING), //tweet_id
                                purple_value_new(PURPLE_TYPE_INT),   //conv type
                                purple_value_new(PURPLE_TYPE_STRING),    //conv_name
                                purple_value_new(PURPLE_TYPE_BOOLEAN),   // is_tweet
-                               purple_value_new(PURPLE_TYPE_INT64), // in_reply_to_status_id
+                               purple_value_new(PURPLE_TYPE_STRING), // in_reply_to_status_id
                                purple_value_new(PURPLE_TYPE_BOOLEAN)    // favorited
             );
 
         purple_signal_register(purple_conversations_get_handle(), "prpltwtr-received-im", twitter_marshal_received_im, NULL, 3, purple_value_new(PURPLE_TYPE_SUBTYPE, PURPLE_SUBTYPE_ACCOUNT),  // account
-                               purple_value_new(PURPLE_TYPE_INT64), // tweet_id
+                               purple_value_new(PURPLE_TYPE_STRING), // tweet_id
                                purple_value_new(PURPLE_TYPE_STRING) // buddy_name
             );
         purple_signal_register(purple_conversations_get_handle(), "prpltwtr-set-reply", twitter_marshal_set_reply, NULL, 2, purple_value_new(PURPLE_TYPE_SUBTYPE, PURPLE_SUBTYPE_CONVERSATION), // conv
