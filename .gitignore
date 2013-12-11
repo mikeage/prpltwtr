@@ -42,7 +42,7 @@ Makefile.in
 /po/*.gmo
 /po/POTFILES
 /po/Makefile.in.in
-
+/mkinstalldirs
 Makefile
 stamp-*
 
