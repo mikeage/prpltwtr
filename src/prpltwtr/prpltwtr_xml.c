@@ -478,7 +478,7 @@ GList          *twitter_statuses_node_parse(TwitterRequestor * r, gpointer statu
 	gpointer        status_node;
 	gpointer        iter;
 
-	purple_debug_info("prpltwtr", "%s: BEGIN array %d object %d value %d\n", G_STRFUNC, JSON_NODE_TYPE(statuses_node) == JSON_NODE_ARRAY, JSON_NODE_TYPE(statuses_node) == JSON_NODE_OBJECT, JSON_NODE_TYPE(statuses_node) == JSON_NODE_VALUE);
+	purple_debug_info(GENERIC_PROTOCOL_ID, "%s: BEGIN array %d object %d value %d\n", G_STRFUNC, JSON_NODE_TYPE(statuses_node) == JSON_NODE_ARRAY, JSON_NODE_TYPE(statuses_node) == JSON_NODE_OBJECT, JSON_NODE_TYPE(statuses_node) == JSON_NODE_VALUE);
 
 	if (JSON_NODE_TYPE(statuses_node) == JSON_NODE_ARRAY) {
 		for (iter = r->format->iter_start(statuses_node, NULL); !r->format->iter_done(iter); iter = r->format->iter_next(iter)) {
@@ -502,11 +502,11 @@ GList          *twitter_statuses_node_parse(TwitterRequestor * r, gpointer statu
 		TwitterTweet   *tweet = twitter_dm_node_parse(r, statuses_node);
 		TwitterUserTweet *data = twitter_user_tweet_new(user->screen_name, user->profile_image_url, user, tweet);
 
-		purple_debug_info("prpltwtr", "%s: object: %s\n", G_STRFUNC, tweet->text);
+		purple_debug_info(GENERIC_PROTOCOL_ID, "%s: object: %s\n", G_STRFUNC, tweet->text);
 		statuses = g_list_prepend(statuses, data);
 	}
 	
-	purple_debug_info("prpltwtr", "%s: END\n", G_STRFUNC);
+	purple_debug_info(GENERIC_PROTOCOL_ID, "%s: END\n", G_STRFUNC);
 
 	return statuses;
 }
@@ -526,7 +526,7 @@ GList          *twitter_statuses_nodes_parse(TwitterRequestor * r, GList * nodes
 		else
 		{
 			// TODO
-			purple_debug_info("prpltwtr", "%s: Got a NULL user from node\n", G_STRFUNC);
+			purple_debug_info(GENERIC_PROTOCOL_ID, "%s: Got a NULL user from node\n", G_STRFUNC);
 		}
 	}
 	return l_users_data;

@@ -5,13 +5,13 @@ const gchar * twitter_account_get_last_home_timeline_id(PurpleAccount * account)
 {
 	// TODO Discard the const gchar *
     gchar * results = (gchar *)purple_account_get_string(account, "twitter_last_home_timeline_id", NULL);
-	purple_debug_info("prpltwtr", "%s: Get last ID: %s\n", G_STRFUNC, results);
+	purple_debug_info(GENERIC_PROTOCOL_ID, "%s: Get last ID: %s\n", G_STRFUNC, results);
 	return results;
 }
 
 void twitter_account_set_last_home_timeline_id(PurpleAccount * account, gchar * reply_id)
 {
-	purple_debug_info("prpltwtr", "%s: Setting last ID to %s\n", G_STRFUNC, reply_id);
+	purple_debug_info(GENERIC_PROTOCOL_ID, "%s: Setting last ID to %s\n", G_STRFUNC, reply_id);
     purple_account_set_string(account, "twitter_last_home_timeline_id", reply_id);
 }
 
@@ -196,7 +196,7 @@ static gboolean twitter_timeline_timeout(TwitterEndpointChat * endpoint_chat)
     endpoint_chat->retrieval_in_progress = TRUE;
     endpoint_chat->retrieval_in_progress_timeout = 2;
 
-	purple_debug_info("prpltwtr", "%s: preparing to send to twitter_send_format_request_multipage_cb: %s\n", G_STRFUNC, since_id);
+	purple_debug_info(GENERIC_PROTOCOL_ID, "%s: preparing to send to twitter_send_format_request_multipage_cb: %s\n", G_STRFUNC, since_id);
 	
     if (since_id == NULL || g_strcmp0("0", since_id) == 0) {
         purple_debug_info(purple_account_get_protocol_id(account), "%s: Retrieving %s statuses for first time\n", G_STRFUNC, gc->account->username);

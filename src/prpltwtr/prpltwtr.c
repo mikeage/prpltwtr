@@ -572,7 +572,7 @@ static void twitter_get_rate_limit_status_cb(TwitterRequestor * r, gpointer node
  */
 const char     *twitter_list_icon(PurpleAccount * account, PurpleBuddy * buddy)
 {
-    return "prpltwtr";
+    return GENERIC_PROTOCOL_ID;
 }
 
 char           *twitter_status_text(PurpleBuddy * buddy)

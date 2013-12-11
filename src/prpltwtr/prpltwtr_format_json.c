@@ -44,11 +44,11 @@ void prpltwtr_format_json_free_node(gpointer node)
 
 GList *prpltwtr_format_json_copy_into(gpointer node, GList *list, gint *count_ref)
 {
-	purple_debug_info("prpltwtr", "BEGIN: %s: is array %d\n", G_STRFUNC, JSON_NODE_TYPE(node) == JSON_NODE_ARRAY);
+	purple_debug_info(GENERIC_PROTOCOL_ID, "BEGIN: %s: is array %d\n", G_STRFUNC, JSON_NODE_TYPE(node) == JSON_NODE_ARRAY);
 
 	if (JSON_NODE_TYPE(node) != JSON_NODE_ARRAY)
 	{
-		purple_debug_info("prpltwtr", "END: %s: incorrect data type\n", G_STRFUNC);
+		purple_debug_info(GENERIC_PROTOCOL_ID, "END: %s: incorrect data type\n", G_STRFUNC);
 		return list;
 	}
 
@@ -56,7 +56,7 @@ GList *prpltwtr_format_json_copy_into(gpointer node, GList *list, gint *count_re
 	int count = json_array_get_length(array);
 	int i;
 
-	purple_debug_info("prpltwtr", "MIDDLE: %s: count %d\n", G_STRFUNC, count);
+	purple_debug_info(GENERIC_PROTOCOL_ID, "MIDDLE: %s: count %d\n", G_STRFUNC, count);
 
 	for (i = 0; i < count; i++)
 	{
@@ -65,7 +65,7 @@ GList *prpltwtr_format_json_copy_into(gpointer node, GList *list, gint *count_re
 		list = g_list_prepend(list, copy);
 	}
 
-	purple_debug_info("prpltwtr", "END: %s\n", G_STRFUNC);
+	purple_debug_info(GENERIC_PROTOCOL_ID, "END: %s\n", G_STRFUNC);
 
 	*count_ref = count;
 
@@ -74,7 +74,7 @@ GList *prpltwtr_format_json_copy_into(gpointer node, GList *list, gint *count_re
 
 gpointer prpltwtr_format_json_copy_node(gpointer node)
 {
-	purple_debug_info("prpltwtr", "BEGIN: %s: node %d\n", G_STRFUNC, JSON_NODE_TYPE(node));
+	purple_debug_info(GENERIC_PROTOCOL_ID, "BEGIN: %s: node %d\n", G_STRFUNC, JSON_NODE_TYPE(node));
 	JsonNode *copy = json_node_copy(node);
 	return copy;
 }
@@ -84,7 +84,7 @@ gpointer prpltwtr_format_json_from_str(const gchar * response, int response_leng
 	JsonParser *parser = json_parser_new();
 	
 	GError *error = NULL;
-	//purple_debug_info("prpltwtr", "%s: %s", G_STRFUNC, response);
+	//purple_debug_info(GENERIC_PROTOCOL_ID, "%s: %s", G_STRFUNC, response);
 	json_parser_load_from_data (parser, response, response_length, &error);
 	
 	if (error)
@@ -96,7 +96,7 @@ gpointer prpltwtr_format_json_from_str(const gchar * response, int response_leng
     }
 
 	JsonNode *root = json_parser_get_root(parser);
-    purple_debug_info("prpltwtr", "%s: isObject %d isArray %d\n", G_STRFUNC, JSON_NODE_TYPE(root) == JSON_NODE_OBJECT, JSON_NODE_TYPE(root) == JSON_NODE_ARRAY);
+    purple_debug_info(GENERIC_PROTOCOL_ID, "%s: isObject %d isArray %d\n", G_STRFUNC, JSON_NODE_TYPE(root) == JSON_NODE_OBJECT, JSON_NODE_TYPE(root) == JSON_NODE_ARRAY);
 	return root;
 }
 
@@ -139,13 +139,13 @@ gpointer prpltwtr_format_json_get_node(gpointer node, const gchar *child_node_na
 
 gint prpltwtr_format_json_get_node_child_count(gpointer node)
 {
-	purple_debug_info("prpltwtr", "BEGIN: %s\n", G_STRFUNC);
+	purple_debug_info(GENERIC_PROTOCOL_ID, "BEGIN: %s\n", G_STRFUNC);
 	
 	if (JSON_NODE_TYPE(node) == JSON_NODE_OBJECT)
 	{
 		JsonObject *node_obj = json_node_get_object(node);
 		int count = json_object_get_size(node_obj);
-		purple_debug_info("prpltwtr", "END: %s: object %d\n", G_STRFUNC, count);
+		purple_debug_info(GENERIC_PROTOCOL_ID, "END: %s: object %d\n", G_STRFUNC, count);
 		return count;
 
 	}
@@ -153,7 +153,7 @@ gint prpltwtr_format_json_get_node_child_count(gpointer node)
 	{
 		JsonArray *node_array = json_node_get_array(node);
 		int count = json_array_get_length(node_array);
-		purple_debug_info("prpltwtr", "END: %s: array %d\n", G_STRFUNC, count);
+		purple_debug_info(GENERIC_PROTOCOL_ID, "END: %s: array %d\n", G_STRFUNC, count);
 		return count;
 	}
 }
@@ -202,7 +202,7 @@ gpointer prpltwtr_format_json_iter_start(gpointer node, const gchar * child_name
 	{
 		if (child_name == NULL)
 		{
-			purple_debug_info("prpltwtr", "ERROR: %s: Node is not an array and name is not provided\n", G_STRFUNC);
+			purple_debug_info(GENERIC_PROTOCOL_ID, "ERROR: %s: Node is not an array and name is not provided\n", G_STRFUNC);
 			return NULL;
 		}
 		
