@@ -25,25 +25,40 @@ static gboolean twitter_send_reply_error_cb(PurpleAccount * account, const Twitt
 
 static int twitter_send_reply_do(PurpleAccount * account, const char *who, const char *message, PurpleMessageFlags flags)
 {
+    PurpleConnection *gc = purple_account_get_connection(account);
+    TwitterConnectionData *twitter = gc->proto_data;
     gchar          *added_text = g_strdup_printf("@%s", who);
     GArray         *statuses = twitter_utf8_get_segments(message, MAX_TWEET_LENGTH, added_text, TRUE);
     gchar          *in_reply_to_status_id = NULL;
     gchar          *conv_name = twitter_endpoint_im_buddy_name_to_conv_name(twitter_endpoint_im_find(account, TWITTER_IM_TYPE_AT_MSG), who);
     PurpleConversation *conv = purple_find_conversation_with_account(PURPLE_CONV_TYPE_IM, conv_name, account);
 
+    /* The in_reply_to tweet is set according to the following logic:
+     * 1. If the user Locked the reply, twitter_conv_last_reply_id_locked will be set (the value doesn't matter, but it's "(gpointer) 1", for those who care). In that case, we use the value of twitter_conv_last_reply_id, which was set by the same GtkPrplTwtr function that set locked. We don't unset it, because the lock means we want to keep it
+     * 2. If the user did NOT lock the reply, we only want the current tweet to be a reply, but subsequent tweets in the same chat window should continue the thread via replying to the _latest_ incoming message. As such, we'll clear the value after we use it (actually, we store it in a different variable and clear it immediately).
+     * 3. If the user did not specify a reply, we'll check twitter->user_reply_id_table for the last message received. This is updated on each reply in _process_replies.
+     * 4. If twitter->user_reply_id_table is not set, it's probably our first message, so there's no conversation
+     */
     if (conv) {
-        gchar         **in_reply_to_status_id_pnt = purple_conversation_get_data(conv, "twitter_conv_last_reply_id");
-        if (in_reply_to_status_id_pnt) {
-            in_reply_to_status_id = *in_reply_to_status_id_pnt;
-            if (!purple_conversation_get_data(conv, "twitter_conv_last_reply_id_manual")) {
-                g_free(in_reply_to_status_id_pnt);
+        gchar          *in_reply_to_status_id_tmp = NULL;
+        in_reply_to_status_id_tmp = purple_conversation_get_data(conv, "twitter_conv_last_reply_id");
+        if (in_reply_to_status_id_tmp) {
+            in_reply_to_status_id = g_strdup(in_reply_to_status_id_tmp);
+            if (!purple_conversation_get_data(conv, "twitter_conv_last_reply_id_locked")) {
+                g_free(in_reply_to_status_id_tmp);
                 purple_conversation_set_data(conv, "twitter_conv_last_reply_id", NULL);
                 purple_signal_emit(purple_conversations_get_handle(), "prpltwtr-set-reply", conv, NULL);
             }
         }
     }
 
+    if (!in_reply_to_status_id) {
+        in_reply_to_status_id = g_strdup((gchar *) g_hash_table_lookup(twitter->user_reply_id_table, who));
+    }
+
     twitter_api_set_statuses(purple_account_get_requestor(account), statuses, in_reply_to_status_id, twitter_send_reply_success_cb, twitter_send_reply_error_cb, g_strdup(who));    //TODO
+
+    g_free(in_reply_to_status_id);
 
     g_free(conv_name);
     g_free(added_text);
@@ -164,9 +179,7 @@ static void twitter_endpoint_reply_convo_closed(PurpleConversation * conv)
     TwitterConnectionData *twitter = NULL;
     if (!conv)
         return;
-    id = purple_conversation_get_data(conv, "twitter_conv_last_reply_id");
-    if (id)
-        g_free(id);
+    g_free(purple_conversation_get_data(conv, "twitter_conv_last_reply_id"));
     purple_conversation_set_data(conv, "twitter_conv_last_reply_id", NULL);
 
     /* Don't continue to send replies (if someone messaged us) the next time this window is opened */
@@ -186,14 +199,12 @@ PurpleConversation *twitter_endpoint_reply_conversation_new(TwitterEndpointIm * 
         purple_debug_info(purple_account_get_protocol_id(im->account), "%s() conv %p (%s) %s replies to %s\n", G_STRFUNC, conv, conv_name, force ? "force" : "suggest", reply_id);
 
         if (conv) {
-            if (force || !purple_conversation_get_data(conv, "twitter_conv_last_reply_id_manual")) {
-                gchar         **p = purple_conversation_get_data(conv, "twitter_conv_last_reply_id");
-                if (p)
-                    g_free(p);
+            if (force || !purple_conversation_get_data(conv, "twitter_conv_last_reply_id_locked")) {
+                g_free(purple_conversation_get_data(conv, "twitter_conv_last_reply_id"));
                 purple_conversation_set_data(conv, "twitter_conv_last_reply_id", NULL);
 
                 if (reply_id) {
-                    purple_conversation_set_data(conv, "twitter_conv_last_reply_id", g_memdup(&reply_id, sizeof (reply_id)));
+                    purple_conversation_set_data(conv, "twitter_conv_last_reply_id", g_strdup(reply_id));
                 }
             }
         }

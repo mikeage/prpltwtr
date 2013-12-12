@@ -309,7 +309,7 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
             return FALSE;
         }
 
-        purple_conversation_set_data(conv, "twitter_conv_last_reply_id_manual", NULL);
+        purple_conversation_set_data(conv, "twitter_conv_last_reply_id_locked", NULL);
         gtkprpltwtr_mark_reply(conv, NULL);
 
         i = 0;
@@ -353,7 +353,7 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
         if (!conv) {
             return FALSE;
         }
-        purple_conversation_set_data(conv, "twitter_conv_last_reply_id_manual", NULL);
+        purple_conversation_set_data(conv, "twitter_conv_last_reply_id_locked", NULL);
         gtkprpltwtr_mark_reply(conv, NULL);
 
         purple_conversation_present(conv);
@@ -517,6 +517,7 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
     } else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_SET_REPLY)) {
         const char     *id_str,
                        *user;
+        gchar          *p;
         PurpleConversation *conv;
         id_str = g_hash_table_lookup(params, "id");
         user = g_hash_table_lookup(params, "user");
@@ -529,7 +530,7 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
         if (!conv) {
             return FALSE;
         }
-        purple_conversation_set_data(conv, "twitter_conv_last_reply_id_manual", (gpointer) 0x10101010);
+        purple_conversation_set_data(conv, "twitter_conv_last_reply_id_locked", (gpointer) 0xFFFFFFFF);
         purple_debug_info(PLUGIN_ID, "Setting reply to %s for conv %p\n", id_str, conv);
         gtkprpltwtr_mark_reply(conv, id_str);
     } else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_ADD_FAVORITE)) {

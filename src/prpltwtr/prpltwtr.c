@@ -1015,14 +1015,10 @@ static void twitter_blist_buddy_clear_reply(PurpleBlistNode * node, gpointer use
     PurpleConversation *conv = purple_find_conversation_with_account(PURPLE_CONV_TYPE_IM, conv_name, purple_buddy_get_account(buddy));
     purple_conversation_present(conv);
     g_free(conv_name);
-    {
-        gchar         **p = purple_conversation_get_data(conv, "twitter_conv_last_reply_id");
-        if (p) {
-            g_free(p);
-            purple_conversation_set_data(conv, "twitter_conv_last_reply_id", NULL);
-        }
-    }
-    purple_conversation_set_data(conv, "twitter_conv_last_reply_id_manual", NULL);
+
+    g_free(purple_conversation_get_data(conv, "twitter_conv_last_reply_id"));
+    purple_conversation_set_data(conv, "twitter_conv_last_reply_id", NULL);
+    purple_conversation_set_data(conv, "twitter_conv_last_reply_id_locked", NULL);
 
     purple_debug_info(purple_account_get_protocol_id(purple_buddy_get_account(buddy)), "Cleared reply marker for %p\n", conv);
     purple_signal_emit(purple_conversations_get_handle(), "prpltwtr-set-reply", conv, NULL);
