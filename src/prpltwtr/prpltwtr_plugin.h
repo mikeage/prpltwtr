@@ -15,6 +15,8 @@ typedef struct {
     const gchar    *get_search_results;
     const gchar    *verify_credentials;
     const gchar    *report_spammer;
+    const gchar    *add_favorite;
+    const gchar    *delete_favorite;
     const gchar    *get_user_info;
 } TwitterUrls;
 

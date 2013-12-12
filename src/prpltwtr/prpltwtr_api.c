@@ -90,11 +90,13 @@ static const gchar *twitter_option_url_get_list(PurpleAccount * account, const c
     return result;
 }
 
-static const gchar *twitter_option_url_rt(PurpleAccount * account, gchar * id)
+static const gchar *twitter_option_url_rt(TwitterRequestor * r, gchar * id)
 {
-    gchar          *url = g_strdup_printf("%s/%s.xml",
+    PurpleAccount  *account = r->account;
+    gchar          *url = g_strdup_printf("%s/%s%s",
                                           TWITTER_PREF_URL_RT,
-                                          id);
+                                          id,
+                                          r->format->extension);
     const gchar    *result = twitter_api_create_url(account,
                                                     url);
     g_free(url);
@@ -119,30 +121,6 @@ static const gchar *twitter_option_url_delete_status(TwitterRequestor * r, gchar
     PurpleAccount  *account = r->account;
     gchar          *url = g_strdup_printf("%s/%s%s",
                                           TWITTER_PREF_URL_DELETE_STATUS,
-                                          id,
-                                          r->format->extension);
-    const gchar    *result = twitter_api_create_url(account, url);
-    g_free(url);
-    return result;
-}
-
-static const gchar *twitter_option_url_add_favorite(TwitterRequestor * r, gchar * id)
-{
-    PurpleAccount  *account = r->account;
-    gchar          *url = g_strdup_printf("%s/%s%s",
-                                          TWITTER_PREF_URL_ADD_FAVORITE,
-                                          id,
-                                          r->format->extension);
-    const gchar    *result = twitter_api_create_url(account, url);
-    g_free(url);
-    return result;
-}
-
-static const gchar *twitter_option_url_delete_favorite(TwitterRequestor * r, gchar * id)
-{
-    PurpleAccount  *account = r->account;
-    gchar          *url = g_strdup_printf("%s/%s%s",
-                                          TWITTER_PREF_URL_DELETE_FAVORITE,
                                           id,
                                           r->format->extension);
     const gchar    *result = twitter_api_create_url(account, url);
@@ -475,19 +453,33 @@ void twitter_api_send_dm(TwitterRequestor * r, const char *user, const char *msg
 
 }
 
-void twitter_api_send_rt(TwitterRequestor * r, gchar * id, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
-{
-    twitter_send_format_request(r, TRUE, twitter_option_url_rt(r->account, id), NULL, success_func, error_func, data);
-}
-
 void twitter_api_add_favorite(TwitterRequestor * r, gchar * id, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
 {
-    twitter_send_format_request(r, TRUE, twitter_option_url_add_favorite(r, id), NULL, success_func, error_func, data);
+    TwitterRequestParams *params;
+
+    g_return_if_fail(id != NULL && id[0] != '\0');
+
+    params = twitter_request_params_new();
+    twitter_request_params_add(params, twitter_request_param_new("id", id));
+    twitter_send_format_request(r, TRUE, r->urls->add_favorite, params, success_func, error_func, data);
+    twitter_request_params_free(params);
 }
 
 void twitter_api_delete_favorite(TwitterRequestor * r, gchar * id, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
 {
-    twitter_send_format_request(r, TRUE, twitter_option_url_delete_favorite(r, id), NULL, success_func, error_func, data);
+    TwitterRequestParams *params;
+
+    g_return_if_fail(id != NULL && id[0] != '\0');
+
+    params = twitter_request_params_new();
+    twitter_request_params_add(params, twitter_request_param_new("id", id));
+    twitter_send_format_request(r, TRUE, r->urls->delete_favorite, params, success_func, error_func, data);
+    twitter_request_params_free(params);
+}
+
+void twitter_api_send_rt(TwitterRequestor * r, gchar * id, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
+{
+    twitter_send_format_request(r, TRUE, twitter_option_url_rt(r, id), NULL, success_func, error_func, data);
 }
 
 void twitter_api_report_spammer(TwitterRequestor * r, const gchar * user, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
