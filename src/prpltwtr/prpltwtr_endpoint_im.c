@@ -121,8 +121,9 @@ static void twitter_endpoint_im_get_last_since_id_success_cb(PurpleAccount * acc
 {
     TwitterEndpointIm *im = user_data;
 
-    if (id > twitter_endpoint_im_get_since_id(im))
+    if (id && (strtoll(id, NULL, 10) > strtoll(twitter_endpoint_im_get_since_id(im), NULL, 10))) {
         twitter_endpoint_im_set_since_id(im, id);
+    }
 
     im->ran_once = TRUE;
     twitter_endpoint_im_start_timer(im);
@@ -152,7 +153,7 @@ void twitter_endpoint_im_start(TwitterEndpointIm * ctx)
     if (ctx->timer) {
         purple_timeout_remove(ctx->timer);
     }
-    if (twitter_endpoint_im_get_since_id(ctx) == NULL && ctx->retrieve_history) {
+    if (!strcmp("0", twitter_endpoint_im_get_since_id(ctx)) && ctx->retrieve_history) {
         ctx->settings->get_last_since_id(ctx->account, twitter_endpoint_im_get_last_since_id_success_cb, twitter_endpoint_im_get_last_since_id_error_cb, ctx);
     } else {
         twitter_im_timer_timeout(ctx);
@@ -172,7 +173,7 @@ void twitter_endpoint_im_set_since_id(TwitterEndpointIm * ctx, gchar * since_id)
 
 const gchar    *twitter_endpoint_im_settings_load_since_id(PurpleAccount * account, TwitterEndpointImSettings * settings)
 {
-    return purple_account_get_string(account, settings->since_id_setting_id, NULL);
+    return purple_account_get_string(account, settings->since_id_setting_id, "0");
 }
 
 void twitter_endpoint_im_settings_save_since_id(PurpleAccount * account, TwitterEndpointImSettings * settings, gchar * since_id)
@@ -191,7 +192,7 @@ void twitter_status_data_update_conv(TwitterEndpointIm * ctx, char *buddy_name, 
     if (!s || !s->text)
         return;
 
-    if (s->id && s->id > twitter_endpoint_im_get_since_id(ctx)) {
+    if (s->id && strtoll(s->id, NULL, 10) > strtoll(twitter_endpoint_im_get_since_id(ctx), NULL, 10)) {
         purple_debug_info(purple_account_get_protocol_id(account), "saving %s\n", G_STRFUNC);
         twitter_endpoint_im_set_since_id(ctx, s->id);
     }
