@@ -286,23 +286,25 @@ static void get_lists_cb(TwitterRequestor * r, gpointer node, gpointer user_data
 
         list = r->format->get_iter_node(iter);
 
-        id = r->format->get_str(list, "id_str");
-        name = r->format->get_str(list, "full_name");
-        user = r->format->get_node(list, "user");
+		if (list) {
+			id = r->format->get_str(list, "id_str");
+			name = r->format->get_str(list, "full_name");
+			user = r->format->get_node(list, "user");
 
-        if (user) {
-            owner = r->format->get_str(user, "screen_name");
-        }
+			if (user) {
+				owner = r->format->get_str(user, "screen_name");
+			}
 #ifdef _HAZE_
-        // TODO
+			// TODO
 #else
-        purple_debug_info(purple_account_get_protocol_id(r->account), "List found: name %s, id %s\n", name, id);
-        twitter_blist_chat_list_new(r->account, name, owner, id);
+			purple_debug_info(purple_account_get_protocol_id(r->account), "List found: name %s, id %s\n", name, id);
+			twitter_blist_chat_list_new(r->account, name, owner, id);
 #endif
 
-        g_free(name);
-        g_free(owner);
-        g_free(id);
+			g_free(name);
+			g_free(owner);
+			g_free(id);
+		}
     }
 }
 
