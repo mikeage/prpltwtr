@@ -317,31 +317,6 @@ static void twitter_sent_tweets_ids_remove_before(TwitterEndpointChat * ctx, gch
     }
 }
 
-void twitter_chat_update_rate_limit(TwitterEndpointChat * endpoint_chat)
-{
-    PurpleConversation *conv = twitter_endpoint_chat_find_open_conv(endpoint_chat);
-//  PurpleConversation *conv = twitter_endpoint_chat_get_conv(endpoint_chat);
-
-    if (!endpoint_chat)
-        return;
-
-    if (conv) {
-        if (endpoint_chat->rate_limit_total) {
-            gchar          *status;
-            gchar           rate_limit_graph[] = "--------------------";
-            int             num;
-            num = (sizeof (rate_limit_graph) - 1) * 100 * endpoint_chat->rate_limit_remaining / endpoint_chat->rate_limit_total / 100;
-            memset(rate_limit_graph, '>', num);
-
-            status = g_strdup_printf("Rate limit: %d/%d [%s]", endpoint_chat->rate_limit_remaining, endpoint_chat->rate_limit_total, rate_limit_graph);
-            purple_conv_chat_set_topic(PURPLE_CONV_CHAT(conv), "system", status);
-            purple_debug_info(purple_account_get_protocol_id(purple_conversation_get_account(conv)), "Setting title to %s for conv=%p\n", status, conv);
-
-            g_free(status);
-        }
-    }
-}
-
 void twitter_chat_got_user_tweets(TwitterEndpointChat * endpoint_chat, GList * user_tweets)
 {
     PurpleAccount  *account;
@@ -378,8 +353,6 @@ void twitter_chat_got_user_tweets(TwitterEndpointChat * endpoint_chat, GList * u
         twitter_sent_tweets_ids_remove_before(endpoint_chat, max_id);
         g_list_free(user_tweets);
     }
-
-    twitter_chat_update_rate_limit(endpoint_chat);
 }
 
 static int _tweet_id_compare(gchar * *a, gchar * *b)

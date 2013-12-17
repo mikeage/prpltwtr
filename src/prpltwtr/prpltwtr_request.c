@@ -57,6 +57,7 @@ typedef struct {
 
     gpointer        request_id;
     gpointer        user_data;
+    TwitterRequestType request_type;
 } TwitterSendRequestData;
 
 typedef struct {
@@ -229,28 +230,44 @@ gint twitter_response_text_status_code(const gchar * response_text)
     return atoi(ptr);
 }
 
-static gboolean twitter_response_text_rate_limit(const gchar * response_text, int *remaining, int *total)
+static gboolean twitter_response_text_rate_limit(const gchar * response_text, int *remaining, int *total, time_t *reset)
 {
     const gchar    *ptr;
-    const gchar    *remaining_str = "X-RateLimit-Remaining: ";
-    const gchar    *total_str = "X-RateLimit-Limit: ";
+	gboolean success = TRUE;
+    const gchar    *remaining_str = "x-rate-limit-remaining: ";
+    const gchar    *total_str = "x-rate-limit-limit: ";
+    const gchar    *reset_str = "x-rate-limit-reset: ";
+	/* The documentation implies the header names are X-RateLimit-[RL].*, but in practice, they seem to be in lower case. This seems to be the easiest alternative, give the lack of g_strrcasestr or similar */
+	gchar    *response_text_lower;
 
     if (!response_text)
         return FALSE;
 
-    ptr = g_strrstr(response_text, remaining_str);
-    if (!ptr)
-        return FALSE;
+	response_text_lower = g_ascii_strdown(response_text, -1);
 
-    *remaining = atoi(ptr + strlen(remaining_str));
+    ptr = g_strrstr(response_text, remaining_str);
+    if (ptr) {
+		*remaining = atoi(ptr + strlen(remaining_str));
+	} else {
+		success = FALSE;
+	}
 
     ptr = g_strrstr(response_text, total_str);
-    if (!ptr)
-        return FALSE;
+    if (ptr) {
+		*total = atoi(ptr + strlen(total_str));
+	} else {
+		success = FALSE;
+	}
 
-    *total = atoi(ptr + strlen(total_str));
+    ptr = g_strrstr(response_text, reset_str);
+	if (ptr) {
+		*reset = atoi(ptr + strlen(reset_str));
+	} else {
+		success = FALSE;
+	}
 
-    return TRUE;
+	g_free(response_text_lower);
+    return success;
 }
 
 const gchar    *twitter_response_text_data(const gchar * response_text, gsize len)
@@ -317,6 +334,8 @@ static void twitter_send_request_cb(PurpleUtilFetchUrlData * url_data, gpointer 
         case 401:                               //Unauthorized
             error_type = TWITTER_REQUEST_ERROR_UNAUTHORIZED;
             break;
+		case 429: //Search Rate Limiting
+		    error_type = TWITTER_REQUEST_ERROR_SERVER;
         default:
             error_type = TWITTER_REQUEST_ERROR_TWITTER_GENERAL;
             break;
@@ -361,7 +380,15 @@ static void twitter_send_request_cb(PurpleUtilFetchUrlData * url_data, gpointer 
         twitter_requestor_on_error(request_data->requestor, error_data, request_data->error_func, request_data->user_data);
         g_free(error_data);
     } else {
-        twitter_response_text_rate_limit(response_text, &(request_data->requestor->rate_limit_remaining), &(request_data->requestor->rate_limit_total));
+
+		{
+			int remaining;
+			int total;
+			time_t reset;
+		twitter_response_text_rate_limit(response_text, &remaining, &total, &reset);
+		purple_debug_error("MHM", "rate limiting: %d/%d %d\n", remaining, total, reset);
+		/*twitter_response_text_rate_limit(response_text, &(request_data->requestor->rate_limit_remaining), &(request_data->requestor->rate_limit_total));*/
+		}
 
         purple_debug_info(purple_account_get_protocol_id(request_data->requestor->account), "Valid response, calling success func\n");
         if (request_data->success_func)
@@ -373,7 +400,7 @@ static void twitter_send_request_cb(PurpleUtilFetchUrlData * url_data, gpointer 
     g_free(request_data);
 }
 
-static gpointer twitter_send_request_querystring(TwitterRequestor * r, gboolean post, const char *url, const char *query_string, char **header_fields, TwitterSendRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback, gpointer data)
+static gpointer twitter_send_request_querystring(TwitterRequestor * r, TwitterRequestType request_type, gboolean post, const char *url, const char *query_string, char **header_fields, TwitterSendRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback, gpointer data)
 {
     PurpleAccount  *account = r->account;
     gchar          *request;
@@ -386,12 +413,13 @@ static gpointer twitter_send_request_querystring(TwitterRequestor * r, gboolean 
                                                url);
     char           *header_fields_text = (header_fields ? g_strjoinv("\r\n", header_fields) : NULL);
 
-    purple_debug_info(purple_account_get_protocol_id(account), "Sending %s request to: %s?%s\n", post ? "POST" : "GET", full_url, query_string ? query_string : "");
+    purple_debug_info(purple_account_get_protocol_id(account), "Sending %s request (%d) to: %s?%s\n", post ? "POST" : "GET", request_type, full_url, query_string ? query_string : "");
 
     request_data->requestor = r;
     request_data->user_data = data;
     request_data->success_func = success_callback;
     request_data->error_func = error_callback;
+    request_data->request_type = request_type;
 
     request = g_strdup_printf("%s %s%s%s HTTP/1.0\r\n" "User-Agent: " USER_AGENT "\r\n" "Host: %s\r\n" "%s" //Content-Type if post
                               "%s%s"             //extra header fields, if any
@@ -423,16 +451,16 @@ void prpltwtr_requestor_post_failed(TwitterRequestor * r, const TwitterRequestEr
     }
 }
 
-gpointer twitter_requestor_send(TwitterRequestor * r, gboolean post, const char *url, TwitterRequestParams * params, char **header_fields, TwitterSendRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback, gpointer data)
+gpointer twitter_requestor_send(TwitterRequestor * r, TwitterRequestType request_type, gboolean post, const char *url, TwitterRequestParams * params, char **header_fields, TwitterSendRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback, gpointer data)
 {
     gpointer        request;
     gchar          *querystring = twitter_request_params_to_string(params);
-    request = twitter_send_request_querystring(r, post, url, querystring, header_fields, success_callback, error_callback, data);
+    request = twitter_send_request_querystring(r, request_type, post, url, querystring, header_fields, success_callback, error_callback, data);
     g_free(querystring);
     return request;
 }
 
-void twitter_send_request(TwitterRequestor * r, gboolean post, const char *url, TwitterRequestParams * params, TwitterSendRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback, gpointer data)
+void twitter_send_request(TwitterRequestor * r, TwitterRequestType request_type, gboolean post, const char *url, TwitterRequestParams * params, TwitterSendRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback, gpointer data)
 {
     gpointer        requestor_data = NULL;
     gpointer        request = NULL;
@@ -442,7 +470,7 @@ void twitter_send_request(TwitterRequestor * r, gboolean post, const char *url, 
         r->pre_send(r, &post, &url, &params, &header_fields, &requestor_data);
 
     if (r->do_send)
-        request = r->do_send(r, post, url, params, header_fields, success_callback, error_callback, data);
+        request = r->do_send(r, request_type, post, url, params, header_fields, success_callback, error_callback, data);
 
     if (request)
         r->pending_requests = g_list_append(r->pending_requests, request);
@@ -515,7 +543,7 @@ void twitter_send_xml_request(TwitterRequestor * r, gboolean post, const char *u
     request_data->success_func = success_callback;
     request_data->error_func = error_callback;
 
-    twitter_send_request(r, post, url, params, twitter_xml_request_success_cb, twitter_xml_request_error_cb, request_data);
+    twitter_send_request(r, TWITTER_REQUEST_TYPE_UNTRACKED_REQUEST, post, url, params, twitter_xml_request_success_cb, twitter_xml_request_error_cb, request_data);
 }
 
 /// Called when a formatted request is successful. This handles converting the
@@ -582,14 +610,14 @@ static void twitter_format_request_error_cb(TwitterRequestor * r, const TwitterR
     g_free(request_data);
 }
 
-void twitter_send_format_request(TwitterRequestor * r, gboolean post, const char *url, TwitterRequestParams * params, TwitterSendFormatRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback, gpointer data)
+void twitter_send_format_request(TwitterRequestor * r, gboolean post, TwitterEndpoint dest, TwitterRequestParams * params, TwitterSendFormatRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback, gpointer data)
 {
     TwitterSendFormatRequestData *request_data = g_new0(TwitterSendFormatRequestData, 1);
     request_data->user_data = data;
     request_data->success_func = success_callback;
     request_data->error_func = error_callback;
 
-    twitter_send_request(r, post, url, params, twitter_format_request_success_cb, twitter_format_request_error_cb, request_data);
+    twitter_send_request(r, dest->type, post, dest->url, params, twitter_format_request_success_cb, twitter_format_request_error_cb, request_data);
 }
 
 static long long twitter_oauth_generate_nonce()

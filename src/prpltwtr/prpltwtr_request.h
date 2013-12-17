@@ -58,6 +58,26 @@ typedef enum {
     TWITTER_REQUEST_ERROR_UNAUTHORIZED
 } TwitterRequestErrorType;
 
+typedef enum _TwitterRequestType {
+	TWITTER_REQUEST_TYPE_UNTRACKED_REQUEST,
+    TWITTER_REQUEST_TYPE_GET_RATE_LIMIT_STATUS,
+    TWITTER_REQUEST_TYPE_GET_FRIENDS,
+    TWITTER_REQUEST_TYPE_GET_HOME_TIMELINE,
+    TWITTER_REQUEST_TYPE_GET_MENTIONS,
+    TWITTER_REQUEST_TYPE_GET_DMS,
+    TWITTER_REQUEST_TYPE_UPDATE_STATUS,
+    TWITTER_REQUEST_TYPE_NEW_DM,
+    TWITTER_REQUEST_TYPE_GET_SAVED_SEARCHES,
+    TWITTER_REQUEST_TYPE_GET_SUBSCRIBED_LISTS,
+    TWITTER_REQUEST_TYPE_GET_PERSONAL_LISTS,
+    TWITTER_REQUEST_TYPE_GET_SEARCH_RESULTS,
+    TWITTER_REQUEST_TYPE_VERIFY_CREDENTIALS,
+    TWITTER_REQUEST_TYPE_REPORT_SPAMMER,
+    TWITTER_REQUEST_TYPE_ADD_FAVORITE,
+    TWITTER_REQUEST_TYPE_DELETE_FAVORITE,
+    TWITTER_REQUEST_TYPE_GET_USER_INFO
+} TwitterRequestType;
+
 typedef struct {
     TwitterRequestErrorType type;
     /*const xmlnode *response_node; */
@@ -79,13 +99,10 @@ struct _TwitterRequestor {
     GList          *pending_requests;
 
     void            (*pre_send) (TwitterRequestor * r, gboolean * post, const char **url, TwitterRequestParams ** params, gchar *** header_fields, gpointer * requestor_data);
-                    gpointer(*do_send) (TwitterRequestor * r, gboolean post, const char *url, TwitterRequestParams * params, char **header_fields, TwitterSendRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback, gpointer data);
+                    gpointer(*do_send) (TwitterRequestor * r, TwitterRequestType request_type, gboolean post, const char *url, TwitterRequestParams * params, char **header_fields, TwitterSendRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback, gpointer data);
     void            (*post_send) (TwitterRequestor * r, gboolean * post, const char **url, TwitterRequestParams ** params, gchar *** header_fields, gpointer * requestor_data);
                     gboolean(*pre_failed) (TwitterRequestor * r, const TwitterRequestErrorData ** error_data);
     void            (*post_failed) (TwitterRequestor * r, const TwitterRequestErrorData ** error_data);
-    int             rate_limit_total;
-    int             rate_limit_remaining;
-
     TwitterUrls    *urls;
     TwitterFormat  *format;
 };
@@ -128,13 +145,13 @@ typedef void    (*TwitterSendFormatRequestMultiPageAllSuccessFunc) (TwitterReque
 typedef         gboolean(*TwitterSendRequestMultiPageAllErrorFunc) (TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data);
 
 void            prpltwtr_requestor_post_failed(TwitterRequestor * r, const TwitterRequestErrorData ** error_data);
-gpointer        twitter_requestor_send(TwitterRequestor * r, gboolean post, const char *url, TwitterRequestParams * params, char **header_fields, TwitterSendRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback, gpointer data);
+gpointer        twitter_requestor_send(TwitterRequestor * r, TwitterRequestType request_type, gboolean post, const char *url, TwitterRequestParams * params, char **header_fields, TwitterSendRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback, gpointer data);
 
-void            twitter_send_request(TwitterRequestor * r, gboolean post, const char *url, TwitterRequestParams * params, TwitterSendRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback, gpointer data);
+void            twitter_send_request(TwitterRequestor * r, TwitterRequestType request_type, gboolean post, const char *url, TwitterRequestParams * params, TwitterSendRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback, gpointer data);
 
 void            twitter_send_xml_request(TwitterRequestor * r, gboolean post, const char *url, TwitterRequestParams * params, TwitterSendXmlRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback, gpointer data);
 
-void            twitter_send_format_request(TwitterRequestor * r, gboolean post, const char *url, TwitterRequestParams * params, TwitterSendFormatRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback, gpointer data);
+void            twitter_send_format_request(TwitterRequestor * r, TwitterRequestType, gboolean post, const char *url, TwitterRequestParams * params, TwitterSendFormatRequestSuccessFunc success_callback, TwitterSendRequestErrorFunc error_callback, gpointer data);
 
 //don't include count in the query_string
 void            twitter_send_xml_request_multipage_all(TwitterRequestor * r, const char *url, TwitterRequestParams * params, TwitterSendRequestMultiPageAllSuccessFunc success_callback, TwitterSendRequestMultiPageAllErrorFunc error_callback, int expected_count, gint max_count, gpointer data);

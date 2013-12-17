@@ -60,8 +60,6 @@ static void twitter_get_list_parse_statuses(TwitterEndpointChat * endpoint_chat,
     purple_account_get_connection(endpoint_chat->account);
 
     if (!statuses) {
-        /* At least update the topic with the new rate limit info */
-        twitter_chat_update_rate_limit(endpoint_chat);
         return;
     }
 
@@ -117,8 +115,7 @@ static void twitter_get_list_cb(TwitterRequestor * r, gpointer node, gpointer us
     if (endpoint_chat == NULL)
         return;
 
-    endpoint_chat->rate_limit_remaining = r->rate_limit_remaining;
-    endpoint_chat->rate_limit_total = r->rate_limit_total;
+	/* TODO MHM: update rate limit was here */
 
     endpoint_chat->retrieval_in_progress = FALSE;
     endpoint_chat->retrieval_in_progress_timeout = 0;
@@ -143,8 +140,7 @@ static void twitter_get_list_all_cb(TwitterRequestor * r, GList * nodes, gpointe
     if (endpoint_chat == NULL)
         return;
 
-    endpoint_chat->rate_limit_remaining = r->rate_limit_remaining;
-    endpoint_chat->rate_limit_total = r->rate_limit_total;
+	/* TODO MHM: update rate limit was here */
 
     endpoint_chat->retrieval_in_progress = FALSE;
     endpoint_chat->retrieval_in_progress_timeout = 0;

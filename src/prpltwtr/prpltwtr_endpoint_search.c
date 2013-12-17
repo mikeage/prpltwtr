@@ -74,8 +74,7 @@ static void twitter_search_cb(PurpleAccount * account, GList * search_results, c
         return;
     }
 
-    endpoint_chat->rate_limit_remaining = purple_account_get_requestor(account)->rate_limit_remaining;
-    endpoint_chat->rate_limit_total = purple_account_get_requestor(account)->rate_limit_total;
+	/* TODO MHM: update rate limit was here */
 
     ctx = (TwitterSearchTimeoutContext *) endpoint_chat->endpoint_data;
 
@@ -83,10 +82,7 @@ static void twitter_search_cb(PurpleAccount * account, GList * search_results, c
 
     if (search_results) {
         twitter_chat_got_user_tweets(endpoint_chat, search_results);
-    } else {
-        /* At least update the topic with the new rate limit info */
-        twitter_chat_update_rate_limit(endpoint_chat);
-    }
+    } 
 
     if (max_id) {
         ctx->last_tweet_id = max_id;

@@ -1,23 +1,29 @@
 #ifndef _TWITTER_PLUGIN_H_
 #define _TWITTER_PLUGIN_H_
 
+typedef struct _TwitterEndpoint {
+    int             rate_limit_total;
+    int             rate_limit_remaining;
+	time_t          rate_limit_reset;
+	const gchar *url;
+} TwitterEndpoint;
 typedef struct {
-    const gchar    *get_rate_limit_status;
-    const gchar    *get_friends;
-    const gchar    *get_home_timeline;
-    const gchar    *get_mentions;
-    const gchar    *get_dms;
-    const gchar    *update_status;
-    const gchar    *new_dm;
-    const gchar    *get_saved_searches;
-    const gchar    *get_subscribed_lists;
-    const gchar    *get_personal_lists;
-    const gchar    *get_search_results;
-    const gchar    *verify_credentials;
-    const gchar    *report_spammer;
-    const gchar    *add_favorite;
-    const gchar    *delete_favorite;
-    const gchar    *get_user_info;
+    TwitterEndpoint get_rate_limit_status;
+    TwitterEndpoint get_friends;
+    TwitterEndpoint get_home_timeline;
+    TwitterEndpoint get_mentions;
+    TwitterEndpoint get_dms;
+    TwitterEndpoint update_status;
+    TwitterEndpoint new_dm;
+    TwitterEndpoint get_saved_searches;
+    TwitterEndpoint get_subscribed_lists;
+    TwitterEndpoint get_personal_lists;
+    TwitterEndpoint get_search_results;
+    TwitterEndpoint verify_credentials;
+    TwitterEndpoint report_spammer;
+    TwitterEndpoint add_favorite;
+    TwitterEndpoint delete_favorite;
+    TwitterEndpoint get_user_info;
 } TwitterUrls;
 
 void            twitter_destroy(PurplePlugin * plugin);

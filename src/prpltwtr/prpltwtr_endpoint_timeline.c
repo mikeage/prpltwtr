@@ -73,9 +73,7 @@ static void twitter_get_home_timeline_parse_statuses(TwitterEndpointChat * endpo
     gc = purple_account_get_connection(endpoint_chat->account);
 
     if (!statuses) {
-        /* At least update the topic with the new rate limit info */
         purple_debug_info(purple_account_get_protocol_id(endpoint_chat->account), "%s: No statuses\n", G_STRFUNC);
-        twitter_chat_update_rate_limit(endpoint_chat);
         return;
     }
 
@@ -138,8 +136,7 @@ static void twitter_get_home_timeline_cb(TwitterRequestor * r, gpointer node, gp
     if (endpoint_chat == NULL)
         return;
 
-    endpoint_chat->rate_limit_remaining = r->rate_limit_remaining;
-    endpoint_chat->rate_limit_total = r->rate_limit_total;
+	/* TODO MHM: update rate limit was here */
 
     endpoint_chat->retrieval_in_progress = FALSE;
     endpoint_chat->retrieval_in_progress_timeout = 0;
@@ -164,8 +161,7 @@ static void twitter_get_home_timeline_all_cb(TwitterRequestor * r, GList * nodes
     if (endpoint_chat == NULL)
         return;
 
-    endpoint_chat->rate_limit_remaining = r->rate_limit_remaining;
-    endpoint_chat->rate_limit_total = r->rate_limit_total;
+	/* TODO MHM: update rate limit was here */
 
     endpoint_chat->retrieval_in_progress = FALSE;
     endpoint_chat->retrieval_in_progress_timeout = 0;

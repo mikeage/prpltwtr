@@ -146,7 +146,7 @@ void prpltwtr_auth_oauth_login(PurpleAccount * account, TwitterConnectionData * 
         twitter->oauth_token_secret = g_strdup(oauth_token_secret);
         twitter_api_verify_credentials(purple_account_get_requestor(account), verify_credentials_success_cb, verify_credentials_error_cb, NULL);
     } else {
-        twitter_send_request(purple_account_get_requestor(account), FALSE, twitter_option_url_oauth_request_token(account), NULL, oauth_request_token_success_cb, oauth_request_token_error_cb, NULL);
+        twitter_send_request(purple_account_get_requestor(account), TWITTER_REQUEST_TYPE_UNTRACKED_REQUEST, FALSE, twitter_option_url_oauth_request_token(account), NULL, oauth_request_token_success_cb, oauth_request_token_error_cb, NULL);
     }
 }
 
@@ -358,7 +358,7 @@ static void oauth_request_pin_ok(PurpleAccount * account, const gchar * pin)
 {
     TwitterRequestParams *params = twitter_request_params_new();
     twitter_request_params_add(params, twitter_request_param_new("oauth_verifier", pin));
-    twitter_send_request(purple_account_get_requestor(account), FALSE, twitter_option_url_oauth_access_token(account), params, oauth_access_token_success_cb, oauth_access_token_error_cb, NULL);
+    twitter_send_request(purple_account_get_requestor(account), TWITTER_REQUEST_TYPE_UNTRACKED_REQUEST, FALSE, twitter_option_url_oauth_access_token(account), params, oauth_access_token_success_cb, oauth_access_token_error_cb, NULL);
     twitter_request_params_free(params);
 }
 
