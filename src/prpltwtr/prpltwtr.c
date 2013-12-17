@@ -279,12 +279,16 @@ static void get_lists_cb(TwitterRequestor * r, gpointer node, gpointer user_data
         return;
 
     for (iter = r->format->iter_start(node, "lists"); !r->format->iter_done(iter); iter = r->format->iter_next(iter)) {
+        gchar          *id = NULL;
+        gchar          *owner = NULL;
+        gchar          *name = NULL;
+        gpointer        user = NULL;
+
         list = r->format->get_iter_node(iter);
 
-        gchar          *id = r->format->get_str(list, "id_str");
-        gchar          *owner = NULL;
-        gchar          *name = r->format->get_str(list, "full_name");
-        gpointer        user = r->format->get_node(list, "user");
+        id = r->format->get_str(list, "id_str");
+        name = r->format->get_str(list, "full_name");
+        user = r->format->get_node(list, "user");
 
         if (user) {
             owner = r->format->get_str(user, "screen_name");

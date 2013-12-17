@@ -275,16 +275,18 @@ static gchar   *twitter_xml_node_parse_error(const xmlnode * node)
     return xmlnode_get_child_data(node, "error");
 }
 
-static gchar   *twitter_xml_text_parse_error(const gchar * response)
-{
-    xmlnode        *response_node;
-    if (response && (response_node = xmlnode_from_str(response, strlen(response)))) {
-        gchar          *message = twitter_xml_node_parse_error(response_node);
-        xmlnode_free(response_node);
-        return message;
-    }
-    return NULL;
-}
+/*
+ *static gchar   *twitter_xml_text_parse_error(const gchar * response)
+ *{
+ *    xmlnode        *response_node;
+ *    if (response && (response_node = xmlnode_from_str(response, strlen(response)))) {
+ *        gchar          *message = twitter_xml_node_parse_error(response_node);
+ *        xmlnode_free(response_node);
+ *        return message;
+ *    }
+ *    return NULL;
+ *}
+ */
 
 static void twitter_send_request_cb(PurpleUtilFetchUrlData * url_data, gpointer user_data, const gchar * response_text, gsize len, const gchar * server_error_message)
 {

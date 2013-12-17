@@ -174,7 +174,6 @@ static void twitter_get_replies_last_since_id(PurpleAccount * account, void (*su
 
 static void twitter_endpoint_reply_convo_closed(PurpleConversation * conv)
 {
-    gchar         **id;
     PurpleConnection *gc = NULL;
     TwitterConnectionData *twitter = NULL;
     if (!conv)

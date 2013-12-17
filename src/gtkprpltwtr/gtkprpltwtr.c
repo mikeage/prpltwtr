@@ -515,9 +515,8 @@ static gboolean twitter_uri_handler(const char *proto, const char *cmd_arg, GHas
         g_hash_table_insert(components, "search", g_strdup(purple_url_decode(text)));
         twitter_endpoint_chat_start(purple_account_get_connection(account), twitter_get_endpoint_chat_settings(TWITTER_CHAT_SEARCH), components, TRUE);
     } else if (!strcmp(cmd_arg, TWITTER_URI_ACTION_SET_REPLY)) {
-        const char     *id_str,
-                       *user;
-        gchar          *p;
+        const char     *id_str;
+        const char     *user;
         PurpleConversation *conv;
         id_str = g_hash_table_lookup(params, "id");
         user = g_hash_table_lookup(params, "user");
