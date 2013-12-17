@@ -146,7 +146,7 @@ TwitterRequestParams *twitter_request_params_add(TwitterRequestParams * params, 
     return g_array_append_val(params, p);
 }
 
-static TwitterRequestParams *twitter_request_params_clone(const TwitterRequestParams * params)
+TwitterRequestParams *twitter_request_params_clone(const TwitterRequestParams * params)
 {
     int             i;
     TwitterRequestParams *clone;

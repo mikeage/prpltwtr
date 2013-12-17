@@ -44,6 +44,7 @@ typedef GArray  TwitterRequestParams;
 
 TwitterRequestParams *twitter_request_params_new(void);
 TwitterRequestParams *twitter_request_params_add(GArray * params, TwitterRequestParam * p);
+TwitterRequestParams *twitter_request_params_clone(const TwitterRequestParams * params);
 void            twitter_request_params_free(TwitterRequestParams * params);
 void            twitter_request_param_free(TwitterRequestParam * p);
 

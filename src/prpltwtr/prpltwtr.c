@@ -271,39 +271,34 @@ char           *twitter_chat_get_name(GHashTable * components)
 
 static void get_lists_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
 {
+    gpointer        iter;
     gpointer        list;
 
     purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
     if (!node)
         return;
 
-    list = r->format->iter_start(node, "lists");
+    for (iter = r->format->iter_start(node, "lists"); !r->format->iter_done(iter); iter = r->format->iter_next(iter)) {
+        list = r->format->get_iter_node(iter);
 
-    if (!list) {
-        return;
-    }
+        gchar          *id = r->format->get_str(list, "id_str");
+        gchar          *owner = NULL;
+        gchar          *name = r->format->get_str(list, "full_name");
+        gpointer        user = r->format->get_node(list, "user");
 
-    for (; !r->format->iter_done(list); list = r->format->iter_next(list)) {
-        if (r->format->get_name(list) && !g_strcmp0(r->format->get_name(list), "list")) {
-            gchar          *id = r->format->get_str(list, "id_str");
-            gchar          *owner = NULL;
-            gchar          *name = r->format->get_str(list, "full_name");
-            gpointer        user = r->format->get_node(list, "user");
-
-            if (user) {
-                owner = r->format->get_str(user, "screen_name");
-            }
+        if (user) {
+            owner = r->format->get_str(user, "screen_name");
+        }
 #ifdef _HAZE_
-            // TODO
+        // TODO
 #else
-            purple_debug_info(purple_account_get_protocol_id(r->account), "List found: name %s, id %s\n", name, id);
-            twitter_blist_chat_list_new(r->account, name, owner, id);
+        purple_debug_info(purple_account_get_protocol_id(r->account), "List found: name %s, id %s\n", name, id);
+        twitter_blist_chat_list_new(r->account, name, owner, id);
 #endif
 
-            g_free(name);
-            g_free(owner);
-            g_free(id);
-        }
+        g_free(name);
+        g_free(owner);
+        g_free(id);
     }
 }
 

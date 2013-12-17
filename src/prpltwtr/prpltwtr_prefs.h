@@ -113,6 +113,7 @@
 #define TWITTER_PREF_URL_GET_SAVED_SEARCHES "/saved_searches/list"
 #define TWITTER_PREF_URL_GET_SUBSCRIBED_LISTS "/lists/subscriptions"
 #define TWITTER_PREF_URL_GET_PERSONAL_LISTS "/lists/list"
+#define TWITTER_PREF_URL_GET_LIST_STATUSES "/lists/statuses"
 #define TWITTER_PREF_URL_GET_SEARCH_RESULTS "/search"
 #define TWITTER_PREF_URL_VERIFY_CREDENTIALS "/account/verify_credentials"
 #define TWITTER_PREF_URL_RT "/statuses/retweet"  /* Yay for inconsistency */

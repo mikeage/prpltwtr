@@ -96,38 +96,6 @@ static gboolean twitter_get_list_all_error_cb(TwitterRequestor * r, const Twitte
     return FALSE;                                /* Do not retry. Too many edge cases */
 }
 
-static void twitter_get_list_error_cb(TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data)
-{
-    twitter_get_list_all_error_cb(r, error_data, user_data);
-    return;
-}
-
-static void twitter_get_list_cb(TwitterRequestor * r, gpointer node, gpointer user_data)
-{
-    TwitterEndpointChatId *chat_id = (TwitterEndpointChatId *) user_data;
-    TwitterEndpointChat *endpoint_chat;
-    GList          *statuses;
-
-    purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
-
-    g_return_if_fail(chat_id != NULL);
-    endpoint_chat = twitter_endpoint_chat_find_by_id(chat_id);
-    twitter_endpoint_chat_id_free(chat_id);
-
-    if (endpoint_chat == NULL)
-        return;
-
-    endpoint_chat->rate_limit_remaining = r->rate_limit_remaining;
-    endpoint_chat->rate_limit_total = r->rate_limit_total;
-
-    endpoint_chat->retrieval_in_progress = FALSE;
-    endpoint_chat->retrieval_in_progress_timeout = 0;
-
-    statuses = twitter_statuses_node_parse(r, node);
-    twitter_get_list_parse_statuses(endpoint_chat, statuses);
-
-}
-
 static void twitter_get_list_all_cb(TwitterRequestor * r, GList * nodes, gpointer user_data)
 {
     TwitterEndpointChatId *chat_id = (TwitterEndpointChatId *) user_data;
@@ -184,11 +152,10 @@ static gboolean twitter_list_timeout(TwitterEndpointChat * endpoint_chat)
 
     if (ctx->last_tweet_id == 0) {
         purple_debug_info(purple_account_get_protocol_id(account), "Retrieving %s statuses for first time\n", ctx->list_name);
-        twitter_api_get_list(purple_account_get_requestor(account), ctx->list_id, ctx->owner, ctx->last_tweet_id, TWITTER_LIST_INITIAL_COUNT, 1, twitter_get_list_cb, twitter_get_list_error_cb, chat_id);
     } else {
         purple_debug_info(purple_account_get_protocol_id(account), "Retrieving %s statuses since %s\n", ctx->list_name, ctx->last_tweet_id);
-        twitter_api_get_list_all(purple_account_get_requestor(account), ctx->list_id, ctx->owner, ctx->last_tweet_id, twitter_get_list_all_cb, twitter_get_list_all_error_cb, twitter_option_list_max_tweets(account), chat_id);
     }
+    twitter_api_get_list_all(purple_account_get_requestor(account), ctx->list_id, ctx->owner, ctx->last_tweet_id, twitter_get_list_all_cb, twitter_get_list_all_error_cb, twitter_option_list_max_tweets(account), chat_id);
 
     return TRUE;
 }

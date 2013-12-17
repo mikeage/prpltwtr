@@ -12,6 +12,7 @@ typedef struct {
     const gchar    *get_saved_searches;
     const gchar    *get_subscribed_lists;
     const gchar    *get_personal_lists;
+    const gchar    *get_list_statuses;
     const gchar    *get_search_results;
     const gchar    *verify_credentials;
     const gchar    *report_spammer;

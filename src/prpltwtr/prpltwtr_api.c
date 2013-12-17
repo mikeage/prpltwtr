@@ -79,17 +79,6 @@ static const gchar *twitter_api_create_web_url(PurpleAccount * account, const gc
     return url;
 }
 
-static const gchar *twitter_option_url_get_list(PurpleAccount * account, const char *owner)
-{
-    gchar          *url = g_strdup_printf("%s%s",
-                                          owner,
-                                          TWITTER_PREF_URL_GET_LIST);
-    const gchar    *result = twitter_api_create_url(account,
-                                                    url);
-    g_free(url);
-    return result;
-}
-
 static const gchar *twitter_option_url_rt(TwitterRequestor * r, gchar * id)
 {
     PurpleAccount  *account = r->account;
@@ -286,8 +275,6 @@ static void twitter_api_send_request_single(TwitterRequestor * r, const gchar * 
     purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s: url %s\n", G_STRFUNC, url);
 
     twitter_request_params_add(params, twitter_request_param_new_int("count", count));
-    /* Timelines use count. Lists use per_page. But twitter seems to accept both w/o complaining */
-    twitter_request_params_add(params, twitter_request_param_new_int("per_page", count));
     twitter_request_params_add(params, twitter_request_param_new_int("page", page));
     if (since_id != NULL && g_strcmp0("0", since_id) != 0)
         twitter_request_params_add(params, twitter_request_param_new("since_id", since_id));
@@ -304,19 +291,14 @@ void twitter_api_get_home_timeline(TwitterRequestor * r, gchar * since_id, int c
     twitter_api_send_request_single(r, r->urls->get_home_timeline, since_id, count, page, success_func, error_func, data);
 }
 
-void twitter_api_get_list(TwitterRequestor * r, const gchar * list_id, const gchar * owner, gchar * since_id, int count, int page, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
+static void twitter_api_get_all_since(TwitterRequestor * r, const gchar * url, gchar * since_id, TwitterRequestParams * other_params, TwitterSendRequestMultiPageAllSuccessFunc success_func, TwitterSendRequestMultiPageAllErrorFunc error_func, gint count, gint max_count, gpointer data)
 {
-    gchar          *url;
-    url = g_strdup_printf("%s%s%s", twitter_option_url_get_list(r->account, owner), list_id, "/statuses.xml");
+    TwitterRequestParams *params = NULL;
 
-    twitter_api_send_request_single(r, url, since_id, count, page, success_func, error_func, data);
-
-    g_free(url);
-}
-
-static void twitter_api_get_all_since(TwitterRequestor * r, const gchar * url, gchar * since_id, TwitterSendRequestMultiPageAllSuccessFunc success_func, TwitterSendRequestMultiPageAllErrorFunc error_func, gint count, gint max_count, gpointer data)
-{
-    TwitterRequestParams *params = twitter_request_params_new();
+    params = twitter_request_params_clone(other_params);
+    if (!params) {
+        params = twitter_request_params_new();
+    }
     if (since_id != NULL && g_strcmp0("0", since_id) != 0)
         twitter_request_params_add(params, twitter_request_param_new("since_id", since_id));
 
@@ -328,17 +310,17 @@ static void twitter_api_get_all_since(TwitterRequestor * r, const gchar * url, g
 
 void twitter_api_get_home_timeline_all(TwitterRequestor * r, gchar * since_id, TwitterSendRequestMultiPageAllSuccessFunc success_func, TwitterSendRequestMultiPageAllErrorFunc error_func, gint max_count, gpointer data)
 {
-    twitter_api_get_all_since(r, r->urls->get_home_timeline, since_id, success_func, error_func, TWITTER_HOME_TIMELINE_PAGE_COUNT, max_count, data);
+    twitter_api_get_all_since(r, r->urls->get_home_timeline, since_id, NULL, success_func, error_func, TWITTER_HOME_TIMELINE_PAGE_COUNT, max_count, data);
 }
 
 void twitter_api_get_list_all(TwitterRequestor * r, const gchar * list_id, const gchar * owner, gchar * since_id, TwitterSendRequestMultiPageAllSuccessFunc success_func, TwitterSendRequestMultiPageAllErrorFunc error_func, gint max_count, gpointer data)
 {
-    gchar          *url;
-    url = g_strdup_printf("%s%s%s", twitter_option_url_get_list(r->account, owner), list_id, "/statuses.xml");
+    TwitterRequestParams *params = twitter_request_params_new();
+    twitter_request_params_add(params, twitter_request_param_new("list_id", list_id));
 
-    twitter_api_get_all_since(r, url, since_id, success_func, error_func, TWITTER_LIST_PAGE_COUNT, max_count, data);
+    twitter_api_get_all_since(r, r->urls->get_list_statuses, since_id, params, success_func, error_func, TWITTER_LIST_PAGE_COUNT, max_count, data);
 
-    g_free(url);
+    twitter_request_params_free(params);
 }
 
 void twitter_api_get_replies(TwitterRequestor * r, gchar * since_id, int count, int page, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
@@ -348,7 +330,7 @@ void twitter_api_get_replies(TwitterRequestor * r, gchar * since_id, int count, 
 
 void twitter_api_get_replies_all(TwitterRequestor * r, gchar * since_id, TwitterSendRequestMultiPageAllSuccessFunc success_func, TwitterSendRequestMultiPageAllErrorFunc error_func, gint max_count, gpointer data)
 {
-    twitter_api_get_all_since(r, r->urls->get_mentions, since_id, success_func, error_func, TWITTER_EVERY_REPLIES_COUNT, max_count, data);
+    twitter_api_get_all_since(r, r->urls->get_mentions, since_id, NULL, success_func, error_func, TWITTER_EVERY_REPLIES_COUNT, max_count, data);
 }
 
 void twitter_api_get_dms(TwitterRequestor * r, gchar * since_id, int count, int page, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)
@@ -358,7 +340,7 @@ void twitter_api_get_dms(TwitterRequestor * r, gchar * since_id, int count, int 
 
 void twitter_api_get_dms_all(TwitterRequestor * r, gchar * since_id, TwitterSendRequestMultiPageAllSuccessFunc success_func, TwitterSendRequestMultiPageAllErrorFunc error_func, gint max_count, gpointer data)
 {
-    twitter_api_get_all_since(r, r->urls->get_dms, since_id, success_func, error_func, TWITTER_EVERY_DMS_COUNT, max_count, data);
+    twitter_api_get_all_since(r, r->urls->get_dms, since_id, NULL, success_func, error_func, TWITTER_EVERY_DMS_COUNT, max_count, data);
 }
 
 void twitter_api_set_status(TwitterRequestor * r, const char *msg, gchar * in_reply_to_status_id, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data)

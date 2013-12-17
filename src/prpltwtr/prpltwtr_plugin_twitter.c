@@ -250,7 +250,8 @@ void prpltwtr_plugin_setup(TwitterRequestor * requestor)
     urls->get_saved_searches = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_SAVED_SEARCHES, format->extension));
     urls->get_subscribed_lists = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_SUBSCRIBED_LISTS, format->extension));
     urls->get_personal_lists = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_PERSONAL_LISTS, format->extension));
-    urls->get_search_results = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_SEARCH_RESULTS, format->extension));   // .atom
+    urls->get_list_statuses = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_LIST_STATUSES, format->extension));
+    urls->get_search_results = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_GET_SEARCH_RESULTS, format->extension));
     urls->verify_credentials = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_VERIFY_CREDENTIALS, format->extension));
     urls->report_spammer = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_REPORT_SPAMMER, format->extension));
     urls->add_favorite = g_strdup(twitter_api_create_url_ext(account, TWITTER_PREF_URL_ADD_FAVORITE, format->extension));
