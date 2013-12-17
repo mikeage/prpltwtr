@@ -121,7 +121,7 @@ static void twitter_endpoint_im_get_last_since_id_success_cb(PurpleAccount * acc
 {
     TwitterEndpointIm *im = user_data;
 
-    if (strtoll(id, NULL, 10) > strtoll(twitter_endpoint_im_get_since_id(im), NULL, 10)) {
+    if (id && (strtoll(id, NULL, 10) > strtoll(twitter_endpoint_im_get_since_id(im), NULL, 10))) {
         twitter_endpoint_im_set_since_id(im, id);
     }
 
