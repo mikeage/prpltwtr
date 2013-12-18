@@ -318,7 +318,7 @@ static void get_saved_searches_cb(TwitterRequestor * r, gpointer node, gpointer 
     for (iter = r->format->iter_start(node, NULL); !r->format->iter_done(iter); iter = r->format->iter_next(iter)) {
         search = r->format->get_iter_node(iter);
 
-        if (r->format->is_name(search, "saved_search")) {
+        if (search && r->format->is_name(search, "saved_search")) {
             gchar          *query = r->format->get_str(search, "query");
 
             if (query != NULL) {
