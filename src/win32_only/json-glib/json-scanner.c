@@ -892,7 +892,10 @@ json_scanner_get_unichar (JsonScanner *scanner,
         break;
     }
 
-  g_assert (g_unichar_validate (uchar));
+  /*g_assert (g_unichar_validate (uchar));*/
+  if (!g_unichar_validate (uchar))
+	  uchar = ' ';
+
 
   return uchar;
 }
