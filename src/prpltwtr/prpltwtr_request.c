@@ -756,9 +756,8 @@ static void twitter_send_format_request_multipage_error_cb(TwitterRequestor * r,
 void twitter_send_format_request_multipage_do(TwitterRequestor * r, TwitterFormatMultiPageRequestData * request_data)
 {
     int             len = request_data->params->len;
-    twitter_request_params_add(request_data->params, twitter_request_param_new_int("page", request_data->page));
-    twitter_request_params_add(request_data->params, twitter_request_param_new_int("count", request_data->expected_count));
-    twitter_request_params_add(request_data->params, twitter_request_param_new_int("per_page", request_data->expected_count));
+    /*twitter_request_params_add(request_data->params, twitter_request_param_new_int("page", request_data->page));*/
+	twitter_request_params_add(request_data->params, twitter_request_param_new_int("count", request_data->expected_count));
 
     purple_debug_info(purple_account_get_protocol_id(r->account), "%s: page: %d\n", G_STRFUNC, request_data->page);
 

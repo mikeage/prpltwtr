@@ -271,13 +271,16 @@ static void twitter_api_send_request_single(TwitterRequestor * r, const gchar * 
 {
 
     TwitterRequestParams *params = twitter_request_params_new();
+	/* TEMP */ gchar *max_id=NULL;
 
     purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s: url %s\n", G_STRFUNC, url);
 
-    twitter_request_params_add(params, twitter_request_param_new_int("count", count));
-    twitter_request_params_add(params, twitter_request_param_new_int("page", page));
+	twitter_request_params_add(params, twitter_request_param_new_int("count", count));
+    /*twitter_request_params_add(params, twitter_request_param_new_int("page", page));*/
     if (since_id != NULL && g_strcmp0("0", since_id) != 0)
         twitter_request_params_add(params, twitter_request_param_new("since_id", since_id));
+    if (max_id != NULL && g_strcmp0("0", max_id) != 0)
+        twitter_request_params_add(params, twitter_request_param_new("max_id", max_id));
 
     purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
 
