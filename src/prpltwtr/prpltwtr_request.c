@@ -275,19 +275,6 @@ static gchar   *twitter_xml_node_parse_error(const xmlnode * node)
     return xmlnode_get_child_data(node, "error");
 }
 
-/*
- *static gchar   *twitter_xml_text_parse_error(const gchar * response)
- *{
- *    xmlnode        *response_node;
- *    if (response && (response_node = xmlnode_from_str(response, strlen(response)))) {
- *        gchar          *message = twitter_xml_node_parse_error(response_node);
- *        xmlnode_free(response_node);
- *        return message;
- *    }
- *    return NULL;
- *}
- */
-
 static void twitter_send_request_cb(PurpleUtilFetchUrlData * url_data, gpointer user_data, const gchar * response_text, gsize len, const gchar * server_error_message)
 {
     const gchar    *url_text;
@@ -475,9 +462,7 @@ static void twitter_xml_request_success_cb(TwitterRequestor * r, const gchar * r
     }
 
     if (error_type != TWITTER_REQUEST_ERROR_NONE) {
-        /* Turns out this wasn't really a success. We got a twitter error instead of an HTTP error
-         * So go through the error cycle 
-         */
+        /* Turns out this wasn't really a success. We got a twitter error instead of an HTTP error. So go through the error cycle */
         TwitterRequestErrorData *error_data = g_new0(TwitterRequestErrorData, 1);
         error_data->type = error_type;
         error_data->message = error_message;
@@ -499,10 +484,7 @@ static void twitter_xml_request_success_cb(TwitterRequestor * r, const gchar * r
 
 static void twitter_xml_request_error_cb(TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data)
 {
-    /* This gets called after the pre_failed and before the post_failed.
-     * So we just pass the error along to our caller. No need to call the requestor_on_fail 
-     * In fact, if we do, we'll get an infinite loop
-     */
+    /* This gets called after the pre_failed and before the post_failed. So we just pass the error along to our caller. No need to call the requestor_on_fail. In fact, if we do, we'll get an infinite loop */
     TwitterSendXmlRequestData *request_data = user_data;
     if (request_data->error_func)
         request_data->error_func(r, error_data, request_data->user_data);
@@ -550,9 +532,7 @@ static void twitter_format_request_success_cb(TwitterRequestor * r, const gchar 
     }
 
     if (error_type != TWITTER_REQUEST_ERROR_NONE) {
-        /* Turns out this wasn't really a success. We got a twitter error instead of an HTTP error
-         * So go through the error cycle 
-         */
+        /* Turns out this wasn't really a success. We got a twitter error instead of an HTTP error. So go through the error cycle */
         TwitterRequestErrorData *error_data = g_new0(TwitterRequestErrorData, 1);
         error_data->type = error_type;
         error_data->message = error_message;
@@ -574,10 +554,7 @@ static void twitter_format_request_success_cb(TwitterRequestor * r, const gchar 
 
 static void twitter_format_request_error_cb(TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data)
 {
-    /* This gets called after the pre_failed and before the post_failed.
-     * So we just pass the error along to our caller. No need to call the requestor_on_fail 
-     * In fact, if we do, we'll get an infinite loop
-     */
+    /* This gets called after the pre_failed and before the post_failed. So we just pass the error along to our caller. No need to call the requestor_on_fail. In fact, if we do, we'll get an infinite loop */
     TwitterSendFormatRequestData *request_data = user_data;
     if (request_data->error_func)
         request_data->error_func(r, error_data, request_data->user_data);
@@ -710,10 +687,10 @@ void twitter_send_format_request_multipage_cb(TwitterRequestor * r, gpointer nod
     gboolean        last_page = FALSE;
 
     purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
-	
-	if (request_data->inner_node_cb) {
-		node = request_data->inner_node_cb(r, node);
-	}
+
+    if (request_data->inner_node_cb) {
+        node = request_data->inner_node_cb(r, node);
+    }
 
     count = r->format->get_node_child_count(node);
 
@@ -760,8 +737,8 @@ static void twitter_send_format_request_multipage_error_cb(TwitterRequestor * r,
 void twitter_send_format_request_multipage_do(TwitterRequestor * r, TwitterFormatMultiPageRequestData * request_data)
 {
     int             len = request_data->params->len;
-    /*twitter_request_params_add(request_data->params, twitter_request_param_new_int("page", request_data->page));*/
-	twitter_request_params_add(request_data->params, twitter_request_param_new_int("count", request_data->expected_count));
+    /*twitter_request_params_add(request_data->params, twitter_request_param_new_int("page", request_data->page)); */
+    twitter_request_params_add(request_data->params, twitter_request_param_new_int("count", request_data->expected_count));
 
     purple_debug_info(purple_account_get_protocol_id(r->account), "%s: page: %d\n", G_STRFUNC, request_data->page);
 
@@ -779,7 +756,7 @@ static void twitter_send_format_request_multipage(TwitterRequestor * r, const ch
     request_data->error_callback = error_callback;
     request_data->page = 1;
     request_data->expected_count = expected_count;
-	request_data->inner_node_cb = inner_node_cb;
+    request_data->inner_node_cb = inner_node_cb;
 
     twitter_send_format_request_multipage_do(r, request_data);
 }

@@ -169,23 +169,6 @@ TwitterSearchResults *twitter_search_results_node_parse(TwitterRequestor * r, gp
     gpointer        status_node;
     const gchar    *ptr;
 
-	/* This would get the next URL, but this is not the right logic. Disabling it for now */
-	/*
-     *for (iter = r->format->iter_start(response_node, "link"); !r->format->iter_done(iter); iter = r->format->iter_next(iter)) {
-     *    const char     *rel = NULL;
-     *    link_node = r->format->get_iter_node(iter);
-     *    rel = r->format->get_attr(link_node, "rel");
-     *    if (rel != NULL && !strcmp(rel, "refresh")) {
-     *        const char     *refresh_url_full = r->format->get_attr(link_node, "href");
-     *        ptr = strstr(refresh_url_full, "?");
-     *        if (ptr != NULL) {
-     *            refresh_url = ptr;
-     *            break;
-     *        }
-     *    }
-     *}
-	 */
-
     /* After snowflake, the IDs aren't sequential; always take the first entry */
     for (status_node = r->format->iter_start(response_node, "statuses"); !r->format->iter_done(status_node); status_node = r->format->iter_next(status_node)) {
         TwitterUserTweet *status = twitter_search_entry_node_parse(r, status_node);
@@ -197,7 +180,6 @@ TwitterSearchResults *twitter_search_results_node_parse(TwitterRequestor * r, gp
         }
     }
 
-    //TODO: test and remove
     search_results = g_list_sort(search_results, (GCompareFunc) _twitter_search_results_sort);
 
     purple_debug_info(GENERIC_PROTOCOL_ID, "refresh_url: %s, max_id: %s\n", refresh_url, max_id);

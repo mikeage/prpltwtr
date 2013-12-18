@@ -14,14 +14,12 @@ static void twitter_search_timeout_context_free(gpointer _ctx)
     g_return_if_fail(_ctx != NULL);
     ctx = _ctx;
 
-
     purple_debug_info(GENERIC_PROTOCOL_ID, "%s %s\n", G_STRFUNC, ctx->search_name);
     g_free(ctx->search_name);
     ctx->search_name = NULL;
 
     g_free(ctx->last_tweet_id);
     ctx->last_tweet_id = NULL;
-
 
     g_slice_free(TwitterSearchTimeoutContext, ctx);
 }
@@ -156,18 +154,15 @@ static gboolean twitter_search_timeout(TwitterEndpointChat * endpoint_chat)
     } else {
         purple_debug_info(purple_account_get_protocol_id(account), "Retrieving %s statuses since %s\n", ctx->search_name, ctx->last_tweet_id);
     }
-	/*twitter_api_get_list_all(purple_account_get_requestor(account), ctx->list_id, ctx->owner, ctx->last_tweet_id, twitter_get_list_all_cb, twitter_get_list_all_error_cb, twitter_option_list_max_tweets(account), chat_id);*/
-    twitter_api_get_search_all(purple_account_get_requestor(account), ctx->search_name, ctx->last_tweet_id, twitter_get_search_all_cb, twitter_get_search_all_error_cb, 300 /* TODO: fix this */, chat_id);
-    /*twitter_api_search(purple_account_get_requestor(endpoint_chat->account), ctx->search_text, ctx->last_tweet_id, TWITTER_SEARCH_COUNT_DEFAULT, twitter_search_cb, NULL, chat_id);*/
+    twitter_api_get_search_all(purple_account_get_requestor(account), ctx->search_name, ctx->last_tweet_id, twitter_get_search_all_cb, twitter_get_search_all_error_cb, TWITTER_SEARCH_COUNT_DEFAULT, chat_id);
 
     return TRUE;
 }
+
 static gboolean twitter_endpoint_search_interval_start(TwitterEndpointChat * endpoint_chat)
 {
     return twitter_search_timeout(endpoint_chat);
-    /*twitter_api_search(purple_account_get_requestor(endpoint_chat->account), ctx->search_text, ctx->last_tweet_id, TWITTER_SEARCH_COUNT_DEFAULT, twitter_search_cb, NULL, chat_id);*/
 }
-
 
 static gchar   *twitter_endpoint_search_get_status_added_text(TwitterEndpointChat * endpoint_chat)
 {
