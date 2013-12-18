@@ -303,16 +303,22 @@ static void twitter_send_request_cb(PurpleUtilFetchUrlData * url_data, gpointer 
             break;
         case 304:                               //Not Modified
             break;
+        case 400:
+            error_type = TWITTER_REQUEST_ERROR_INVALID_FORMAT;
+            break;
         case 401:                               //Unauthorized
             error_type = TWITTER_REQUEST_ERROR_UNAUTHORIZED;
+            break;
+        case 410:                               //Gone 
+            error_type = TWITTER_REQUEST_ERROR_TWITTER_GENERAL;
+            break;
+        case 429:                               //Search Rate Limiting
+            error_type = TWITTER_REQUEST_ERROR_SERVER;
             break;
         default:
             error_type = TWITTER_REQUEST_ERROR_TWITTER_GENERAL;
             break;
             /*
-               case 400: //Bad Request
-               //TODO
-               break;
                case 403: //Forbidden
                //TODO
                break;
@@ -320,9 +326,6 @@ static void twitter_send_request_cb(PurpleUtilFetchUrlData * url_data, gpointer 
                //TODO?
                break;
                case 406: //Not Acceptable (Search)
-               //TODO
-               break;
-               case 420: //Search Rate Limiting
                //TODO
                break;
                case 500: //Internal Server Error
