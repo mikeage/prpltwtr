@@ -83,26 +83,6 @@ gboolean twitter_usernames_match(PurpleAccount * account, const gchar * u1, cons
     return match;
 }
 
-long long purple_account_get_long_long(PurpleAccount * account, const gchar * key, long long default_value)
-{
-    const char     *tmp_str;
-
-    tmp_str = purple_account_get_string(account, key, NULL);
-    if (tmp_str)
-        return strtoll(tmp_str, NULL, 10);
-    else
-        return default_value;
-}
-
-void purple_account_set_long_long(PurpleAccount * account, const gchar * key, gchar * value)
-{
-    gchar          *tmp_str;
-
-    tmp_str = g_strdup_printf("%s", value);
-    purple_account_set_string(account, key, tmp_str);
-    g_free(tmp_str);
-}
-
 //TODO: move those
 char           *twitter_format_tweet(PurpleAccount * account, const char *src_user, const char *message, gchar * tweet_id, PurpleConversationType conv_type, const gchar * conv_name, gboolean is_tweet, gchar * in_reply_to_status_id, gboolean favorited)
 {

@@ -93,7 +93,8 @@ static void twitter_search_cb(PurpleAccount * account, GList * search_results, c
     }
 
     key = g_strdup_printf("search_%s", ctx->search_text);
-    purple_account_set_long_long(account, key, ctx->last_tweet_id);
+	/* TODO: fix this when we fix search */
+    /*purple_account_set_long_long(account, key, ctx->last_tweet_id);*/
 
     g_free(ctx->refresh_url);
     ctx->refresh_url = g_strdup(refresh_url);

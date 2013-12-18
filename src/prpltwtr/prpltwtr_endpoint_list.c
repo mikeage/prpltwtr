@@ -15,8 +15,6 @@ static void twitter_list_timeout_context_free(gpointer _ctx)
     g_return_if_fail(_ctx != NULL);
     ctx = _ctx;
 
-    ctx->last_tweet_id = 0;
-
     purple_debug_info(GENERIC_PROTOCOL_ID, "%s %s\n", G_STRFUNC, ctx->list_name);
     g_free(ctx->list_name);
     ctx->list_name = NULL;
@@ -27,6 +25,10 @@ static void twitter_list_timeout_context_free(gpointer _ctx)
 
     g_free(ctx->owner);
     ctx->owner = NULL;
+
+    g_free(ctx->last_tweet_id);
+    ctx->last_tweet_id = NULL;
+
     g_slice_free(TwitterListTimeoutContext, ctx);
 }
 
@@ -70,8 +72,8 @@ static void twitter_get_list_parse_statuses(TwitterEndpointChat * endpoint_chat,
     if (user_tweet && user_tweet->status) {
         TwitterListTimeoutContext *ctx = endpoint_chat->endpoint_data;
         gchar          *key = g_strdup_printf("list_%s", ctx->list_name);
-        ctx->last_tweet_id = user_tweet->status->id;
-        purple_account_set_long_long(endpoint_chat->account, key, ctx->last_tweet_id);
+        ctx->last_tweet_id = g_strdup(user_tweet->status->id);
+        purple_account_set_string(endpoint_chat->account, key, ctx->last_tweet_id);
         g_free(key);
     }
     twitter_chat_got_user_tweets(endpoint_chat, statuses);
@@ -128,8 +130,7 @@ static gboolean twitter_list_timeout(TwitterEndpointChat * endpoint_chat)
     TwitterEndpointChatId *chat_id = NULL;
     gchar          *key = g_strdup_printf("list_%s", ctx->list_name);
 
-    // TODO Discard const gchar *
-    ctx->last_tweet_id = (gchar *) purple_account_get_string(endpoint_chat->account, key, NULL);
+    ctx->last_tweet_id = g_strdup(purple_account_get_string(endpoint_chat->account, key, NULL));
     g_free(key);
 
     purple_debug_info(purple_account_get_protocol_id(account), "Resuming list for %s from %s\n", ctx->list_name, ctx->last_tweet_id);
@@ -150,7 +151,7 @@ static gboolean twitter_list_timeout(TwitterEndpointChat * endpoint_chat)
     endpoint_chat->retrieval_in_progress = TRUE;
     endpoint_chat->retrieval_in_progress_timeout = 2;
 
-    if (ctx->last_tweet_id == 0) {
+    if (!ctx->last_tweet_id || !strcmp(ctx->last_tweet_id, "0")) {
         purple_debug_info(purple_account_get_protocol_id(account), "Retrieving %s statuses for first time\n", ctx->list_name);
     } else {
         purple_debug_info(purple_account_get_protocol_id(account), "Retrieving %s statuses since %s\n", ctx->list_name, ctx->last_tweet_id);
