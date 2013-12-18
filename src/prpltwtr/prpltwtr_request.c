@@ -705,6 +705,10 @@ void twitter_send_format_request_multipage_cb(TwitterRequestor * r, gpointer nod
         last_page = TRUE;
     }
 
+    /* Force last_page to TRUE until we handle max_id properly */
+    purple_debug_info(purple_account_get_protocol_id(r->account), "%s: forcing last_page to TRUE\n", G_STRFUNC);
+    last_page = TRUE;
+
     purple_debug_info(purple_account_get_protocol_id(r->account), "%s: last_page: %s, count: %d, expected_count: %d\n", G_STRFUNC, last_page ? "yes" : "no", count, request_data->expected_count);
 
     if (!request_data->success_callback) {
