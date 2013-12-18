@@ -25,8 +25,7 @@
 #define N_(String) ((/* const */ char *) (String))
 #endif                       // ENABLE NLS
 
-/* The number of tweets to return per page, up to a max of 200 */
-#define TWITTER_SEARCH_RPP_DEFAULT 200
+#define TWITTER_SEARCH_COUNT_DEFAULT 100
 
 #define TWITTER_INITIAL_REPLIES_COUNT 200
 #define TWITTER_INITIAL_DMS_COUNT 200

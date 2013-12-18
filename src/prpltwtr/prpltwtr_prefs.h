@@ -95,9 +95,6 @@
 #define TWITTER_PREF_URL_OPEN_REPLIES "replies"
 #define TWITTER_PREF_URL_OPEN_SUGGESTED_FRIENDS "invitations/twitter_suggests"
 
-#define TWITTER_PREF_SEARCH_API_BASE "twitter_search_api_base_url"
-#define TWITTER_PREF_SEARCH_API_BASE_DEFAULT "search.twitter.com"
-
 #define TWITTER_ONLINE_CUTOFF_TIME_HOURS "online_cutoff_time_hours"
 #define TWITTER_ONLINE_CUTOFF_TIME_HOURS_DEFAULT 24
 
@@ -114,7 +111,7 @@
 #define TWITTER_PREF_URL_GET_SUBSCRIBED_LISTS "/lists/subscriptions"
 #define TWITTER_PREF_URL_GET_PERSONAL_LISTS "/lists/list"
 #define TWITTER_PREF_URL_GET_LIST_STATUSES "/lists/statuses"
-#define TWITTER_PREF_URL_GET_SEARCH_RESULTS "/search"
+#define TWITTER_PREF_URL_GET_SEARCH_RESULTS "/search/tweets"
 #define TWITTER_PREF_URL_VERIFY_CREDENTIALS "/account/verify_credentials"
 #define TWITTER_PREF_URL_RT "/statuses/retweet"  /* Yay for inconsistency */
 #define TWITTER_PREF_URL_DELETE_STATUS "/statuses/destroy"  /* Yay for inconsistency */
@@ -154,7 +151,5 @@ const gchar    *twitter_option_api_host(PurpleAccount * account);
 const gchar    *twitter_option_api_subdir(PurpleAccount * account);
 const gchar    *twitter_option_web_host(PurpleAccount * account);
 const gchar    *twitter_option_web_subdir(PurpleAccount * account);
-const gchar    *twitter_option_search_api_host(PurpleAccount * account);
-const gchar    *twitter_option_search_api_subdir(PurpleAccount * account);
 int             twitter_option_cutoff_time(PurpleAccount * account);
 #endif

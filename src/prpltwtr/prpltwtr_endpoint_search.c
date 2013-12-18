@@ -3,8 +3,7 @@
 static gpointer twitter_search_timeout_context_new(GHashTable * components)
 {
     TwitterSearchTimeoutContext *ctx = g_slice_new0(TwitterSearchTimeoutContext);
-    ctx->search_text = g_strdup(g_hash_table_lookup(components, "search"));
-    ctx->refresh_url = NULL;
+    ctx->search_name = g_strdup(g_hash_table_lookup(components, "search"));
     return ctx;
 }
 
@@ -15,15 +14,14 @@ static void twitter_search_timeout_context_free(gpointer _ctx)
     g_return_if_fail(_ctx != NULL);
     ctx = _ctx;
 
-    ctx->last_tweet_id = 0;
 
-    purple_debug_info(GENERIC_PROTOCOL_ID, "%s %s\n", G_STRFUNC, ctx->search_text);
-    g_free(ctx->search_text);
-    ctx->search_text = NULL;
+    purple_debug_info(GENERIC_PROTOCOL_ID, "%s %s\n", G_STRFUNC, ctx->search_name);
+    g_free(ctx->search_name);
+    ctx->search_name = NULL;
 
-    purple_debug_info(GENERIC_PROTOCOL_ID, "%s %s\n", G_STRFUNC, ctx->refresh_url);
-    g_free(ctx->refresh_url);
-    ctx->refresh_url = NULL;
+    g_free(ctx->last_tweet_id);
+    ctx->last_tweet_id = NULL;
+
 
     g_slice_free(TwitterSearchTimeoutContext, ctx);
 }
@@ -46,6 +44,34 @@ static char    *twitter_search_chat_name_from_components(GHashTable * components
     return twitter_chat_name_from_search(search);
 }
 
+static void twitter_get_search_parse_statuses(TwitterEndpointChat * endpoint_chat, GList * statuses)
+{
+    GList          *l;
+    TwitterUserTweet *user_tweet;
+
+    purple_debug_info(purple_account_get_protocol_id(endpoint_chat->account), "%s\n", G_STRFUNC);
+
+    g_return_if_fail(endpoint_chat != NULL);
+    purple_account_get_connection(endpoint_chat->account);
+
+    if (!statuses) {
+        /* At least update the topic with the new rate limit info */
+        twitter_chat_update_rate_limit(endpoint_chat);
+        return;
+    }
+
+    l = g_list_last(statuses);
+    user_tweet = l->data;
+    if (user_tweet && user_tweet->status) {
+        TwitterSearchTimeoutContext *ctx = endpoint_chat->endpoint_data;
+        gchar          *key = g_strdup_printf("Search %s", ctx->search_name);
+        ctx->last_tweet_id = user_tweet->status->id;
+        purple_account_set_string(endpoint_chat->account, key, ctx->last_tweet_id);
+        g_free(key);
+    }
+    twitter_chat_got_user_tweets(endpoint_chat, statuses);
+}
+
 static gchar   *twitter_search_verify_components(GHashTable * components)
 {
     const char     *search = g_hash_table_lookup(components, "search");
@@ -55,99 +81,98 @@ static gchar   *twitter_search_verify_components(GHashTable * components)
     return NULL;
 }
 
-static void twitter_search_cb(PurpleAccount * account, GList * search_results, const gchar * refresh_url, gchar * max_id, gpointer user_data)
+static gboolean twitter_get_search_all_error_cb(TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data)
 {
-    TwitterEndpointChatId *id = (TwitterEndpointChatId *) user_data;
+    TwitterEndpointChatId *chat_id = (TwitterEndpointChatId *) user_data;
     TwitterEndpointChat *endpoint_chat;
-    TwitterSearchTimeoutContext *ctx;
-    gchar          *key;
 
-    g_return_if_fail(id != NULL);
+    purple_debug_warning(purple_account_get_protocol_id(r->account), "%s(%p): %s\n", G_STRFUNC, user_data, error_data->message);
 
-    purple_debug_info(purple_account_get_protocol_id(account), "%s, chat_name %s\n", G_STRFUNC, id->chat_name);
+    g_return_val_if_fail(chat_id != NULL, TRUE);
+    endpoint_chat = twitter_endpoint_chat_find_by_id(chat_id);
+    twitter_endpoint_chat_id_free(chat_id);
 
-    endpoint_chat = twitter_endpoint_chat_find_by_id(id);
-    twitter_endpoint_chat_id_free(id);
-
-    if (endpoint_chat == NULL) {
-        purple_debug_info(purple_account_get_protocol_id(account), "%s, chat data went away\n", G_STRFUNC);
-        return;
+    if (endpoint_chat) {
+        endpoint_chat->retrieval_in_progress = FALSE;
+        endpoint_chat->retrieval_in_progress_timeout = 0;
     }
 
-    endpoint_chat->rate_limit_remaining = purple_account_get_requestor(account)->rate_limit_remaining;
-    endpoint_chat->rate_limit_total = purple_account_get_requestor(account)->rate_limit_total;
-
-    ctx = (TwitterSearchTimeoutContext *) endpoint_chat->endpoint_data;
-
-    g_return_if_fail(ctx != NULL);
-
-    if (search_results) {
-        twitter_chat_got_user_tweets(endpoint_chat, search_results);
-    } else {
-        /* At least update the topic with the new rate limit info */
-        twitter_chat_update_rate_limit(endpoint_chat);
-    }
-
-    if (max_id) {
-        ctx->last_tweet_id = max_id;
-    }
-
-    key = g_strdup_printf("search_%s", ctx->search_text);
-	/* TODO: fix this when we fix search */
-    /*purple_account_set_long_long(account, key, ctx->last_tweet_id);*/
-
-    g_free(ctx->refresh_url);
-    ctx->refresh_url = g_strdup(refresh_url);
-
-    g_free(key);
+    return FALSE;                                /* Do not retry. Too many edge cases */
 }
 
-static gboolean twitter_endpoint_search_interval_start(TwitterEndpointChat * endpoint_chat)
+static void twitter_get_search_all_cb(TwitterRequestor * r, GList * nodes, gpointer user_data)
 {
-    TwitterSearchTimeoutContext *ctx = endpoint_chat->endpoint_data;
-    TwitterEndpointChatId *chat_id = NULL;
-    gchar          *key = g_strdup_printf("search_%s", ctx->search_text);
+    TwitterEndpointChatId *chat_id = (TwitterEndpointChatId *) user_data;
+    TwitterEndpointChat *endpoint_chat;
+    GList          *statuses;
 
-    // TODO Discard const on gchar *
-    ctx->last_tweet_id = (gchar *) purple_account_get_string(endpoint_chat->account, key, NULL);
-    purple_debug_info(purple_account_get_protocol_id(endpoint_chat->account), "Resuming search for %s from %s\n", ctx->search_text, ctx->last_tweet_id);
+    purple_debug_info(purple_account_get_protocol_id(r->account), "%s\n", G_STRFUNC);
 
-    chat_id = twitter_endpoint_chat_id_new(endpoint_chat);
+    g_return_if_fail(chat_id != NULL);
+    endpoint_chat = twitter_endpoint_chat_find_by_id(chat_id);
+    twitter_endpoint_chat_id_free(chat_id);
 
-    twitter_api_search(purple_account_get_requestor(endpoint_chat->account), ctx->search_text, ctx->last_tweet_id, TWITTER_SEARCH_RPP_DEFAULT, twitter_search_cb, NULL, chat_id);
+    if (endpoint_chat == NULL)
+        return;
 
-    g_free(key);
-    return TRUE;
+    endpoint_chat->rate_limit_remaining = r->rate_limit_remaining;
+    endpoint_chat->rate_limit_total = r->rate_limit_total;
+
+    endpoint_chat->retrieval_in_progress = FALSE;
+    endpoint_chat->retrieval_in_progress_timeout = 0;
+
+    statuses = twitter_statuses_nodes_parse(r, nodes);
+    twitter_get_search_parse_statuses(endpoint_chat, statuses);
 }
 
 static gboolean twitter_search_timeout(TwitterEndpointChat * endpoint_chat)
 {
+    PurpleAccount  *account = endpoint_chat->account;
     TwitterSearchTimeoutContext *ctx = (TwitterSearchTimeoutContext *) endpoint_chat->endpoint_data;
     TwitterEndpointChatId *chat_id = twitter_endpoint_chat_id_new(endpoint_chat);
+    gchar          *key = g_strdup_printf("search_%s", ctx->search_name);
 
-    if (ctx->refresh_url) {
-        purple_debug_info(purple_account_get_protocol_id(endpoint_chat->account), "%s, refresh_url exists: %s\n", G_STRFUNC, ctx->refresh_url);
+    ctx->last_tweet_id = g_strdup(purple_account_get_string(endpoint_chat->account, key, NULL));
+    g_free(key);
 
-        twitter_api_search_refresh(purple_account_get_requestor(endpoint_chat->account), ctx->refresh_url, twitter_search_cb, NULL, chat_id);
-    } else {
-        gchar          *refresh_url;
+    purple_debug_info(purple_account_get_protocol_id(account), "Resuming search for %s from %s\n", ctx->search_name, ctx->last_tweet_id);
 
-        refresh_url = g_strdup_printf("?q=%s&since_id=%s", purple_url_encode(ctx->search_text), ctx->last_tweet_id);
-
-        purple_debug_info(purple_account_get_protocol_id(endpoint_chat->account), "%s, create refresh_url: %s\n", G_STRFUNC, refresh_url);
-
-        twitter_api_search_refresh(purple_account_get_requestor(endpoint_chat->account), refresh_url, twitter_search_cb, NULL, chat_id);
-
-        g_free(refresh_url);
+    if (endpoint_chat->retrieval_in_progress && endpoint_chat->retrieval_in_progress_timeout <= 0) {
+        purple_debug_warning(purple_account_get_protocol_id(account), "There was a retreival in progress, but it appears dead. Ignoring it\n");
+        endpoint_chat->retrieval_in_progress = FALSE;
     }
+
+    if (endpoint_chat->retrieval_in_progress) {
+        purple_debug_warning(purple_account_get_protocol_id(account), "Skipping retreival for %s because one is already in progress!\n", account->username);
+        endpoint_chat->retrieval_in_progress_timeout--;
+        return TRUE;
+    }
+
+    endpoint_chat->retrieval_in_progress = TRUE;
+    endpoint_chat->retrieval_in_progress_timeout = 2;
+
+    if (!ctx->last_tweet_id || !strcmp(ctx->last_tweet_id, "0")) {
+        purple_debug_info(purple_account_get_protocol_id(account), "Retrieving %s statuses for first time\n", ctx->search_name);
+    } else {
+        purple_debug_info(purple_account_get_protocol_id(account), "Retrieving %s statuses since %s\n", ctx->search_name, ctx->last_tweet_id);
+    }
+	/*twitter_api_get_list_all(purple_account_get_requestor(account), ctx->list_id, ctx->owner, ctx->last_tweet_id, twitter_get_list_all_cb, twitter_get_list_all_error_cb, twitter_option_list_max_tweets(account), chat_id);*/
+    twitter_api_get_search_all(purple_account_get_requestor(account), ctx->search_name, ctx->last_tweet_id, twitter_get_search_all_cb, twitter_get_search_all_error_cb, 300 /* TODO: fix this */, chat_id);
+    /*twitter_api_search(purple_account_get_requestor(endpoint_chat->account), ctx->search_text, ctx->last_tweet_id, TWITTER_SEARCH_COUNT_DEFAULT, twitter_search_cb, NULL, chat_id);*/
 
     return TRUE;
 }
+static gboolean twitter_endpoint_search_interval_start(TwitterEndpointChat * endpoint_chat)
+{
+    return twitter_search_timeout(endpoint_chat);
+    /*twitter_api_search(purple_account_get_requestor(endpoint_chat->account), ctx->search_text, ctx->last_tweet_id, TWITTER_SEARCH_COUNT_DEFAULT, twitter_search_cb, NULL, chat_id);*/
+}
+
 
 static gchar   *twitter_endpoint_search_get_status_added_text(TwitterEndpointChat * endpoint_chat)
 {
     TwitterSearchTimeoutContext *ctx = (TwitterSearchTimeoutContext *) endpoint_chat->endpoint_data;
-    return g_strdup(ctx->search_text);
+    return g_strdup(ctx->search_name);
 }
 
 static TwitterEndpointChatSettings TwitterEndpointSearchSettings = {

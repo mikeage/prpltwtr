@@ -32,8 +32,9 @@
 #include "prpltwtr_api.h"
 
 typedef struct {
-    gchar          *search_text;    /* e.g. N900 */
-    gchar          *refresh_url;    /* e.g. ?since_id=6276370030&q=n900 */
+    gchar          *search_name;
+//    gchar          *list_id;
+//    gchar          *owner;
 
     gchar          *last_tweet_id;
 } TwitterSearchTimeoutContext;

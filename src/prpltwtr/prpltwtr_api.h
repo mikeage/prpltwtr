@@ -79,9 +79,6 @@ void            twitter_api_web_open_suggested_friends(PurplePluginAction * acti
 void            twitter_api_web_open_replies(PurplePluginAction * action);
 void            prpltwtr_api_refresh_user(TwitterRequestor * r, const char *username, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func);
 
-/**
- * @rpp: The number of tweets to return per page, up to a max of 100
- */
 void            twitter_api_search(TwitterRequestor * r, const char *keyword, gchar * since_id, guint rpp, TwitterSearchSuccessFunc success_func, TwitterSearchErrorFunc error_func, gpointer data);
 
 void            twitter_api_search_refresh(TwitterRequestor * r, const char *refresh_url, TwitterSearchSuccessFunc success_func, TwitterSearchErrorFunc error_func, gpointer data);

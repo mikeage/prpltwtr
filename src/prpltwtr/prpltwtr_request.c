@@ -710,6 +710,10 @@ void twitter_send_format_request_multipage_cb(TwitterRequestor * r, gpointer nod
     gboolean        last_page = FALSE;
 
     purple_debug_info(purple_account_get_protocol_id(r->account), "BEGIN: %s\n", G_STRFUNC);
+	
+	if (request_data->inner_node_cb) {
+		node = request_data->inner_node_cb(r, node);
+	}
 
     count = r->format->get_node_child_count(node);
 
@@ -765,7 +769,7 @@ void twitter_send_format_request_multipage_do(TwitterRequestor * r, TwitterForma
     twitter_request_params_set_size(request_data->params, len);
 }
 
-static void twitter_send_format_request_multipage(TwitterRequestor * r, const char *url, TwitterRequestParams * params, TwitterSendFormatRequestMultiPageSuccessFunc success_callback, TwitterSendRequestMultiPageErrorFunc error_callback, int expected_count, gpointer data)
+static void twitter_send_format_request_multipage(TwitterRequestor * r, const char *url, TwitterRequestParams * params, TwitterSendFormatRequestMultipageAllInnerNodeFunc inner_node_cb, TwitterSendFormatRequestMultiPageSuccessFunc success_callback, TwitterSendRequestMultiPageErrorFunc error_callback, int expected_count, gpointer data)
 {
     TwitterFormatMultiPageRequestData *request_data = g_new0(TwitterFormatMultiPageRequestData, 1);
     request_data->user_data = data;
@@ -775,6 +779,7 @@ static void twitter_send_format_request_multipage(TwitterRequestor * r, const ch
     request_data->error_callback = error_callback;
     request_data->page = 1;
     request_data->expected_count = expected_count;
+	request_data->inner_node_cb = inner_node_cb;
 
     twitter_send_format_request_multipage_do(r, request_data);
 }
@@ -824,7 +829,7 @@ static gboolean twitter_send_format_request_multipage_all_error_cb(TwitterReques
     return FALSE;
 }
 
-void twitter_send_format_request_multipage_all(TwitterRequestor * r, const char *url, TwitterRequestParams * params, TwitterSendFormatRequestMultiPageAllSuccessFunc success_callback, TwitterSendRequestMultiPageAllErrorFunc error_callback, int expected_count, gint max_count, gpointer data)
+void twitter_send_format_request_multipage_all(TwitterRequestor * r, const char *url, TwitterRequestParams * params, TwitterSendFormatRequestMultipageAllInnerNodeFunc inner_node_cb, TwitterSendFormatRequestMultiPageAllSuccessFunc success_callback, TwitterSendRequestMultiPageAllErrorFunc error_callback, int expected_count, gint max_count, gpointer data)
 {
     TwitterFormatMultiPageAllRequestData *request_data_all = g_new0(TwitterFormatMultiPageAllRequestData, 1);
 
@@ -839,7 +844,7 @@ void twitter_send_format_request_multipage_all(TwitterRequestor * r, const char 
     if (max_count > 0 && expected_count > max_count)
         expected_count = max_count;
 
-    twitter_send_format_request_multipage(r, url, params, twitter_send_format_request_multipage_all_success_cb, twitter_send_format_request_multipage_all_error_cb, expected_count, request_data_all);
+    twitter_send_format_request_multipage(r, url, params, inner_node_cb, twitter_send_format_request_multipage_all_success_cb, twitter_send_format_request_multipage_all_error_cb, expected_count, request_data_all);
 }
 
 /******************************************************

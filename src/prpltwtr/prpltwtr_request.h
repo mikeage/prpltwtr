@@ -101,6 +101,7 @@ typedef struct _TwitterFormatMultiPageRequestData TwitterFormatMultiPageRequestD
 typedef         gboolean(*TwitterSendRequestMultiPageSuccessFunc) (TwitterRequestor * r, xmlnode * node, gboolean last_page, TwitterMultiPageRequestData * request, gpointer user_data);
 typedef         gboolean(*TwitterSendFormatRequestMultiPageSuccessFunc) (TwitterRequestor * r, gpointer node, gboolean last_page, TwitterFormatMultiPageRequestData * request, gpointer user_data);
 typedef         gboolean(*TwitterSendRequestMultiPageErrorFunc) (TwitterRequestor * r, const TwitterRequestErrorData * error_data, gpointer user_data);
+typedef gpointer(*TwitterSendFormatRequestMultipageAllInnerNodeFunc) (TwitterRequestor * r, gpointer node);
 
 struct _TwitterMultiPageRequestData {
     gpointer        user_data;
@@ -120,6 +121,7 @@ struct _TwitterFormatMultiPageRequestData {
     TwitterRequestParams *params;
     TwitterSendFormatRequestMultiPageSuccessFunc success_callback;
     TwitterSendRequestMultiPageErrorFunc error_callback;
+	TwitterSendFormatRequestMultipageAllInnerNodeFunc inner_node_cb;
     int             page;
     int             expected_count;
 };
@@ -140,7 +142,7 @@ void            twitter_send_format_request(TwitterRequestor * r, gboolean post,
 //don't include count in the query_string
 void            twitter_send_xml_request_multipage_all(TwitterRequestor * r, const char *url, TwitterRequestParams * params, TwitterSendRequestMultiPageAllSuccessFunc success_callback, TwitterSendRequestMultiPageAllErrorFunc error_callback, int expected_count, gint max_count, gpointer data);
 
-void            twitter_send_format_request_multipage_all(TwitterRequestor * r, const char *url, TwitterRequestParams * params, TwitterSendRequestMultiPageAllSuccessFunc success_callback, TwitterSendRequestMultiPageAllErrorFunc error_callback, int expected_count, gint max_count, gpointer data);
+void twitter_send_format_request_multipage_all(TwitterRequestor * r, const char *url, TwitterRequestParams * params, TwitterSendFormatRequestMultipageAllInnerNodeFunc inner_node_cb, TwitterSendFormatRequestMultiPageAllSuccessFunc success_callback, TwitterSendRequestMultiPageAllErrorFunc error_callback, int expected_count, gint max_count, gpointer data);
 
 /* statuses/friends API deprecated page based retrieval,
  * and use cursor based method instead */

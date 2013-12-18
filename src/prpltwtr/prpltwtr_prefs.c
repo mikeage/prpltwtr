@@ -314,24 +314,6 @@ const gchar    *twitter_option_web_subdir(PurpleAccount * account)
     return twitter_get_subdir_from_base(purple_account_get_string(account, TWITTER_PREF_WEB_BASE, TWITTER_PREF_WEB_BASE_DEFAULT));
 }
 
-const gchar    *twitter_option_search_api_host(PurpleAccount * account)
-{
-    if (!strcmp(purple_account_get_protocol_id(account), TWITTER_PROTOCOL_ID)) {
-        return twitter_get_host_from_base(purple_account_get_string(account, TWITTER_PREF_SEARCH_API_BASE, TWITTER_PREF_SEARCH_API_BASE_DEFAULT));
-    } else {
-        return twitter_get_host_from_base(purple_account_get_string(account, TWITTER_PREF_SEARCH_API_BASE, STATUSNET_PREF_API_BASE_DEFAULT));
-    }
-}
-
-const gchar    *twitter_option_search_api_subdir(PurpleAccount * account)
-{
-    if (!strcmp(purple_account_get_protocol_id(account), TWITTER_PROTOCOL_ID)) {
-        return twitter_get_subdir_from_base(purple_account_get_string(account, TWITTER_PREF_SEARCH_API_BASE, TWITTER_PREF_SEARCH_API_BASE_DEFAULT));
-    } else {
-        return twitter_get_subdir_from_base(purple_account_get_string(account, TWITTER_PREF_SEARCH_API_BASE, STATUSNET_PREF_API_BASE_DEFAULT));
-    }
-}
-
 int twitter_option_cutoff_time(PurpleAccount * account)
 {
     return purple_account_get_int(account, TWITTER_ONLINE_CUTOFF_TIME_HOURS, TWITTER_ONLINE_CUTOFF_TIME_HOURS_DEFAULT);

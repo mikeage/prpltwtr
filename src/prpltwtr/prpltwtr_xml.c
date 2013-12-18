@@ -166,30 +166,33 @@ TwitterSearchResults *twitter_search_results_node_parse(TwitterRequestor * r, gp
     gchar          *max_id = 0; // id of last search result
     gpointer       *link_node = NULL;
     gpointer        iter;
-    gpointer        entry_node;
+    gpointer        status_node;
     const gchar    *ptr;
 
-    for (iter = r->format->iter_start(response_node, "link"); !r->format->iter_done(iter); iter = r->format->iter_next(iter)) {
-        const char     *rel = NULL;
-        link_node = r->format->get_iter_node(iter);
-        rel = r->format->get_attr(link_node, "rel");
-        if (rel != NULL && !strcmp(rel, "refresh")) {
-            const char     *refresh_url_full = r->format->get_attr(link_node, "href");
-            ptr = strstr(refresh_url_full, "?");
-            if (ptr != NULL) {
-                refresh_url = ptr;
-                break;
-            }
-        }
-    }
+	/* This would get the next URL, but this is not the right logic. Disabling it for now */
+	/*
+     *for (iter = r->format->iter_start(response_node, "link"); !r->format->iter_done(iter); iter = r->format->iter_next(iter)) {
+     *    const char     *rel = NULL;
+     *    link_node = r->format->get_iter_node(iter);
+     *    rel = r->format->get_attr(link_node, "rel");
+     *    if (rel != NULL && !strcmp(rel, "refresh")) {
+     *        const char     *refresh_url_full = r->format->get_attr(link_node, "href");
+     *        ptr = strstr(refresh_url_full, "?");
+     *        if (ptr != NULL) {
+     *            refresh_url = ptr;
+     *            break;
+     *        }
+     *    }
+     *}
+	 */
 
     /* After snowflake, the IDs aren't sequential; always take the first entry */
-    for (entry_node = r->format->iter_start(response_node, "entry"); !r->format->iter_done(entry_node); entry_node = r->format->iter_next(entry_node)) {
-        TwitterUserTweet *entry = twitter_search_entry_node_parse(r, entry_node);
-        if (entry != NULL) {
-            search_results = g_list_append(search_results, entry);
+    for (status_node = r->format->iter_start(response_node, "statuses"); !r->format->iter_done(status_node); status_node = r->format->iter_next(status_node)) {
+        TwitterUserTweet *status = twitter_search_entry_node_parse(r, status_node);
+        if (status != NULL) {
+            search_results = g_list_append(search_results, status);
             if (!max_id) {
-                max_id = entry->status->id;
+                max_id = status->status->id;
             }
         }
     }
