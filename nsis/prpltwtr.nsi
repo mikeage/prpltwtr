@@ -82,10 +82,12 @@ SectionIn RO
 		IfErrors dllbusy
 		SetOutPath "$INSTDIR"
 		File "${BASEDIR}\src\prpltwtr\libprpltwtr.dll"
+		FILE "${BASEDIR}\src\win32_only\json-glib\libjson-glib.dll"
 		SetOutPath "$INSTDIR\plugins"
 		File "${BASEDIR}\src\prpltwtr\libprpltwtr_statusnet.dll"
 		File "${BASEDIR}\src\prpltwtr\libprpltwtr_twitter.dll"
 		File "${BASEDIR}\src\gtkprpltwtr\libgtkprpltwtr.dll"
+
 		Goto after_copy
 	dllbusy:
 		MessageBox MB_RETRYCANCEL "prpltwtr.dll is busy. Please close Pidgin (including tray icon) and try again" IDCANCEL cancel
@@ -98,6 +100,7 @@ SectionEnd
 Section "${PRODUCT_NAME} dbgsym" SEC02
 		SetOutPath "$INSTDIR"
 		File "${BASEDIR}\src\prpltwtr\libprpltwtr.dll.dbgsym"
+		FILE "${BASEDIR}\src\win32_only\json-glib\libjson-glib.dll.dbgsym"
 		SetOutPath "$INSTDIR\plugins"
 		File "${BASEDIR}\src\prpltwtr\libprpltwtr_twitter.dll.dbgsym"
 		File "${BASEDIR}\src\prpltwtr\libprpltwtr_statusnet.dll.dbgsym"
