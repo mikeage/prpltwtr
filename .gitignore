@@ -20,11 +20,9 @@
 *.app
 
 # http://www.gnu.org/software/automake
-
 Makefile.in
 
 # http://www.gnu.org/software/autoconf
-
 /autom4te.cache
 /aclocal.m4
 /compile
@@ -46,6 +44,7 @@ Makefile.in
 /mkinstalldirs
 Makefile
 stamp-*
+/nsis/po_prpltwtr.nsi
 
 .*
 !.gitignore
