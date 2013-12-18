@@ -62,8 +62,8 @@ static void twitter_get_search_parse_statuses(TwitterEndpointChat * endpoint_cha
     user_tweet = l->data;
     if (user_tweet && user_tweet->status) {
         TwitterSearchTimeoutContext *ctx = endpoint_chat->endpoint_data;
-        gchar          *key = g_strdup_printf("Search %s", ctx->search_name);
-        ctx->last_tweet_id = user_tweet->status->id;
+        gchar          *key = g_strdup_printf("search_%s", ctx->search_name);
+        ctx->last_tweet_id = g_strdup(user_tweet->status->id);
         purple_account_set_string(endpoint_chat->account, key, ctx->last_tweet_id);
         g_free(key);
     }
