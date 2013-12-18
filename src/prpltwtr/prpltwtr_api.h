@@ -38,6 +38,8 @@ void            twitter_api_get_home_timeline(TwitterRequestor * r, gchar * sinc
 
 void            twitter_api_get_list_all(TwitterRequestor * r, const gchar * list_id, const gchar * owner, gchar * since_id, TwitterSendRequestMultiPageAllSuccessFunc success_func, TwitterSendRequestMultiPageAllErrorFunc error_func, gint max_count, gpointer data);
 
+void            twitter_api_get_search_all(TwitterRequestor * r, const gchar * search_text, gchar * since_id, TwitterSendRequestMultiPageAllSuccessFunc success_func, TwitterSendRequestMultiPageAllErrorFunc error_func, gint max_count, gpointer data);
+
 void            twitter_api_get_dms(TwitterRequestor * r, gchar * since_id, int count, int page, TwitterSendFormatRequestSuccessFunc success_func, TwitterSendRequestErrorFunc error_func, gpointer data);
 
 void            twitter_api_get_dms_all(TwitterRequestor * r, gchar * since_id, TwitterSendRequestMultiPageAllSuccessFunc success_func, TwitterSendRequestMultiPageAllErrorFunc error_func, gint max_count, gpointer data);
