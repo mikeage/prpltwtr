@@ -313,7 +313,7 @@ static void twitter_send_request_cb(PurpleUtilFetchUrlData * url_data, gpointer 
             error_type = TWITTER_REQUEST_ERROR_TWITTER_GENERAL;
             break;
         case 429:                               //Search Rate Limiting
-            error_type = TWITTER_REQUEST_ERROR_SERVER;
+            error_type = TWITTER_REQUEST_ERROR_RATE_LIMITED;
             break;
         default:
             error_type = TWITTER_REQUEST_ERROR_TWITTER_GENERAL;
@@ -339,6 +339,7 @@ static void twitter_send_request_cb(PurpleUtilFetchUrlData * url_data, gpointer 
                break;
              */
         }
+        /* TODO: this is still raw text, but parse_error expects a node */
         if (error_type != TWITTER_REQUEST_ERROR_NONE) {
             error_message = (gchar *) request_data->requestor->format->parse_error((gpointer) url_text);
             if (!error_message)
@@ -410,6 +411,9 @@ void prpltwtr_requestor_post_failed(TwitterRequestor * r, const TwitterRequestEr
         prpltwtr_auth_invalidate_token(r->account);
         prpltwtr_disconnect(r->account, _("Unauthorized"));
         break;
+    case TWITTER_REQUEST_ERROR_RATE_LIMITED:
+        /* TODO: restart automatically */
+        prpltwtr_disconnect(r->account, _("Rate limited"));
     default:
         break;
     }
