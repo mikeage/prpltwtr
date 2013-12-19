@@ -2,7 +2,7 @@ Source: prpltwtr
 Priority: optional
 Section: net
 Maintainer: Jackson Doak <noskcaj@ubuntu.com>
-Build-Depends: debhelper (>= 9), pkg-config, libpurple-dev, pidgin-dev, intltool
+Build-Depends: debhelper (>= 9), pkg-config, libpurple-dev, pidgin-dev, intltool, libjson-glib-dev
 Standards-Version: 3.9.5
 Homepage: https://code.google.com/p/prpltwtr/
 
