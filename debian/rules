@@ -1,9 +1,9 @@
 #!/usr/bin/make -f
-include /usr/share/cdbs/1/rules/debhelper.mk
-include /usr/share/cdbs/1/class/makefile.mk
 
-DEB_MAKE_CLEAN_TARGET := clean
-DEB_MAKE_BUILD_TARGET := build
-DEB_MAKE_INSTALL_TARGET := install DESTDIR=$(CURDIR)/debian/prpltwtr/
-DEB_MAKE_CHECK_TARGET :=
-DEB_MAKE_INVOKE := $(MAKE)
+%:
+	dh $@
+
+override_dh_install:
+	dh_install
+	find debian/prpltwtr/usr/lib -name "*.la" -exec \
+		sed -i -e "s,^dependency_libs=.*,dependency_libs=''," {} +
