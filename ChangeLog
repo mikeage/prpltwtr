@@ -1,5 +1,7 @@
 Changelog for current version:
   * Add Japanese translation
+  * Support Twitter API v1.1
+  * Fix Debian packaging
 
 Changelog for 0.12.0:
   * Count characters correctly if the destination username / search hashtag is found twice

@@ -1,9 +1,7 @@
-/**
- * TODO: legal stuff
+/*
+ * prpltwtr 
  *
- * purple
- *
- * Purple is the legal property of its developers, whose names are too numerous
+ * prpltwtr is the legal property of its developers, whose names are too numerous
  * to list here.  Please refer to the COPYRIGHT file distributed with this
  * source distribution.
  *
@@ -128,8 +126,8 @@ static PurplePluginInfo info = {
     PACKAGE_VERSION,                             /* version */
     "Twitter Protocol Plugin",                   /* summary */
     "Twitter Protocol Plugin",                   /* description */
-    "neaveru <neaveru@gmail.com>",               /* author */
-    "http://code.google.com/p/prpltwtr/",        /* homepage */
+    "Mike Miller <mikeage@gmail.com>",           /* author */
+    "http://github.com/mikeage/prpltwtr/",       /* homepage */
     NULL,                                        /* load */
     NULL,                                        /* unload */
     twitter_destroy,                             /* destroy */

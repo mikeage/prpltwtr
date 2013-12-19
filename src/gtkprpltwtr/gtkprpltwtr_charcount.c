@@ -1,11 +1,9 @@
-#include "gtkprpltwtr_charcount.h"
-
 /*
- * Conversation input characters count plugin.
- * Based on the Markerline plugin.
+ * prpltwtr 
  *
- * Copyright (C) 2007 Dossy Shiobara <dossy@panoptic.com>
- * Copyright (C) 2010 Neaveru <neaveru@gmail.com>
+ * prpltwtr is the legal property of its developers, whose names are too numerous
+ * to list here.  Please refer to the COPYRIGHT file distributed with this
+ * source distribution.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,9 +17,10 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02111-1301, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02111-1301  USA
  */
+
+#include "gtkprpltwtr_charcount.h"
 
 #include "string.h"
 #include <gdk/gdk.h>

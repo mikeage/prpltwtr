@@ -8,9 +8,14 @@ If you don't like this plugin, I recommend trying out [microblog-purple](http://
 
 *Update: in light of twitter's [decision to discourage / forbid new clients](http://www.pcmag.com/article2/0,2817,2381854,00.asp), I'm not sure how much more development will be done.*
 
-  * For support, either post on the [issues page (currently at Google code)](http://code.google.com/p/prpltwtr/issues/list) or contact [@prpltwtr] (http://twitter.com/prpltwtr)
+  * For support, either post on the [issues page](https://github.com/mikeage/prpltwtr/issues) or contact [@prpltwtr] (http://twitter.com/prpltwtr) or [@mikeage] (http://twitter.com/mikeage)
 
-  * If you receive a lot of tweets with links shortened via bit.ly, t.co, etc, you may find [expand] (https://code.google.com/p/expand/) to be a useful plugin. Go check it out!
+  * If you receive a lot of tweets with links shortened via bit.ly, t.co, etc, you may find [expand] (https://github.com/mikeage/expand/) to be a useful plugin. Go check it out!
+
+### Version 0.13.0 (in progress) ###
+  * Add Japanese translation
+  * Add support for Twitter API v1.1 (restore functionality)
+  * Fix Debian packaging
 
 ### Version 0.12.0 ###
   * Fix character count and add colors

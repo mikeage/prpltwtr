@@ -1,6 +1,6 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: prpltwtr
-Source: http://code.google.com/p/prpltwtr
+Source: http://github.com/mikeage/prpltwtr
 
 Files: *
 Copyright: neaveru <http://code.google.com/u/neaveru>
@@ -10,6 +10,7 @@ Copyright: neaveru <http://code.google.com/u/neaveru>
  Yoshiaki Yazawa <http://www.honeyplanet.jp/>
  Mike "Mikeage" Miller <http://mikeage.net/>
  Fabián Bonetti <mama21mama@mamalibre.com.ar>
+ D. Moonfire <https://twitter.com/dmoonfire>
 License: GPL-2+
 
 Files: debian/*

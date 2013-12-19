@@ -4,11 +4,11 @@ Section: net
 Maintainer: Jackson Doak <noskcaj@ubuntu.com>
 Build-Depends: debhelper (>= 9), pkg-config, libpurple-dev, pidgin-dev, intltool, libjson-glib-dev
 Standards-Version: 3.9.5
-Homepage: https://code.google.com/p/prpltwtr/
+Homepage: https://github.com/mikeage/prpltwtr/
 
 Package: prpltwtr
 Architecture: any
-Depends: libpurple0, account-plugin-haze, ${shlibs:Depends}, ${misc:Depends}
+Depends: libpurple0, ${shlibs:Depends}, ${misc:Depends}
 Description: libpurple plugin to add microblogging as an IM protocol
  libpurple plugin to add microblogging as a IM protocol. It imports your
  Twitter friends and saved search queries to Contacts, and receives

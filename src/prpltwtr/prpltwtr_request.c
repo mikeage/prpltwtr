@@ -1,9 +1,7 @@
-/**
- * TODO: legal stuff
+/*
+ * prpltwtr 
  *
- * purple
- *
- * Purple is the legal property of its developers, whose names are too numerous
+ * prpltwtr is the legal property of its developers, whose names are too numerous
  * to list here.  Please refer to the COPYRIGHT file distributed with this
  * source distribution.
  *
@@ -29,10 +27,6 @@
 #include <glib.h>
 #include <json-glib/json-glib.h>
 
-/* If you're using this as the basis of a prpl that will be distributed
- * separately from libpurple, remove the internal.h include below and replace
- * it with code to include your own defaults.h or similar.  If you're going to
- * provide for translation, you'll also need to setup the gettext macros. */
 #include "defaults.h"
 
 #include <debug.h>

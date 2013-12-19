@@ -6,8 +6,8 @@ SetCompress auto
 ; todo: SetBrandingImage
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "prpltwtr"
-!define PRODUCT_PUBLISHER "Neaveru"
-!define PRODUCT_WEB_SITE "http://code.google.com/p/prpltwtr/"
+!define PRODUCT_PUBLISHER "Mike Miller"
+!define PRODUCT_WEB_SITE "http://github.com/mikeage/prpltwtr/"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
 
