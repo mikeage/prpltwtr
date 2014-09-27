@@ -12,7 +12,7 @@ If you don't like this plugin, I recommend trying out [microblog-purple](http://
 
   * If you receive a lot of tweets with links shortened via bit.ly, t.co, etc, you may find [expand] (https://github.com/mikeage/expand/) to be a useful plugin. Go check it out!
 
-### Version 0.13.0 (in progress) ###
+### Version 0.13.0 ###
   * Add Japanese translation
   * Add support for Twitter API v1.1 (restore functionality)
   * Fix Debian packaging

@@ -1,4 +1,6 @@
 Changelog for current version:
+
+Changelog for 0.13.0:
   * Add Japanese translation
   * Support Twitter API v1.1
   * Fix Debian packaging
