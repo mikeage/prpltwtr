@@ -72,6 +72,9 @@ AS_IF([test "x$with_pidgin" != xno],
 
 AM_CONDITIONAL([WITH_PIDGIN], [test "x$with_pidgin" != xno])
 
+PKG_CHECK_MODULES([GLIB], [glib-2.0])
+PKG_CHECK_MODULES([LIBXML2], [libxml-2.0])
+
 PKG_CHECK_MODULES([PURPLE], [purple],
 				  [
 				   AC_SUBST(PURPLE_CFLAGS)
