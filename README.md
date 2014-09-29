@@ -12,6 +12,16 @@ If you don't like this plugin, I recommend trying out [microblog-purple](http://
 
   * If you receive a lot of tweets with links shortened via bit.ly, t.co, etc, you may find [expand] (https://github.com/mikeage/expand/) to be a useful plugin. Go check it out!
 
+### Compilation Instructions ###
+This plugin can be compiled on Linux for either Windows (using mingw) or Linux targets. Compilation on Windows is not currently supported.
+For Linux, use the standard:
+
+./autogen.sh ; ./configure ; make ; (sudo) make install
+
+For Windows, unpack the pidgin sources somewhere outside of this plugin, and run:
+
+make -f Makefile.mingw PIDGIN_TREE_TOP=/path/to/where/you/have/pidgin/sources/ installer
+
 ### Version 0.13.0 ###
   * Add Japanese translation
   * Add support for Twitter API v1.1 (restore functionality)
