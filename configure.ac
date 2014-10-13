@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT([prpltwtr], [0.13.0], [https://github.com/mikeage/prpltwtr/issues])
+AC_INIT([prpltwtr], [0.14.0], [https://github.com/mikeage/prpltwtr/issues])
 AC_CANONICAL_TARGET([])
 AM_INIT_AUTOMAKE([1.9.5])
 

@@ -22,6 +22,9 @@ For Windows, unpack the pidgin sources somewhere outside of this plugin, and run
 
 make -f Makefile.mingw PIDGIN_TREE_TOP=/path/to/where/you/have/pidgin/sources/ installer
 
+### Version 0.14.0 ###
+  * Use HTTPS for OAuth
+
 ### Version 0.13.0 ###
   * Add Japanese translation
   * Add support for Twitter API v1.1 (restore functionality)
