@@ -298,7 +298,7 @@ static void oauth_request_token_success_cb(TwitterRequestor * r, const gchar * r
     const gchar    *oauth_token_secret = g_hash_table_lookup(results, "oauth_token_secret");
     if (oauth_token && oauth_token_secret) {
 /* http://api.twitter.com/oauth/authorize */
-        gchar          *msg = g_strdup_printf("http://%s?oauth_token=%s",
+        gchar          *msg = g_strdup_printf("https://%s?oauth_token=%s",
                                               twitter_option_url_oauth_authorize(account),
                                               purple_url_encode(oauth_token));
         gchar          *prompt = g_strdup_printf("%s %s", _("Please enter PIN for"), purple_account_get_username(account));
