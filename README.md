@@ -1,3 +1,5 @@
+Current build status: [![Build Status](https://travis-ci.org/mikeage/prpltwtr.svg?branch=twitter-json)](https://travis-ci.org/mikeage/prpltwtr)
+
 This is a [libpurple](http://developer.pidgin.im/wiki/WhatIsLibpurple) [Pidgin](http://pidgin.im/), [Finch](http://developer.pidgin.im/wiki/Using%20Finch), etc plugin which treats microblogging sites [Twitter](http://developer.pidgin.im/wiki/Using%20Finch), [identi.ca](http://identi.ca), [status.net](http://status.net/) as IM protocols. 
 
 It treats timelines and searches as chat rooms and the people you follow as buddies. 
