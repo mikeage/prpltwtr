@@ -1,0 +1,75 @@
+language: cpp
+compiler:
+    - gcc
+env:
+    - PIDGIN=""
+    - PIDGIN="--without-pidgin"
+    - WINDOWS="true"
+before_script:
+    - sudo apt-get update -qq
+    - sudo apt-get install intltool
+    - sudo apt-get install -qq libglib2.0-dev libpurple-dev libjson-glib-dev
+script:
+    - if ! [[ "$PIDGIN" ]]; then sudo apt-get install -qq pidgin-dev; else sudo apt-get remove -qq pidgin-dev; fi
+    - if ! [[ "$WINDOWS" ]]; then NOCONFIGURE=true ./autogen.sh && ./configure $PIDGIN && make; fi
+    - |
+      if [[ "$WINDOWS" ]]
+      then
+          sudo apt-get install -qq mingw32 mingw32-binutils mingw32-runtime nsis && 
+          export PIDGIN_VERSION=2.8.0
+
+          export BUILD_DIR=`pwd`/build
+          export SOURCE_DIR=$BUILD_DIR/src
+          export WIN32DEV_DIR=$BUILD_DIR/win32-dev
+          export PIDGIN_DIR=$BUILD_DIR/pidgin-$PIDGIN_VERSION
+
+          mkdir -p $SOURCE_DIR $WIN32DEV_DIR $PIDGIN_DIR
+
+          OLD_DIR=`pwd`
+          cd ${SOURCE_DIR}
+          wget -nv http://ftp.gnome.org/pub/gnome/binaries/win32/gtk+/2.14/gtk+-bundle_2.14.7-20090119_win32.zip http://ftp.gnome.org/pub/gnome/binaries/win32/dependencies/gettext-tools-0.17.zip http://ftp.gnome.org/pub/gnome/binaries/win32/dependencies/gettext-runtime-0.17-1.zip http://ftp.gnome.org/pub/gnome/binaries/win32/dependencies/libxml2-dev_2.7.4-1_win32.zip http://ftp.gnome.org/pub/gnome/binaries/win32/dependencies/libxml2_2.7.4-1_win32.zip http://developer.pidgin.im/static/win32/tcl-8.4.5.tar.gz http://developer.pidgin.im/static/win32/gtkspell-2.0.16.tar.bz2 http://ftp.gnome.org/pub/gnome/binaries/win32/dependencies/enchant_1.5.0-2_win32.zip http://developer.pidgin.im/static/win32/nss-3.12.5-nspr-4.8.2.tar.gz http://developer.pidgin.im/static/win32/silc-toolkit-1.1.8.tar.gz http://developer.pidgin.im/static/win32/meanwhile-1.0.2_daa2-win32.zip http://developer.pidgin.im/static/win32/cyrus-sasl-2.1.22-daa1.zip http://ftp.acc.umu.se/pub/GNOME/binaries/win32/intltool/0.40/intltool_0.40.4-1_win32.zip http://prdownloads.sourceforge.net/pidgin/pidgin-${PIDGIN_VERSION}.tar.bz2
+
+          unzip ${SOURCE_DIR}/gtk+-bundle_2.14.7-20090119_win32.zip -d ${WIN32DEV_DIR}/gtk_2_0-2.14
+          unzip ${SOURCE_DIR}/gettext-tools-0.17.zip -d ${WIN32DEV_DIR}/gettext-0.17
+          unzip ${SOURCE_DIR}/gettext-runtime-0.17-1.zip -d ${WIN32DEV_DIR}/gettext-0.17
+          unzip ${SOURCE_DIR}/libxml2-dev_2.7.4-1_win32.zip -d ${WIN32DEV_DIR}/libxml2-2.7.4
+          unzip ${SOURCE_DIR}/libxml2_2.7.4-1_win32.zip -d ${WIN32DEV_DIR}/libxml2-2.7.4
+          unzip ${SOURCE_DIR}/enchant_1.5.0-2_win32.zip -d ${WIN32DEV_DIR}/enchant_1.5.0-2_win32
+          unzip ${SOURCE_DIR}/meanwhile-1.0.2_daa2-win32.zip -d ${WIN32DEV_DIR}
+          unzip ${SOURCE_DIR}/cyrus-sasl-2.1.22-daa1.zip -d ${WIN32DEV_DIR}
+          unzip ${SOURCE_DIR}/intltool_0.40.4-1_win32.zip -d ${WIN32DEV_DIR}/intltool_0.40.4-1_win32
+
+          cd ${WIN32DEV_DIR}
+          tar xzvf ${SOURCE_DIR}/tcl-8.4.5.tar.gz
+          tar xjvf ${SOURCE_DIR}/gtkspell-2.0.16.tar.bz2
+          tar xzvf ${SOURCE_DIR}/nss-3.12.5-nspr-4.8.2.tar.gz
+          tar xzvf ${SOURCE_DIR}/silc-toolkit-1.1.8.tar.gz
+
+          cd ${BUILD_DIR}
+          tar xjvf ${SOURCE_DIR}/pidgin-${PIDGIN_VERSION}.tar.bz2
+
+          echo "SHELL := /bin/bash " >> pidgin-${PIDGIN_VERSION}/local.mak
+          echo "CC := /usr/bin/i586-mingw32msvc-cc " >> pidgin-${PIDGIN_VERSION}/local.mak
+          echo "GMSGFMT := msgfmt " >> pidgin-${PIDGIN_VERSION}/local.mak
+          echo "MAKENSIS := /usr/bin/makensis " >> pidgin-${PIDGIN_VERSION}/local.mak
+          echo "MAKENSISOPT := - " >> pidgin-${PIDGIN_VERSION}/local.mak
+          echo "WINDRES := /usr/bin/i586-mingw32msvc-windres " >> pidgin-${PIDGIN_VERSION}/local.mak
+          echo "STRIP := /usr/bin/i586-mingw32msvc-strip " >> pidgin-${PIDGIN_VERSION}/local.mak
+          echo "INTLTOOL_MERGE := /usr/bin/intltool-merge " >> pidgin-${PIDGIN_VERSION}/local.mak
+          echo "INCLUDE_PATHS := -I$(PIDGIN_TREE_TOP)/../win32-dev/w32api/include " >> pidgin-${PIDGIN_VERSION}/local.mak
+          echo "LIB_PATHS := -L$(PIDGIN_TREE_TOP)/../win32-dev/w32api/lib " >> pidgin-${PIDGIN_VERSION}/local.mak
+
+          cd $OLD_DIR
+          PACKAGE_VERSION="$(git describe --tags)" make -f Makefile.mingw PIDGIN_TREE_TOP=$PIDGIN_DIR installer
+          export ARTIFACT=prpltwtr-*.exe
+      fi
+      # Disabled until we can upload files by wildcard
+#deploy:
+#provider: releases
+#api_key:
+#secure: SCbPDKlio+WS4I5X2NNYH0rySnxt7PuIJNQci9tdQadepeZaTYC6/4zRkwyA3TzOAEF7w16qJw3d5fut0nVgtBPLl2uCq9Pv0Zhel0BxNgzV7WXhNqp75Z9mKAQrCj8oCYNR8n7fNpdTHrKDDpRcpz9nb4ZvYTzs3xl0nQq94Fk=
+#file: $ARTIFACT
+#on:
+#repo: mikeage/prpltwtr
+#tags: true
+#all_branches: true
