@@ -7,7 +7,7 @@
 .PHONY: all installer clean
 
 MINGW_MAKEFILE=Makefile.mingw
-export PACKAGE_VERSION=$(shell grep ^PACKAGE_VERSION= configure | cut -d "'" -f 2)
+PACKAGE_VERSION?=$(shell grep ^PACKAGE_VERSION= configure | cut -d "'" -f 2)
 
 PO_INSTALL_SCRIPT = nsis/po_prpltwtr.nsi
 
