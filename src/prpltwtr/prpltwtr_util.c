@@ -25,70 +25,6 @@
 #include <version.h>
 #include <signals.h>
 
-#if !PURPLE_VERSION_CHECK(2, 6, 0)
-
-//from libpurple/util.c
-static void append_escaped_text(GString * str, const gchar * text, gssize length)
-{
-    const gchar    *p;
-    const gchar    *end;
-    gunichar        c;
-
-    p = text;
-    end = text + length;
-
-    while (p != end) {
-        const gchar    *next;
-        next = g_utf8_next_char(p);
-
-        switch (*p) {
-        case '&':
-            g_string_append(str, "&amp;");
-            break;
-
-        case '<':
-            g_string_append(str, "&lt;");
-            break;
-
-        case '>':
-            g_string_append(str, "&gt;");
-            break;
-
-        case '"':
-            g_string_append(str, "&quot;");
-            break;
-
-        default:
-            c = g_utf8_get_char(p);
-            if ((0x1 <= c && c <= 0x8) || (0xb <= c && c <= 0xc) || (0xe <= c && c <= 0x1f) || (0x7f <= c && c <= 0x84) || (0x86 <= c && c <= 0x9f))
-                g_string_append_printf(str, "&#x%x;", c);
-            else
-                g_string_append_len(str, p, next - p);
-            break;
-        }
-
-        p = next;
-    }
-}
-
-//from libpurple/util.c
-static gchar   *purple_markup_escape_text(const gchar * text, gssize length)
-{
-    GString        *str;
-
-    g_return_val_if_fail(text != NULL, NULL);
-
-    if (length < 0)
-        length = strlen(text);
-
-    /* prealloc at least as long as original text */
-    str = g_string_sized_new(length);
-    append_escaped_text(str, text, length);
-
-    return g_string_free(str, FALSE);
-}
-#endif
-
 gboolean twitter_usernames_match(PurpleAccount * account, const gchar * u1, const gchar * u2)
 {
     gboolean        match;
@@ -112,11 +48,9 @@ char           *twitter_format_tweet(PurpleAccount * account, const char *src_us
     if (linkified_message)
         return linkified_message;
 
-    linkified_message = purple_markup_escape_text(message, -1);
+    g_return_val_if_fail(message != NULL, NULL);
 
-    g_return_val_if_fail(linkified_message != NULL, NULL);
-
-    tweet = g_string_new(linkified_message);
+    tweet = g_string_new(message);
 
     if (twitter_option_add_link_to_tweet(account) && is_tweet && tweet_id) {
         PurpleConnection *gc = purple_account_get_connection(account);
@@ -128,7 +62,6 @@ char           *twitter_format_tweet(PurpleAccount * account, const char *src_us
         }
     }
 
-    g_free(linkified_message);
     return g_string_free(tweet, FALSE);
 }
 
