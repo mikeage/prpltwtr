@@ -946,13 +946,6 @@ static const char *_find_first_delimiter(const char *text, const char *delimiter
     return NULL;
 }
 
-static void _g_string_append_escaped_len(GString * s, const gchar * txt, gssize len)
-{
-    gchar          *tmp = purple_markup_escape_text(txt, len);
-    g_string_append(s, tmp);
-    g_free(tmp);
-}
-
 //TODO: move those
 static char    *twitter_linkify(PurpleAccount * account, const char *message)
 {
@@ -974,11 +967,11 @@ static char    *twitter_linkify(PurpleAccount * account, const char *message)
         int             symbol_index = 0;
         first_token = _find_first_delimiter(ptr, symbols, &symbol_index);
         if (first_token == NULL) {
-            _g_string_append_escaped_len(ret, ptr, -1);
+            g_string_append(ret, ptr);
             break;
         }
         current_action = symbol_actions[symbol_index];
-        _g_string_append_escaped_len(ret, ptr, first_token - ptr);
+        g_string_append_len(ret, ptr, first_token - ptr);
         ptr = first_token;
         delim = _find_first_delimiter(ptr, delims, NULL);
         if (delim == NULL)
@@ -986,7 +979,7 @@ static char    *twitter_linkify(PurpleAccount * account, const char *message)
         link_text = g_strndup(ptr, delim - ptr);
         //Added the 'a' before the account name because of a highlighting issue... ugly hack
         g_string_append_printf(ret, "<a href=\"" TWITTER_URI ":///%s?account=a%s&text=%s&protocol_id=%s\">", current_action, purple_account_get_username(account), purple_url_encode(link_text), purple_account_get_protocol_id(account));
-        _g_string_append_escaped_len(ret, link_text, -1);
+        g_string_append(ret, link_text);
         g_string_append(ret, "</a>");
         ptr = delim;
 
