@@ -16,13 +16,14 @@ If you don't like this plugin, I recommend trying out [microblog-purple](http://
 
 ### Compilation Instructions ###
 This plugin can be compiled on Linux for either Windows (using mingw) or Linux targets. Compilation on Windows is not currently supported.
+
 For Linux, use the standard:
 
-./autogen.sh ; ./configure ; make ; (sudo) make install
+    ./autogen.sh ; ./configure ; make ; (sudo) make install
 
 For Windows, unpack the pidgin sources somewhere outside of this plugin, and run:
 
-make -f Makefile.mingw PIDGIN_TREE_TOP=/path/to/where/you/have/pidgin/sources/ installer
+    make -f Makefile.mingw PIDGIN_TREE_TOP=/path/to/where/you/have/pidgin/sources/ installer
 
 ### Version 0.14.0 ###
   * Use HTTPS for OAuth
