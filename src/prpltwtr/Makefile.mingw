@@ -84,7 +84,7 @@ LIBS =	-lgtk-win32-2.0 \
 			-lgobject-2.0 \
 			-lintl \
 			-lpurple \
-			-ljson-glib
+			-ljson-glib-1.0
 #			-lgdk_pixbuf-2.0 \
 #			-lpidgin
 

@@ -82,7 +82,7 @@ SectionIn RO
 		IfErrors dllbusy
 		SetOutPath "$INSTDIR"
 		File "${BASEDIR}\src\prpltwtr\libprpltwtr.dll"
-		FILE "${BASEDIR}\src\win32_only\json-glib\libjson-glib.dll"
+		FILE "${BASEDIR}\src\win32_only\json-glib\libjson-glib-1.0.dll"
 		SetOutPath "$INSTDIR\plugins"
 		File "${BASEDIR}\src\prpltwtr\libprpltwtr_statusnet.dll"
 		File "${BASEDIR}\src\prpltwtr\libprpltwtr_twitter.dll"
@@ -100,7 +100,7 @@ SectionEnd
 Section "${PRODUCT_NAME} dbgsym" SEC02
 		SetOutPath "$INSTDIR"
 		File "${BASEDIR}\src\prpltwtr\libprpltwtr.dll.dbgsym"
-		FILE "${BASEDIR}\src\win32_only\json-glib\libjson-glib.dll.dbgsym"
+		FILE "${BASEDIR}\src\win32_only\json-glib\libjson-glib-1.0.dll.dbgsym"
 		SetOutPath "$INSTDIR\plugins"
 		File "${BASEDIR}\src\prpltwtr\libprpltwtr_twitter.dll.dbgsym"
 		File "${BASEDIR}\src\prpltwtr\libprpltwtr_statusnet.dll.dbgsym"

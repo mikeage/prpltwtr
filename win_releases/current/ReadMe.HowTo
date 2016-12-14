@@ -1,0 +1,16 @@
+
+How to install : 
+----------------
+
+1. Copy to /plugin directory
+libprpltwtr_twitter.dll
+libprpltwtr_statusnet.dll
+
+
+2. Copy to main pidgin directory 
+libprpltwtr.dll
+libjson-glib-1.0.dll
+
+
+3. If you want to debug
+Copy dbgsym files to pidgin-2.11.0-dbgsym directory in their respective folders
