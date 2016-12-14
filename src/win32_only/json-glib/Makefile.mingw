@@ -10,7 +10,7 @@ endif
 
 include $(PIDGIN_TREE_TOP)/libpurple/win32/global.mak
 
-TARGET = libjson-glib
+TARGET = libjson-glib-1.0
 
 ##
 ## INCLUDE PATHS
